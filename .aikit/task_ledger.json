@@ -3,12 +3,13 @@
   "active_task": {
     "task_id": "muse-review-hardening",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1792966185.7095184,
     "owner": "kilo:main",
     "started_by": "kilo:main",
-    "continuations": []
+    "continuations": [],
+    "completed_at": 1792966285.971549
   },
   "checkpoints": [
     {
@@ -91,6 +92,16 @@
       "status": "in_progress",
       "timestamp": 1792966185.7095184,
       "timestamp_str": "2026-10-26 01:09:45",
+      "agent": "kilo:main"
+    },
+    {
+      "task_id": "muse-review-hardening",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-review-hardening' completed successfully.",
+      "status": "completed",
+      "timestamp": 1792966285.9715502,
+      "timestamp_str": "2026-10-26 01:11:25",
       "agent": "kilo:main"
     }
   ]
