@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "name": "muse",
+  "test_command": "python -m unittest discover -s tests -t .",
+  "topics": [
+    "aikit"
+  ],
+  "gates": {},
+  "ui_required": false,
+  "created": "2026-10-26"
+}
