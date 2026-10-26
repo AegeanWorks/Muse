@@ -32,3 +32,9 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Context**: The portfolio's other local tools install instantly and run on any Python 3.10+ machine; a vendor SDK would add transitive dependencies and pin the project to one provider.
 - **Decision**: Use `urllib`, `json`, `wave` and `dataclasses` only. The retry, backoff, timeout, atomic download and inline-audio limit rules live in `muse/net.py` and the adapters.
 - **Consequences**: No install step and no dependency drift; both providers share one tested HTTP policy. The cost is owning retry and schema handling that SDKs would otherwise supply.
+
+## Licensing migration (v0.1.0-al-1.0)
+
+- New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).
+- Rights holder: AegeanWorks; commercial use under ACL-1.0.
+- Counsel review of the 1.1 texts remains pending.
