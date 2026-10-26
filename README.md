@@ -209,8 +209,6 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `the judge returned an invalid score` | model drifted from the schema | retry, or switch `MUSE_JUDGE_MODEL` |
 | `unknown music provider` / `unknown judge` | typo | run `python -m muse providers` |
 
-> **License history:** versions up to and including `v0.1.0-al-1.0` remain available under the Aegean License 1.0 (AL-1.0).
-
 ## 📜 License
 
 Free for personal use under the Aegean License 1.1 (AL-1.1); see [LICENSE](LICENSE). Any commercial use needs the Aegean Commercial License 1.0 (ACL-1.0); see [COMMERCIAL.md](COMMERCIAL.md).
