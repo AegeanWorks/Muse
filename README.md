@@ -1,7 +1,7 @@
 # muse
 
 <!-- aegean:media:start -->
-<p align="center"><img src="assets/logo.png" alt="Muse logo" width="96" height="96"></p>
+<p align="center"><img src="assets/logo.jpg" alt="Muse logo" width="96" height="96"></p>
 <p align="center"><img src="assets/social-preview.png" alt="Muse social preview" width="100%"></p>
 <!-- aegean:media:end -->
 
