@@ -4,6 +4,7 @@
   "test_command": "python -m unittest discover -s tests -t .",
   "topics": [
     "aikit",
+    "aikit-integrated",
     "source-available",
     "aegean-license",
     "commercial-license",
@@ -21,8 +22,7 @@
     "creative-ai",
     "llm",
     "sound",
-    "ai-art",
-    "creative-tools"
+    "ai-art"
   ],
   "gates": {},
   "ui_required": false,
