@@ -3,9 +3,67 @@
   "name": "muse",
   "test_command": "python -m unittest discover -s tests -t .",
   "topics": [
-    "aikit"
+    "aikit",
+    "python",
+    "source-available",
+    "ai-music",
+    "cli",
+    "generative-ai",
+    "music-generation",
+    "aegeanworks",
+    "ai",
+    "audio",
+    "generative-music",
+    "music",
+    "software",
+    "prompt-engineering",
+    "creative-ai",
+    "llm",
+    "sound",
+    "ai-art",
+    "creative-tools",
+    "audio-processing"
   ],
   "gates": {},
   "ui_required": false,
-  "created": "2026-10-26"
+  "created": "2026-10-26",
+  "has_ui": false,
+  "ui_kind": "cli",
+  "ui_evidence": [
+    "muse/cli.py"
+  ],
+  "ui_checked_at": "2026-10-28",
+  "ui_source": "detected",
+  "topics_source": "ai:kilo:2026-10-27",
+  "topics_reviewed_at": "2026-10-28",
+  "topics_choice": [
+    "aegeanworks",
+    "software",
+    "ai",
+    "music",
+    "audio",
+    "generative-music"
+  ],
+  "topics_choice_round2": [
+    "music-generation",
+    "generative-ai",
+    "ai-music",
+    "prompt-engineering",
+    "audio",
+    "music",
+    "cli"
+  ],
+  "topics_choice_round3": [
+    "audio",
+    "music",
+    "sound",
+    "ai",
+    "llm",
+    "creative-ai"
+  ],
+  "topics_choice_round4": [
+    "generative-music",
+    "creative-tools",
+    "ai-art"
+  ]
 }

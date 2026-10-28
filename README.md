@@ -1,5 +1,10 @@
 # muse
 
+<!-- aegean:media:start -->
+<p align="center"><img src="assets/logo.svg" alt="Muse logo" width="96" height="96"></p>
+<p align="center"><img src="assets/social-preview.svg" alt="Muse social preview" width="100%"></p>
+<!-- aegean:media:end -->
+
 [![Built with AIKit](https://img.shields.io/badge/built%20with-AIKit-6f42c1)](https://github.com/AegeanWorks/AIKit)
 
 Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme, exposed as a CLI and Python library.
