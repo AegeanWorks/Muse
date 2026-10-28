@@ -14,40 +14,20 @@
   "layout": "wave",
   "assets": {
     "logo": {
-      "path": "assets/logo.png",
-      "status": "approved",
-      "commit": "",
-      "generated_at": "2026-10-28T13:53:39",
-      "review": {
-        "status": "approved",
-        "reviewer": "subagent:brand-review",
-        "method": "vision",
-        "notes": "Monogram MU badge; eyebrow AUDIO AI; title Muse title case single line. Blue speaker/record cone with rings fits AI music generation. Premium dark aesthetic, clean hierarchy, no clipping.",
-        "score": 88,
-        "reviewed_at": "2026-10-28T14:00:01"
-      }
-    },
-    "social_preview": {
-      "path": "assets/social-preview.png",
-      "status": "approved",
-      "commit": "",
-      "generated_at": "2026-10-28T13:53:39",
-      "review": {
-        "status": "approved",
-        "reviewer": "subagent:brand-review",
-        "method": "vision",
-        "notes": "CLI card; tagline 'Generate and shape music with local AI.', chips python/ai music/cli, URL github.com/AegeanWorks/Muse legible, circular artwork bleeds edges but no clipping of text.",
-        "score": 90,
-        "reviewed_at": "2026-10-28T14:00:01"
-      }
-    },
-    "artwork": {
-      "path": "assets/artwork.jpg",
+      "path": "assets/logo.jpg",
       "status": "pending_review",
       "commit": "",
-      "generated_at": "2026-10-28T13:34:18",
+      "generated_at": "2026-10-28T16:26:18",
+      "review": null
+    },
+    "social_preview": {
+      "path": "assets/social-preview.jpg",
+      "status": "pending_review",
+      "commit": "",
+      "generated_at": "2026-10-28T16:26:18",
       "review": null
     }
   },
-  "screenshots": []
+  "screenshots": [],
+  "model": "community/scriptsnsenses-sys/flux-2-dev-free"
 }
