@@ -4,8 +4,10 @@
   "test_command": "python -m unittest discover -s tests -t .",
   "topics": [
     "aikit",
-    "python",
     "source-available",
+    "aegean-license",
+    "commercial-license",
+    "python",
     "ai-music",
     "cli",
     "generative-ai",
@@ -15,14 +17,12 @@
     "audio",
     "generative-music",
     "music",
-    "software",
     "prompt-engineering",
     "creative-ai",
     "llm",
     "sound",
     "ai-art",
-    "creative-tools",
-    "audio-processing"
+    "creative-tools"
   ],
   "gates": {},
   "ui_required": false,
@@ -65,5 +65,10 @@
     "generative-music",
     "creative-tools",
     "ai-art"
+  ],
+  "license_topics": [
+    "source-available",
+    "aegean-license",
+    "commercial-license"
   ]
 }
