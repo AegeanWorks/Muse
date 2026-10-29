@@ -6,7 +6,7 @@
 <!-- aegean:media:end -->
 
 
-Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme and can retry using the judge's own suggestions, exposed as a CLI and Python library.
+Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme and can retry using the judge's own suggestions, exposed as a CLI (single tracks or a JSON batch) and Python library.
 
 ## ⚡ 30-Second Cold-Start Quick Reference
 
@@ -26,6 +26,10 @@ Prompt-driven AI music creation with an automated listener that scores how well 
   python -m muse generate "tense low drones" --theme "abandoned mine level" --duration 45 --attempts 3
   ```
   A rejected take is re-rendered with the judge's suggestions appended to the prompt; the best-scoring take is returned and every take stays in its own folder.
+- **A whole soundtrack** from one manifest:
+  ```bash
+  python -m muse batch tracks.json --attempts 2 --strict
+  ```
 - **Canonical Regression Shield Gate**:
   ```bash
   python -m unittest discover -s tests -t .
@@ -48,6 +52,8 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
+`muse batch` runs the same provider, judge and retry loop over a JSON manifest, one track at a time, and prints a set-level summary.
+
 ## Command line
 
 ```bash
@@ -62,6 +68,9 @@ python -m muse judge output/boss-phase-two/track.wav --theme "boss phase two" --
 
 # retry a rejected take with the judge's suggestions, keeping the best result
 python -m muse generate "glitchy percussion" --theme "boss phase two" --attempts 3
+
+# render a whole soundtrack from one manifest, failing CI if any track is rejected
+python -m muse batch tracks.json --attempts 2 --strict --json
 
 # what is wired in?
 python -m muse providers
@@ -84,6 +93,27 @@ python -m muse providers
 | `--json` | Print a machine-readable result |
 
 Exit codes: `0` success, `1` operational failure (with `Why:` and `Fix:`), `2` argument misuse.
+
+### Batch mode
+
+`muse batch` reads one UTF-8 JSON manifest (maximum 1 MB and 50 tracks) and renders every entry
+with the same provider, judge and `--attempts` setting:
+
+```json
+{
+  "tracks": [
+    {"name": "village-dawn", "prompt": "warm analog pads", "theme": "village at dawn", "duration": 40},
+    {"name": "boss-phase-two", "prompt": "glitchy percussion", "theme": "boss phase two", "duration": 30}
+  ]
+}
+```
+
+`prompt` is required; `theme`, `duration` and `name` are optional and default to the same values
+as `generate`. Unknown keys, wrong types, an empty track list and more than 50 tracks are rejected
+with a `Why:` and `Fix:`. Batch needs a listening judge, runs sequentially, and stops on the first
+operational failure; completed tracks keep their evidence. `--strict` exits `1` when any track is
+rejected (the default is `0`, like `generate`). `--json` prints a `tracks` array plus `total` and
+`accepted` counts.
 
 ## Python library
 
@@ -111,6 +141,9 @@ print(result.attempts[0].score)   # 52, the rejected first take
 `compose` stops as soon as a take is accepted, when the verdict has no suggestions, or at
 `max_attempts` (maximum 5). The returned result describes the best-scoring take, while
 `result.attempts` keeps every take with its prompt, verdict and artifact paths.
+
+Batch manifests are validated by `muse.batch.load_manifest`, which returns `MusicRequest` objects
+for a library to loop over; the CLI batch command is a thin orchestrator around that loader.
 
 Judging only:
 
@@ -153,7 +186,7 @@ Default model notes:
   `MUSE_REPLICATE_VERSION`; the provider then posts to `/v1/predictions`.
 - Model-specific knobs (`steps`, `cfg_scale`, `seed`, `model_version`, ...) go through
   `MusicRequest.extra` in the library; only prompt and duration are sent by default.
-- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever; `--attempts N` multiplies both by the number of takes actually rendered.
+- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever; `--attempts N` multiplies both by the number of takes actually rendered, and a batch multiplies again by its track count.
 
 ## Artifacts
 
@@ -166,7 +199,9 @@ output/<slug>-2/     <- second take of an --attempts run, same files
 
 Each take keeps its own folder, including rejected ones, so the full retry history is auditable.
 The selected take's `muse.json` also records `selected_attempt` and an `attempts` array with the
-prompt, score, verdict and relative artifact paths of every take.
+prompt, score, verdict and relative artifact paths of every take. Batch runs use the same per-track
+folders and write no separate summary file, so an interrupted batch leaves every completed track
+inspectable.
 
 `muse.json` is written atomically (temporary file, fsync, replace), so an interrupted run never
 leaves truncated metadata. Repeated runs with the same name get `-2`, `-3`, ... folders instead
@@ -191,7 +226,8 @@ muse/
 │   ├── __main__.py           <- `python -m muse`
 │   ├── artifacts.py          <- unique run folders, atomic JSON
 │   ├── audio.py              <- WAV duration, MIME sniffing, offline tone
-│   ├── cli.py                <- generate / judge / providers commands
+│   ├── batch.py              <- JSON manifest parsing and validation
+│   ├── cli.py                <- generate / batch / judge / providers commands
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
@@ -207,7 +243,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 84 offline unit tests, no network or keys
+├── tests/                    <- 98 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 
@@ -236,6 +272,8 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `the judge returned an invalid score` | model drifted from the schema | retry, or switch `MUSE_JUDGE_MODEL` |
 | `unknown music provider` / `unknown judge` | typo | run `python -m muse providers` |
 | `attempts need a listening judge` | `--attempts` above 1 with `--judge none` | omit `--attempts`, or use `gemini`/`mock` |
+| `batch needs a listening judge` | `muse batch --judge none` | omit `--judge none`; a batch cannot report acceptance without a verdict |
+| `the batch manifest ...` | missing file, invalid JSON, unknown keys or bad types | read the `Why:`/`Fix:` lines; the manifest needs a `tracks` array of prompt objects |
 
 <!-- aegean:brand-assets:start -->
 ## 🎨 Brand Assets

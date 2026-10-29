@@ -40,6 +40,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `--attempts N` (1-5, default 1) renders a take, judges it, and while the score is below the threshold, the verdict has suggestions, and takes remain, appends those suggestions to the prompt and renders again. Every take keeps its own artifact folder; the selected take is the highest score, ties going to the earlier take, and its `muse.json` (schema 2) records `attempt`, `selected_attempt` and the full `attempts` history. `--attempts` above 1 requires a listening judge; `--strict` judges the selected take.
 - **Consequences**: One command can reach an acceptable score without a human loop, and every rejected take remains auditable. The cost is one provider prediction and one judge call per take, plus cosmetic folder suffixes; refinement is a bounded heuristic (suggestions are appended, not rewritten), so a judge that offers nothing actionable stops the loop early.
 
+### ADR-005: Batch mode reads one validated manifest and renders tracks sequentially
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A project soundtrack is a set of themed tracks, but every track required its own CLI invocation, so automation repeated flags and could not report a set-level result.
+- **Decision**: `muse batch <manifest>` reads a UTF-8 JSON object with a single `tracks` array (1-50 entries, at most 1 MB), validates every `prompt`, `theme`, `duration` and `name` before the first paid call, and runs the existing `compose` pipeline per track with the same `--attempts` setting. Tracks render sequentially; the batch stops on the first operational failure, requires a listening judge, and exposes `--strict` (exit 1 when any track is rejected) and `--json` (`tracks`, `total`, `accepted`). Each track keeps its normal artifact folder and no separate batch summary file is written.
+- **Consequences**: One manifest produces a fully judged soundtrack with a single exit code, while interrupted runs leave every completed track inspectable. The cost is sequential wall-clock time, one prediction and judge call per take per track, and a deliberately narrow manifest schema (unknown keys and types are rejected rather than guessed).
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

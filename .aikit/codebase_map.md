@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `26`
-- **Total Classes**: `44`
-- **Total Top-Level Functions**: `44`
-- **Total Class Methods**: `146`
-- **Total Source Lines**: `2496`
+- **Total Python Modules**: `28`
+- **Total Classes**: `46`
+- **Total Top-Level Functions**: `51`
+- **Total Class Methods**: `165`
+- **Total Source Lines**: `2899`
 
 ---
 
@@ -54,22 +54,38 @@
 
 ---
 
-### [`muse/cli.py`](muse/cli.py)
-> *Command line interface: generate, judge, inspect providers.*
+### [`muse/batch.py`](muse/batch.py)
+> *Batch manifest parsing: one JSON file, many themed tracks.*
 
-**Size**: `282` lines (`10769` bytes)
+**Size**: `140` lines (`5220` bytes)
+
+**Functions:**
+- `def load_manifest(path)` - *Read a JSON manifest and return one validated request per track.*
+- `def _request(track, index)`
+- `def _text(track, key, index)`
+
+---
+
+### [`muse/cli.py`](muse/cli.py)
+> *Command line interface: generate, batch, judge, inspect providers.*
+
+**Size**: `359` lines (`13611` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
 - `def build_parser()`
 - `def _attempt_count(value)`
+- `def _add_attempts(parser)`
 - `def _common(parser)`
 - `def _settings(args, config)`
 - `def _generate(args, settings, provider, judge)`
+- `def _batch(args, settings, provider, judge)`
 - `def _judge(args, settings, judge)`
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
+- `def _batch_payload(results)`
+- `def _print_batch_track(index, total, request, result)`
 - `def _verdict_payload(verdict, path)`
 - `def _verdict_dict(verdict)`
 - `def _print_result(result)`
@@ -298,6 +314,34 @@
 - `class ArtifactTests`
   - Method `.test_unique_directories_get_suffixes()`
   - Method `.test_json_write_leaves_no_temp_file()`
+
+---
+
+### [`tests/test_batch.py`](tests/test_batch.py)
+**Size**: `186` lines (`7979` bytes)
+
+**Classes:**
+- `class ManifestTests`
+  - Method `.setUp()`
+  - Method `.write(payload)`
+  - Method `.test_loads_tracks_with_defaults()`
+  - Method `.test_missing_file_is_explained()`
+  - Method `.test_invalid_json_is_explained_with_position()`
+  - Method `.test_root_and_track_shape_are_checked()`
+  - Method `.test_unknown_track_keys_and_bad_values_are_rejected()`
+  - Method `.test_overflowing_duration_is_rejected()`
+  - Method `.test_track_count_is_capped()`
+  - Method `.test_manifest_size_is_capped()`
+  - Method `.test_utf8_bom_is_accepted()`
+- `class BatchCliTests`
+  - Method `.setUp()`
+  - Method `.manifest(tracks)`
+  - Method `.run_cli(argv, judge)`
+  - Method `.test_batch_json_renders_every_track()`
+  - Method `.test_batch_human_output_and_strict_exit()`
+  - Method `.test_batch_applies_attempts_per_track()`
+  - Method `.test_batch_without_a_judge_is_refused()`
+  - Method `.test_batch_missing_manifest_exits_one()`
 
 ---
 

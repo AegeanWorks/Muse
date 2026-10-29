@@ -1,4 +1,4 @@
-"""Command line interface: generate, judge, inspect providers."""
+"""Command line interface: generate, batch, judge, inspect providers."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from typing import Any, Sequence
 
 from . import __version__
 from .audio import wav_duration
+from .batch import load_manifest
 from .config import MuseConfig
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
@@ -36,6 +37,8 @@ def main(
         settings = _settings(args, config)
         if args.command == "generate":
             return _generate(args, settings, provider, judge)
+        if args.command == "batch":
+            return _batch(args, settings, provider, judge)
         if args.command == "judge":
             return _judge(args, settings, judge)
         return _providers(args)
@@ -66,13 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--theme", default="", help="project theme the track must serve")
     generate.add_argument("--duration", type=float, default=30.0, help="seconds, up to 190")
     generate.add_argument("--name", default="", help="artifact folder name")
-    generate.add_argument(
-        "--attempts",
-        type=_attempt_count,
-        default=1,
-        metavar="N",
-        help=f"render up to N takes, folding judge suggestions into the next prompt (default 1, max {MAX_ATTEMPTS})",
-    )
+    _add_attempts(generate)
     _common(generate)
     generate.add_argument("--strict", action="store_true", help="exit 1 when the verdict is missing or below threshold")
     generate.add_argument(
@@ -80,6 +77,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="keep the audio and metadata when the judge fails",
     )
+
+    batch = subparsers.add_parser("batch", help="render and judge every track in a JSON manifest")
+    batch.add_argument("manifest", type=Path, help="JSON file with a tracks array")
+    _add_attempts(batch)
+    _common(batch)
+    batch.add_argument("--strict", action="store_true", help="exit 1 when any track is rejected")
 
     judge = subparsers.add_parser("judge", help="score an existing audio file against a theme")
     judge.add_argument("audio", help="path to a wav, mp3, ogg or flac file")
@@ -101,6 +104,16 @@ def _attempt_count(value: str) -> int:
     if not 1 <= number <= MAX_ATTEMPTS:
         raise argparse.ArgumentTypeError(f"attempts must be between 1 and {MAX_ATTEMPTS}")
     return number
+
+
+def _add_attempts(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--attempts",
+        type=_attempt_count,
+        default=1,
+        metavar="N",
+        help=f"render up to N takes per track, folding judge suggestions into the next prompt (default 1, max {MAX_ATTEMPTS})",
+    )
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
@@ -150,6 +163,42 @@ def _generate(
     else:
         _print_result(result)
     return 1 if args.strict and not result.accepted else 0
+
+
+def _batch(
+    args: argparse.Namespace,
+    settings: MuseConfig,
+    provider: MusicProvider | None,
+    judge: MusicJudge | None,
+) -> int:
+    if settings.judge == "none" and judge is None:
+        raise ConfigurationError(
+            "batch needs a listening judge",
+            "a batch only reports accepted tracks when a judge scores every take",
+            "omit --judge none, or pass --judge gemini or --judge mock",
+        )
+    requests = load_manifest(args.manifest)
+    results: list[tuple[MusicRequest, CompositionResult]] = []
+    for index, request in enumerate(requests, 1):
+        result = compose(
+            request,
+            settings,
+            provider=provider,
+            judge=judge,
+            max_attempts=args.attempts,
+        )
+        results.append((request, result))
+        if not args.json:
+            _print_batch_track(index, len(requests), request, result)
+    if args.json:
+        print(json.dumps(_batch_payload(results), indent=2))
+    else:
+        accepted = sum(1 for _, result in results if result.accepted)
+        print(f"Batch: {accepted}/{len(results)} accepted")
+        rejected = [request.label for request, result in results if not result.accepted]
+        if rejected:
+            print(f"Rejected: {', '.join(rejected)}")
+    return 1 if args.strict and any(not result.accepted for _, result in results) else 0
 
 
 def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | None) -> int:
@@ -225,6 +274,34 @@ def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
         "verdict": None if attempt.verdict is None else attempt.verdict.verdict,
         "accepted": attempt.accepted,
     }
+
+
+def _batch_payload(results: list[tuple[MusicRequest, CompositionResult]]) -> dict[str, Any]:
+    tracks = []
+    for request, result in results:
+        entry = {"name": request.label, "prompt": request.prompt, "theme": request.theme}
+        entry.update(_result_payload(result))
+        tracks.append(entry)
+    return {
+        "tracks": tracks,
+        "total": len(tracks),
+        "accepted": sum(1 for track in tracks if track["accepted"]),
+    }
+
+
+def _print_batch_track(
+    index: int,
+    total: int,
+    request: MusicRequest,
+    result: CompositionResult,
+) -> None:
+    if result.verdict is None:
+        score = "unjudged"
+    else:
+        score = f"{result.verdict.score}/100 {result.verdict.verdict}"
+    takes = len(result.attempts)
+    label = "take" if takes == 1 else "takes"
+    print(f"[{index}/{total}] {request.label}: {score} ({takes} {label}) -> {result.track.path}")
 
 
 def _verdict_payload(verdict: Verdict, path: Path) -> dict[str, Any]:
