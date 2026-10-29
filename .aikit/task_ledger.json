@@ -1,15 +1,15 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-batch-mode",
+    "task_id": "muse-batch-resume",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793285383.6397934,
+    "updated_at": 1793285874.0517645,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793285392.5851786
+    "completed_at": 1793285885.1837852
   },
   "checkpoints": [
     {
@@ -220,6 +220,49 @@
       "status": "completed",
       "timestamp": 1793285392.5851805,
       "timestamp_str": "2026-10-29 17:49:52",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-batch-resume",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/4] Plan resumable batch: per-track state written after every take, --resume reuses accepted tracks, --keep-going isolates failures, failing-first tests",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793285500.8034883,
+      "timestamp_str": "2026-10-29 17:51:40",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Batch mode stops on the first provider or judge failure, and rerunning the manifest re-renders and re-bills tracks that already succeeded",
+        "benefits": "A failed soundtrack run resumes at the first unfinished track, accepted evidence is reused, and one bad track no longer hides the rest of the set",
+        "risks": "contract: new --resume/--keep-going flags and a hidden batch state file; dependency: none added; concurrency: one sequential writer; state: output/.muse-batch-<hash>.json updated atomically per track",
+        "mitigation": "Hash the validated manifest so a changed manifest refuses resume, skip only accepted tracks, write state after each track, keep default stop-on-failure behavior without --keep-going, failing-first tests"
+      }
+    },
+    {
+      "task_id": "muse-batch-resume",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Phase 4 gates 4/4; 109 offline tests; dogfood: state written, resume reused 3/3, missing evidence rerendered, keep-going recorded 0/3 failures then resumed to 3/3; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793285874.0517645,
+      "timestamp_str": "2026-10-29 17:57:54",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "7 modified, 1 untracked",
+        "next": "stage and commit the resumable batch feature",
+        "evidence": "check 4/4, get batch state schema 1, reused/failed JSON verified"
+      }
+    },
+    {
+      "task_id": "muse-batch-resume",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-batch-resume' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793285885.1837869,
+      "timestamp_str": "2026-10-29 17:58:05",
       "agent": "opencode:main"
     }
   ]

@@ -72,6 +72,9 @@ python -m muse generate "glitchy percussion" --theme "boss phase two" --attempts
 # render a whole soundtrack from one manifest, failing CI if any track is rejected
 python -m muse batch tracks.json --attempts 2 --strict --json
 
+# after a failure, reuse accepted tracks and retry the rest
+python -m muse batch tracks.json --resume --keep-going
+
 # what is wired in?
 python -m muse providers
 ```
@@ -110,10 +113,28 @@ with the same provider, judge and `--attempts` setting:
 
 `prompt` is required; `theme`, `duration` and `name` are optional and default to the same values
 as `generate`. Unknown keys, wrong types, an empty track list and more than 50 tracks are rejected
-with a `Why:` and `Fix:`. Batch needs a listening judge, runs sequentially, and stops on the first
-operational failure; completed tracks keep their evidence. `--strict` exits `1` when any track is
-rejected (the default is `0`, like `generate`). `--json` prints a `tracks` array plus `total` and
-`accepted` counts.
+with a `Why:` and `Fix:`. Batch needs a listening judge and runs sequentially.
+
+Each run writes a hidden `<out>/.muse-batch-<hash>.json` state file after every track. The hash
+covers the validated manifest, so changing a prompt, theme, duration or name starts a different
+state; provider and judge flags are not part of the hash, so run without `--resume` to re-judge
+with a different model. Resume expects the same `--out` and working directory, because evidence
+paths are stored as rendered. `--resume` requires that state, reuses accepted tracks whose audio
+and `muse.json` still exist, and rerenders rejected or failed tracks; missing evidence is reported
+and rerendered.
+`--keep-going` records a failure and continues with the rest of the manifest; without it the first
+failure is recorded and the command stops. A failed track always exits `1`; `--strict` also exits
+`1` when any track is rejected. `--json` prints a `tracks` array plus `total`, `accepted`,
+`rejected`, `failed` and `reused` counts, with a `reused` flag on every track.
+
+| Batch flag | Meaning |
+|---|---|
+| `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
+| `--keep-going` | Record a failed track and continue with the rest |
+| `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
+
+To start a batch over from scratch, run without `--resume`; that replaces the state file but keeps
+the old artifact folders as evidence.
 
 ## Python library
 
@@ -186,7 +207,7 @@ Default model notes:
   `MUSE_REPLICATE_VERSION`; the provider then posts to `/v1/predictions`.
 - Model-specific knobs (`steps`, `cfg_scale`, `seed`, `model_version`, ...) go through
   `MusicRequest.extra` in the library; only prompt and duration are sent by default.
-- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever; `--attempts N` multiplies both by the number of takes actually rendered, and a batch multiplies again by its track count.
+- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever; `--attempts N` multiplies both by the number of takes actually rendered, and a batch multiplies again by its track count. `--resume` avoids paying again for accepted tracks.
 
 ## Artifacts
 
@@ -195,13 +216,14 @@ output/<slug>/
 ├── track.wav        <- rendered audio (or .mp3 when the model returns mp3)
 └── muse.json        <- schema 2: attempt, request, model, settings, verdict, accepted, judge_error
 output/<slug>-2/     <- second take of an --attempts run, same files
+output/.muse-batch-<hash>.json  <- batch resume state, not track evidence
 ```
 
 Each take keeps its own folder, including rejected ones, so the full retry history is auditable.
 The selected take's `muse.json` also records `selected_attempt` and an `attempts` array with the
 prompt, score, verdict and relative artifact paths of every take. Batch runs use the same per-track
-folders and write no separate summary file, so an interrupted batch leaves every completed track
-inspectable.
+folders plus the hidden fingerprint state file, which stores summaries only; `--resume` checks that
+the referenced audio and `muse.json` still exist before reusing a track.
 
 `muse.json` is written atomically (temporary file, fsync, replace), so an interrupted run never
 leaves truncated metadata. Repeated runs with the same name get `-2`, `-3`, ... folders instead
@@ -227,6 +249,7 @@ muse/
 │   ├── artifacts.py          <- unique run folders, atomic JSON
 │   ├── audio.py              <- WAV duration, MIME sniffing, offline tone
 │   ├── batch.py              <- JSON manifest parsing and validation
+│   ├── batch_state.py        <- fingerprinted, crash-safe batch progress
 │   ├── cli.py                <- generate / batch / judge / providers commands
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── errors.py             <- What / Why / Fix failures
@@ -243,7 +266,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 98 offline unit tests, no network or keys
+├── tests/                    <- 109 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 
@@ -274,6 +297,8 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `attempts need a listening judge` | `--attempts` above 1 with `--judge none` | omit `--attempts`, or use `gemini`/`mock` |
 | `batch needs a listening judge` | `muse batch --judge none` | omit `--judge none`; a batch cannot report acceptance without a verdict |
 | `the batch manifest ...` | missing file, invalid JSON, unknown keys or bad types | read the `Why:`/`Fix:` lines; the manifest needs a `tracks` array of prompt objects |
+| `no batch state to resume` | `--resume` before any batch ran, or a changed `--out` | run without `--resume`, or point `--out` at the previous artifact root |
+| `the batch state belongs to a different manifest` | a prompt, theme, duration or name changed | restore the manifest, or run without `--resume` for a fresh batch |
 
 <!-- aegean:brand-assets:start -->
 ## 🎨 Brand Assets

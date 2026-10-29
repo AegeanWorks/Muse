@@ -6,11 +6,44 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from muse.batch import MAX_BATCH_TRACKS, MAX_MANIFEST_BYTES, load_manifest
+from muse.batch_state import load_state, manifest_fingerprint, save_state, state_path
 from muse.cli import main
 from muse.config import MuseConfig
-from muse.errors import ConfigurationError, MuseError
+from muse.errors import ConfigurationError, GenerationError, MuseError
 from muse.judges.mock import MockJudge
 from muse.providers.mock import MockMusicProvider
+from muse.types import MusicRequest
+
+
+class CountingProvider:
+    name = "counting"
+    model = "counting"
+
+    def __init__(self, inner):
+        self.inner = inner
+        self.calls = []
+
+    def generate(self, request, destination):
+        self.calls.append(request.prompt)
+        return self.inner.generate(request, destination)
+
+
+class FlakyProvider:
+    name = "flaky"
+    model = "flaky"
+
+    def __init__(self, inner, fail_prompt):
+        self.inner = inner
+        self.fail_prompt = fail_prompt
+        self.failures = 1
+        self.calls = []
+
+    def generate(self, request, destination):
+        self.calls.append(request.prompt)
+        if request.prompt == self.fail_prompt and self.failures:
+            self.failures -= 1
+            raise GenerationError("render failed", "the model is down", "retry later")
+        return self.inner.generate(request, destination)
 
 
 class ManifestTests(unittest.TestCase):
@@ -104,6 +137,77 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(load_manifest(path)[0].prompt, "cave drones")
 
 
+class BatchStateTests(unittest.TestCase):
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+
+    def test_fingerprint_is_stable_and_sensitive(self):
+        first = (MusicRequest("cave", theme="cave level"),)
+        second = (MusicRequest("cave", theme="cave level"),)
+        third = (MusicRequest("cave", theme="village"),)
+        self.assertEqual(manifest_fingerprint(first), manifest_fingerprint(second))
+        self.assertNotEqual(manifest_fingerprint(first), manifest_fingerprint(third))
+
+    def test_state_round_trip(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        entry = {
+            "index": 1,
+            "name": "cave",
+            "status": "accepted",
+            "payload": {"accepted": True, "audio": "out/cave/track.wav"},
+            "error": None,
+        }
+        save_state(path, fingerprint, [entry])
+        loaded = load_state(path, fingerprint)
+        self.assertEqual(loaded[1]["status"], "accepted")
+        self.assertTrue(loaded[1]["payload"]["accepted"])
+
+    def test_missing_or_mismatched_state_is_explained(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        with self.assertRaises(ConfigurationError) as caught:
+            load_state(path, fingerprint)
+        self.assertIn("no batch state", caught.exception.what)
+
+        save_state(path, fingerprint, [])
+        with self.assertRaises(ConfigurationError) as caught:
+            load_state(path, "other")
+        self.assertIn("different manifest", caught.exception.what)
+
+    def test_corrupt_state_is_explained(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        path.parent.mkdir(parents=True)
+        path.write_text("{not json", encoding="utf-8")
+        with self.assertRaises(ConfigurationError) as caught:
+            load_state(path, fingerprint)
+        self.assertIn("state", caught.exception.what)
+        self.assertIn("Fix", caught.exception.render())
+
+    def test_inconsistent_state_is_explained(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        save_state(
+            path,
+            fingerprint,
+            [
+                {
+                    "index": 1,
+                    "name": "cave",
+                    "status": "accepted",
+                    "payload": {"accepted": False},
+                    "error": None,
+                }
+            ],
+        )
+        with self.assertRaises(ConfigurationError) as caught:
+            load_state(path, fingerprint)
+        self.assertIn("inconsistent", caught.exception.what)
+
+
 class BatchCliTests(unittest.TestCase):
     def setUp(self):
         folder = tempfile.TemporaryDirectory()
@@ -119,10 +223,15 @@ class BatchCliTests(unittest.TestCase):
         path.write_text(json.dumps({"tracks": tracks}), encoding="utf-8")
         return path
 
-    def run_cli(self, argv, judge=None):
+    def run_cli(self, argv, judge=None, provider=None):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = main(argv, config=self.config, provider=self.provider, judge=judge or self.judge)
+            code = main(
+                argv,
+                config=self.config,
+                provider=provider or self.provider,
+                judge=judge or self.judge,
+            )
         return code, out.getvalue(), err.getvalue()
 
     def test_batch_json_renders_every_track(self):
@@ -184,3 +293,118 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("manifest", err)
         self.assertIn("Fix:", err)
+
+    def state_file(self):
+        matches = list(self.output.glob(".muse-batch-*.json"))
+        self.assertEqual(len(matches), 1)
+        return matches[0]
+
+    def test_batch_writes_state_after_each_track(self):
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)])
+        self.assertEqual(code, 0, err)
+        state = json.loads(self.state_file().read_text(encoding="utf-8"))
+        self.assertEqual(state["schema"], 1)
+        self.assertEqual([track["status"] for track in state["tracks"]], ["accepted", "accepted"])
+        self.assertTrue(state["tracks"][0]["payload"]["accepted"])
+
+    def test_resume_reuses_accepted_tracks(self):
+        provider = CountingProvider(self.provider)
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(provider.calls, ["cave drones", "village pads"])
+
+        code, out, err = self.run_cli(["batch", str(path), "--resume"], provider=provider)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(provider.calls, ["cave drones", "village pads"])
+        self.assertIn("reused", out)
+        self.assertIn("Batch: 2/2 accepted", out)
+
+    def test_resume_rerenders_rejected_tracks(self):
+        provider = CountingProvider(self.provider)
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "sunny beach", "theme": "cave level", "duration": 1, "name": "sunny"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(provider.calls.count("cave drones"), 1)
+
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--attempts", "2", "--json"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["accepted"], 2)
+        self.assertEqual(provider.calls.count("cave drones"), 1)
+        self.assertEqual(payload["reused"], 1)
+
+    def test_resume_without_state_is_refused(self):
+        provider = CountingProvider(self.provider)
+        path = self.manifest([{"prompt": "cave drones", "theme": "cave level", "duration": 1}])
+        code, _, err = self.run_cli(["batch", str(path), "--resume"], provider=provider)
+        self.assertEqual(code, 1)
+        self.assertIn("no batch state", err)
+        self.assertEqual(provider.calls, [])
+
+    def test_keep_going_records_failure_and_resume_finishes(self):
+        provider = FlakyProvider(self.provider, fail_prompt="explode cave level")
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "ok"},
+                {"prompt": "explode cave level", "theme": "cave level", "duration": 1, "name": "flaky"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 1, "name": "after"},
+            ]
+        )
+        code, out, err = self.run_cli(["batch", str(path), "--keep-going", "--json"], provider=provider)
+        self.assertEqual(code, 1)
+        payload = json.loads(out)
+        self.assertEqual(payload["total"], 3)
+        self.assertEqual(payload["accepted"], 2)
+        self.assertEqual(payload["failed"], 1)
+        self.assertEqual(payload["tracks"][1]["error"], "render failed")
+        self.assertIsNone(payload["tracks"][1]["judge_error"])
+        state = json.loads(self.state_file().read_text(encoding="utf-8"))
+        self.assertEqual(
+            [track["status"] for track in state["tracks"]],
+            ["accepted", "failed", "accepted"],
+        )
+
+        code, out, err = self.run_cli(["batch", str(path), "--resume", "--json"], provider=provider)
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["accepted"], 3)
+        self.assertEqual(payload["reused"], 2)
+        self.assertEqual(provider.calls.count("explode cave level"), 2)
+
+    def test_resume_rerenders_when_evidence_is_missing(self):
+        provider = CountingProvider(self.provider)
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        state = json.loads(self.state_file().read_text(encoding="utf-8"))
+        Path(state["tracks"][0]["payload"]["audio"]).unlink()
+
+        code, _, err = self.run_cli(["batch", str(path), "--resume"], provider=provider)
+        self.assertEqual(code, 0, err)
+        self.assertIn("evidence", err)
+        self.assertEqual(provider.calls.count("cave drones"), 2)

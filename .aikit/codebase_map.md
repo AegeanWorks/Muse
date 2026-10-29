@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `28`
-- **Total Classes**: `46`
-- **Total Top-Level Functions**: `51`
-- **Total Class Methods**: `165`
-- **Total Source Lines**: `2899`
+- **Total Python Modules**: `29`
+- **Total Classes**: `49`
+- **Total Top-Level Functions**: `59`
+- **Total Class Methods**: `182`
+- **Total Source Lines**: `3369`
 
 ---
 
@@ -66,10 +66,23 @@
 
 ---
 
+### [`muse/batch_state.py`](muse/batch_state.py)
+> *Crash-safe progress state for resumable batch runs.*
+
+**Size**: `144` lines (`5592` bytes)
+
+**Functions:**
+- `def manifest_fingerprint(requests)` - *Hash the validated requests so a changed manifest cannot reuse old progress.*
+- `def state_path(output_dir, fingerprint)`
+- `def load_state(path, fingerprint)` - *Load a batch state file, keyed by 1-based track index.*
+- `def save_state(path, fingerprint, entries)` - *Write progress atomically so a crash leaves the last completed track reusable.*
+
+---
+
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `359` lines (`13611` bytes)
+**Size**: `461` lines (`17554` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -84,7 +97,11 @@
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
-- `def _batch_payload(results)`
+- `def _batch_payload(entries)`
+- `def _filled(entries)`
+- `def _evidence_exists(entry)`
+- `def _result_entry(index, request, result)`
+- `def _failed_entry(index, request, exc)`
 - `def _print_batch_track(index, total, request, result)`
 - `def _verdict_payload(verdict, path)`
 - `def _verdict_dict(verdict)`
@@ -318,9 +335,15 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `186` lines (`7979` bytes)
+**Size**: `410` lines (`17454` bytes)
 
 **Classes:**
+- `class CountingProvider`
+  - Method `.__init__(inner)`
+  - Method `.generate(request, destination)`
+- `class FlakyProvider`
+  - Method `.__init__(inner, fail_prompt)`
+  - Method `.generate(request, destination)`
 - `class ManifestTests`
   - Method `.setUp()`
   - Method `.write(payload)`
@@ -333,15 +356,29 @@
   - Method `.test_track_count_is_capped()`
   - Method `.test_manifest_size_is_capped()`
   - Method `.test_utf8_bom_is_accepted()`
+- `class BatchStateTests`
+  - Method `.setUp()`
+  - Method `.test_fingerprint_is_stable_and_sensitive()`
+  - Method `.test_state_round_trip()`
+  - Method `.test_missing_or_mismatched_state_is_explained()`
+  - Method `.test_corrupt_state_is_explained()`
+  - Method `.test_inconsistent_state_is_explained()`
 - `class BatchCliTests`
   - Method `.setUp()`
   - Method `.manifest(tracks)`
-  - Method `.run_cli(argv, judge)`
+  - Method `.run_cli(argv, judge, provider)`
   - Method `.test_batch_json_renders_every_track()`
   - Method `.test_batch_human_output_and_strict_exit()`
   - Method `.test_batch_applies_attempts_per_track()`
   - Method `.test_batch_without_a_judge_is_refused()`
   - Method `.test_batch_missing_manifest_exits_one()`
+  - Method `.state_file()`
+  - Method `.test_batch_writes_state_after_each_track()`
+  - Method `.test_resume_reuses_accepted_tracks()`
+  - Method `.test_resume_rerenders_rejected_tracks()`
+  - Method `.test_resume_without_state_is_refused()`
+  - Method `.test_keep_going_records_failure_and_resume_finishes()`
+  - Method `.test_resume_rerenders_when_evidence_is_missing()`
 
 ---
 

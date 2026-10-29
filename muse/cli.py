@@ -11,6 +11,7 @@ from typing import Any, Sequence
 from . import __version__
 from .audio import wav_duration
 from .batch import load_manifest
+from .batch_state import load_state, manifest_fingerprint, save_state, state_path
 from .config import MuseConfig
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
@@ -83,6 +84,12 @@ def build_parser() -> argparse.ArgumentParser:
     _add_attempts(batch)
     _common(batch)
     batch.add_argument("--strict", action="store_true", help="exit 1 when any track is rejected")
+    batch.add_argument("--resume", action="store_true", help="reuse accepted tracks from the saved batch state")
+    batch.add_argument(
+        "--keep-going",
+        action="store_true",
+        help="record a failed track and continue with the rest of the manifest",
+    )
 
     judge = subparsers.add_parser("judge", help="score an existing audio file against a theme")
     judge.add_argument("audio", help="path to a wav, mp3, ogg or flac file")
@@ -178,27 +185,62 @@ def _batch(
             "omit --judge none, or pass --judge gemini or --judge mock",
         )
     requests = load_manifest(args.manifest)
-    results: list[tuple[MusicRequest, CompositionResult]] = []
+    fingerprint = manifest_fingerprint(requests)
+    progress = state_path(settings.output_dir, fingerprint)
+    previous = load_state(progress, fingerprint) if args.resume else {}
+    entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
+    if not args.resume:
+        save_state(progress, fingerprint, [])
     for index, request in enumerate(requests, 1):
-        result = compose(
-            request,
-            settings,
-            provider=provider,
-            judge=judge,
-            max_attempts=args.attempts,
-        )
-        results.append((request, result))
+        prior = previous.get(index)
+        if args.resume and prior is not None and prior["status"] == "accepted":
+            if _evidence_exists(prior):
+                entry = dict(prior)
+                entry["reused"] = True
+                entries[index - 1] = entry
+                if not args.json:
+                    audio = entry["payload"].get("audio")
+                    print(f"[{index}/{len(requests)}] {request.label}: reused accepted take -> {audio}")
+                continue
+            print(
+                f"Warning: evidence for {request.label} is missing; rendering it again.",
+                file=sys.stderr,
+            )
+        try:
+            result = compose(
+                request,
+                settings,
+                provider=provider,
+                judge=judge,
+                max_attempts=args.attempts,
+            )
+        except MuseError as exc:
+            entries[index - 1] = _failed_entry(index, request, exc)
+            save_state(progress, fingerprint, _filled(entries))
+            if not args.keep_going:
+                raise
+            if not args.json:
+                print(f"[{index}/{len(requests)}] {request.label}: failed ({exc.what})")
+            continue
+        entries[index - 1] = _result_entry(index, request, result)
+        save_state(progress, fingerprint, _filled(entries))
         if not args.json:
             _print_batch_track(index, len(requests), request, result)
+    save_state(progress, fingerprint, _filled(entries))
+    payload = _batch_payload(_filled(entries))
     if args.json:
-        print(json.dumps(_batch_payload(results), indent=2))
+        print(json.dumps(payload, indent=2))
     else:
-        accepted = sum(1 for _, result in results if result.accepted)
-        print(f"Batch: {accepted}/{len(results)} accepted")
-        rejected = [request.label for request, result in results if not result.accepted]
-        if rejected:
-            print(f"Rejected: {', '.join(rejected)}")
-    return 1 if args.strict and any(not result.accepted for _, result in results) else 0
+        print(f"Batch: {payload['accepted']}/{payload['total']} accepted")
+        if payload["rejected"]:
+            names = [entry["name"] for entry in _filled(entries) if entry["status"] == "rejected"]
+            print(f"Rejected: {', '.join(names)}")
+        if payload["failed"]:
+            names = [entry["name"] for entry in _filled(entries) if entry["status"] == "failed"]
+            print(f"Failed: {', '.join(names)}")
+        if payload["reused"]:
+            print(f"Reused: {payload['reused']}")
+    return 1 if payload["failed"] or (args.strict and payload["rejected"]) else 0
 
 
 def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | None) -> int:
@@ -276,16 +318,76 @@ def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
     }
 
 
-def _batch_payload(results: list[tuple[MusicRequest, CompositionResult]]) -> dict[str, Any]:
+def _batch_payload(entries: list[dict[str, Any]]) -> dict[str, Any]:
     tracks = []
-    for request, result in results:
-        entry = {"name": request.label, "prompt": request.prompt, "theme": request.theme}
-        entry.update(_result_payload(result))
-        tracks.append(entry)
+    for entry in entries:
+        payload = dict(entry.get("payload") or {})
+        payload["reused"] = bool(entry.get("reused"))
+        tracks.append(payload)
     return {
         "tracks": tracks,
         "total": len(tracks),
-        "accepted": sum(1 for track in tracks if track["accepted"]),
+        "accepted": sum(1 for track in tracks if track.get("accepted")),
+        "rejected": sum(1 for entry in entries if entry["status"] == "rejected"),
+        "failed": sum(1 for entry in entries if entry["status"] == "failed"),
+        "reused": sum(1 for entry in entries if entry.get("reused")),
+    }
+
+
+def _filled(entries: list[dict[str, Any] | None]) -> list[dict[str, Any]]:
+    return [entry for entry in entries if entry is not None]
+
+
+def _evidence_exists(entry: dict[str, Any]) -> bool:
+    payload = entry.get("payload")
+    if not isinstance(payload, dict):
+        return False
+    for key in ("audio", "metadata"):
+        value = payload.get(key)
+        if not isinstance(value, str) or not Path(value).is_file():
+            return False
+    return True
+
+
+def _result_entry(index: int, request: MusicRequest, result: CompositionResult) -> dict[str, Any]:
+    payload = {"name": request.label, "prompt": request.prompt, "theme": request.theme}
+    payload.update(_result_payload(result))
+    return {
+        "index": index,
+        "name": request.label,
+        "prompt": request.prompt,
+        "theme": request.theme,
+        "status": "accepted" if result.accepted else "rejected",
+        "payload": payload,
+        "error": None,
+    }
+
+
+def _failed_entry(index: int, request: MusicRequest, exc: MuseError) -> dict[str, Any]:
+    error = exc.what
+    payload = {
+        "name": request.label,
+        "prompt": request.prompt,
+        "theme": request.theme,
+        "audio": None,
+        "metadata": None,
+        "provider": None,
+        "model": None,
+        "duration_seconds": request.duration,
+        "verdict": None,
+        "accepted": False,
+        "judge_error": None,
+        "attempts": [],
+        "error": error,
+    }
+    return {
+        "index": index,
+        "name": request.label,
+        "prompt": request.prompt,
+        "theme": request.theme,
+        "status": "failed",
+        "payload": payload,
+        "error": error,
     }
 
 

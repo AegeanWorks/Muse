@@ -47,6 +47,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `muse batch <manifest>` reads a UTF-8 JSON object with a single `tracks` array (1-50 entries, at most 1 MB), validates every `prompt`, `theme`, `duration` and `name` before the first paid call, and runs the existing `compose` pipeline per track with the same `--attempts` setting. Tracks render sequentially; the batch stops on the first operational failure, requires a listening judge, and exposes `--strict` (exit 1 when any track is rejected) and `--json` (`tracks`, `total`, `accepted`). Each track keeps its normal artifact folder and no separate batch summary file is written.
 - **Consequences**: One manifest produces a fully judged soundtrack with a single exit code, while interrupted runs leave every completed track inspectable. The cost is sequential wall-clock time, one prediction and judge call per take per track, and a deliberately narrow manifest schema (unknown keys and types are rejected rather than guessed).
 
+### ADR-006: Batch progress is fingerprinted state, and resume reuses only verified accepted takes
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A batch stopped on the first provider or judge failure, and rerunning the manifest re-rendered and re-billed tracks that had already been accepted.
+- **Decision**: Every batch writes `<out>/.muse-batch-<fingerprint16>.json` atomically after each track. The fingerprint hashes the validated prompt, theme, duration and name in order, so a changed manifest cannot reuse stale progress. `--resume` requires that state, refuses a different fingerprint, reuses an accepted entry only when its audio and `muse.json` still exist, and rerenders rejected, failed or missing-evidence tracks. `--keep-going` records a failure and continues; without it the failure is recorded and re-raised. Failed entries carry an error and exit `1`; `--json` adds `rejected`, `failed`, `reused` counts and a per-track `reused` flag.
+- **Consequences**: Long soundtracks finish past one bad track and resume without paying twice for accepted work, while the state file remains disposable and never replaces per-track evidence. The cost is one small hidden JSON file per manifest fingerprint, a resume that is tied to the same `--out` and working directory for relative evidence paths, and the rule that changing any track field starts a fresh state.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).
