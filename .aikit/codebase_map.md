@@ -9,8 +9,8 @@
 - **Total Python Modules**: `33`
 - **Total Classes**: `61`
 - **Total Top-Level Functions**: `81`
-- **Total Class Methods**: `287`
-- **Total Source Lines**: `5446`
+- **Total Class Methods**: `289`
+- **Total Source Lines**: `5475`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `811` lines (`31436` bytes)
+**Size**: `820` lines (`31759` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -116,7 +116,7 @@
 - `def _batch(args, settings, provider, judge)`
 - `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
-- `def _doctor(args, settings)`
+- `def _doctor(args, config)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
 - `def _resolve_artifact(value, output_dir)`
@@ -450,7 +450,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `306` lines (`12685` bytes)
+**Size**: `316` lines (`13056` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -478,6 +478,7 @@
   - Method `.run_cli(argv)`
   - Method `.test_show_human_and_json()`
   - Method `.test_show_accepts_a_folder_or_metadata_path()`
+  - Method `.test_missing_explicit_paths_name_the_intended_metadata()`
   - Method `.test_bare_name_prefers_output_over_cwd()`
   - Method `.test_show_marks_missing_audio()`
   - Method `.test_show_missing_and_corrupt()`
@@ -529,7 +530,7 @@
 ---
 
 ### [`tests/test_doctor.py`](tests/test_doctor.py)
-**Size**: `123` lines (`5073` bytes)
+**Size**: `133` lines (`5522` bytes)
 
 **Classes:**
 - `class DoctorTests`
@@ -547,6 +548,7 @@
   - Method `.test_doctor_json_healthy()`
   - Method `.test_doctor_cli_overrides_the_environment()`
   - Method `.test_doctor_reports_missing_keys()`
+  - Method `.test_doctor_reports_invalid_config_as_json()`
   - Method `.test_doctor_reports_output_file()`
 
 ---

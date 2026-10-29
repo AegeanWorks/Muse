@@ -9,6 +9,15 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.13.2] - 2026-10-29
+
+### Fixed
+
+- `muse doctor --json` reports an invalid environment as a configuration check
+  instead of failing before it can emit JSON.
+- Missing explicit `muse show` paths point at the intended `muse.json` instead
+  of doubling the filename.
+
 ## [0.13.1] - 2026-10-29
 
 ### Fixed

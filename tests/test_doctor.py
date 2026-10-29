@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -110,6 +111,15 @@ class DoctorCliTests(unittest.TestCase):
         self.assertIn("GEMINI_API_KEY", out)
         self.assertIn("Fix:", out)
         self.assertNotIn("secret", out)
+
+    def test_doctor_reports_invalid_config_as_json(self):
+        with patch.dict(os.environ, {"MUSE_HTTP_TIMEOUT": "nan"}, clear=True):
+            code, out, err = self.run_cli(["doctor", "--json"], None)
+        self.assertEqual(code, 1)
+        payload = json.loads(out)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["checks"][0]["name"], "configuration")
+        self.assertIn("fix", payload["checks"][0])
 
     def test_doctor_reports_output_file(self):
         blocker = self.root / "blocker"

@@ -1,60 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-3",
+    "task_id": "muse-edge-fixes",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793295616.3165798,
+    "updated_at": 1793295835.5664237,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793295616.8329804
+    "completed_at": 1793295839.7974288
   },
   "checkpoints": [
-    {
-      "task_id": "muse-batch-force",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/3] Plan selective reruns: --force NAME with --resume rerenders chosen accepted tracks, preserves other state, and previews 'forced' in dry-run",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793293012.5473657,
-      "timestamp_str": "2026-10-29 19:56:52",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "A track can be accepted but still unsatisfactory, or need a new take after a model change; currently the only way to rerender it is to delete state or rerun the whole manifest",
-        "benefits": "One named track can be regenerated while every other accepted track stays reused, with a dry-run preview and unchanged manifest fingerprint",
-        "risks": "contract: new --force flag; dependency: none added; concurrency: sequential batch; state: only forced entries are replaced",
-        "mitigation": "Case-insensitive exact labels, reject unknown names and --force without --resume before any write, include forced tracks in render_required, test state preservation and dry-run"
-      }
-    },
-    {
-      "task_id": "muse-batch-force",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[3/3] Forced reruns complete: 178 tests, 4/4 gates; force rerendered one accepted track, unknown/without-resume rejected, dry-run marked forced; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793293218.5693042,
-      "timestamp_str": "2026-10-29 20:00:18",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "10 modified files",
-        "next": "commit and push the force-rerun release",
-        "evidence": "178 tests OK, force human/dry-run verified"
-      }
-    },
-    {
-      "task_id": "muse-batch-force",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-batch-force' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793293225.1896234,
-      "timestamp_str": "2026-10-29 20:00:25",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "muse-doctor",
       "phase": "phase 2",
@@ -285,6 +242,49 @@
       "status": "completed",
       "timestamp": 1793295616.8329833,
       "timestamp_str": "2026-10-29 20:40:16",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-edge-fixes",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/3] Plan edge fixes: doctor reports invalid config in JSON, and show resolves missing explicit muse.json/track paths without doubling the filename",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793295697.3189843,
+      "timestamp_str": "2026-10-29 20:41:37",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Doctor's whole purpose is diagnosing bad configuration, but _settings fails before the doctor can emit its JSON check; a missing explicit show path can point at path/muse.json/muse.json",
+        "benefits": "JSON automation gets a configuration finding, and error paths name the file the user intended",
+        "risks": "contract: doctor dispatch and show error path; dependency: none; concurrency: none; state: none",
+        "mitigation": "Move doctor before _settings, catch MuseError into a Check, add path-shape tests, and keep other commands unchanged"
+      }
+    },
+    {
+      "task_id": "muse-edge-fixes",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[3/3] Edge fixes complete: 195 tests, 4/4 gates; doctor JSON config failure and explicit show path names verified; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793295835.5664237,
+      "timestamp_str": "2026-10-29 20:43:55",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "9 modified files",
+        "next": "commit and push the edge fixes",
+        "evidence": "195 tests OK, JSON doctor dogfood"
+      }
+    },
+    {
+      "task_id": "muse-edge-fixes",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-edge-fixes' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793295839.7974312,
+      "timestamp_str": "2026-10-29 20:43:59",
       "agent": "opencode:main"
     }
   ]

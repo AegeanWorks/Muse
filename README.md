@@ -181,7 +181,8 @@ the old artifact folders as evidence.
 selected provider/judge names, and the keys those adapters require. It never calls a provider or
 judge and never creates the output directory. `--provider`, `--judge`, `--model`, `--judge-model`
 and `--out` check an alternate configuration; `--json` returns the same checks as a machine-readable
-array. The command exits `1` when any check fails, with a `Fix:` line for each failure.
+array, including an invalid environment as a `configuration` check. The command exits `1` when any
+check fails, with a `Fix:` line for each failure.
 
 ### Catalog
 
@@ -332,7 +333,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 193 offline unit tests, no network or keys
+├── tests/                    <- 195 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

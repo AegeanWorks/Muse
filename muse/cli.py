@@ -14,7 +14,7 @@ from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
 from .catalog import Artifact, load_artifact, load_artifacts
 from .config import MuseConfig
-from .doctor import run_checks
+from .doctor import Check, run_checks
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
 from .judges.registry import build_judge, judges
@@ -37,6 +37,8 @@ def main(
     except SystemExit as exc:
         return int(exc.code or 0)
     try:
+        if args.command == "doctor":
+            return _doctor(args, config)
         settings = _settings(args, config)
         if args.command == "generate":
             return _generate(args, settings, provider, judge)
@@ -48,8 +50,6 @@ def main(
             return _catalog(args, settings)
         if args.command == "show":
             return _show(args, settings)
-        if args.command == "doctor":
-            return _doctor(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -488,8 +488,13 @@ def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | N
     return 1 if args.strict and not verdict.accepted else 0
 
 
-def _doctor(args: argparse.Namespace, settings: MuseConfig) -> int:
-    checks = run_checks(settings)
+def _doctor(args: argparse.Namespace, config: MuseConfig | None) -> int:
+    try:
+        settings = _settings(args, config)
+    except MuseError as exc:
+        checks = [Check("configuration", False, exc.what, exc.fix)]
+    else:
+        checks = run_checks(settings)
     ok = all(check.ok for check in checks)
     if args.json:
         print(json.dumps({"ok": ok, "checks": [check.as_dict() for check in checks]}, indent=2))
@@ -576,6 +581,10 @@ def _resolve_artifact(value: str, output_dir: Path) -> Path:
             return candidate / "muse.json"
         if candidate.is_file():
             return candidate if candidate.name == "muse.json" else candidate.parent / "muse.json"
+        if candidate.name == "muse.json":
+            return candidate
+        if candidate.suffix:
+            return candidate.parent / "muse.json"
         return candidate / "muse.json"
     preferred = Path(output_dir) / candidate / "muse.json"
     if preferred.is_file():

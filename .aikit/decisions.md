@@ -159,6 +159,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Tokenize the mock judge with a casefolded Unicode word regex, transliterate Turkish characters and NFKD accents before slugging, and resolve bare `show` names under the configured output first; explicit paths still win.
 - **Consequences**: Offline demos behave in the project's languages and artifact folders stay readable/stable. The cost is a small transliteration table and a resolution rule that a bare name means output unless the user writes a path.
 
+### ADR-022: Doctor owns configuration failures and show names the intended metadata
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `_settings` ran before the doctor command, so an invalid environment produced a plain error even with `--json`; and a missing explicit `show` path such as `out/cave/muse.json` resolved to `out/cave/muse.json/muse.json`.
+- **Decision**: Dispatch `doctor` before `_settings` and let it convert a `MuseError` into a `configuration` check. In explicit `show` paths, treat a `muse.json` filename as the metadata path, another suffix as a track file whose parent holds `muse.json`, and a suffixless path as a folder.
+- **Consequences**: JSON diagnostics never lose their shape on bad configuration, and missing-path errors name the file the user intended. The cost is a doctor-specific settings boundary and a small path-shape rule in `show`.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

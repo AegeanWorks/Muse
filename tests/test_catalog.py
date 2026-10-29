@@ -278,6 +278,16 @@ class ShowCliTests(unittest.TestCase):
             self.assertEqual(code, 0, err)
             self.assertIn("cave prompt", out)
 
+    def test_missing_explicit_paths_name_the_intended_metadata(self):
+        self.assertEqual(
+            _resolve_artifact("missing/cave/muse.json", self.output),
+            Path("missing/cave/muse.json"),
+        )
+        self.assertEqual(
+            _resolve_artifact("missing/cave/track.wav", self.output),
+            Path("missing/cave/muse.json"),
+        )
+
     def test_bare_name_prefers_output_over_cwd(self):
         write_artifact(self.output, "cave")
         (self.root / "cave").mkdir()
