@@ -1,44 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-rejudge-canonical",
-    "last_phase": "resumed",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793298459.8678052,
-    "owner": "opencode",
-    "started_by": "opencode",
-    "continuations": [
-      {
-        "agent": "opencode:main",
-        "from": "opencode",
-        "at": 1793298472.4105928
-      }
-    ],
-    "completed_at": 1793298472.410594
+    "task_id": "muse-rejudge-coverage",
+    "last_phase": "phase 4",
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793298684.450193,
+    "owner": "opencode:main",
+    "started_by": "opencode:main",
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-7",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-7 complete: 2 commits, 13/13 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297658.4524033,
-      "timestamp_str": "2026-10-29 21:14:18",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-7",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'reforge:run-7' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793297658.8801,
-      "timestamp_str": "2026-10-29 21:14:18",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "muse-rejudge-timestamp",
       "phase": "phase 2",
@@ -262,6 +234,39 @@
       "timestamp_str": "2026-10-29 21:27:52",
       "agent": "opencode:main",
       "continued_from": "opencode"
+    },
+    {
+      "task_id": "muse-rejudge-coverage",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/2] Plan rejudge regression coverage: assert second-pass history timestamps and schema-1 to schema-3 migration",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298596.854235,
+      "timestamp_str": "2026-10-29 21:29:56",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The timestamp and legacy-schema paths are advertised but not directly covered after the latest fixes",
+        "benefits": "Future rejudge changes cannot silently regress the audit timeline or schema-1 support",
+        "risks": "contract: tests only; dependency: none; concurrency: none; state: none",
+        "mitigation": "Assert recorded_at against the first rejudged_at and rejudge a schema-1 fixture; run full gates"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-coverage",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] Rejudge coverage complete: 205 tests, 4/4 gates; second-pass timestamps and schema-1 migration covered; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298684.450193,
+      "timestamp_str": "2026-10-29 21:31:24",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "no code changes",
+        "next": "commit and push the test coverage",
+        "evidence": "205 tests OK"
+      }
     }
   ]
 }

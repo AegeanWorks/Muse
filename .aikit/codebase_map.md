@@ -9,8 +9,8 @@
 - **Total Python Modules**: `35`
 - **Total Classes**: `65`
 - **Total Top-Level Functions**: `87`
-- **Total Class Methods**: `302`
-- **Total Source Lines**: `5911`
+- **Total Class Methods**: `303`
+- **Total Source Lines**: `5923`
 
 ---
 
@@ -724,7 +724,7 @@
 ---
 
 ### [`tests/test_rejudge.py`](tests/test_rejudge.py)
-**Size**: `175` lines (`7705` bytes)
+**Size**: `187` lines (`8473` bytes)
 
 **Classes:**
 - `class FailingJudge`
@@ -739,6 +739,7 @@
   - Method `.test_rejudge_failure_leaves_evidence_unchanged()`
   - Method `.test_rejudge_records_the_actual_judge()`
   - Method `.test_rejudge_twice_appends_history()`
+  - Method `.test_rejudge_migrates_schema_one_evidence()`
   - Method `.test_rejudge_deduplicates_resolved_paths()`
   - Method `.test_rejudge_deduplicates_relative_and_absolute_paths()`
   - Method `.test_rejudge_missing_and_judge_none()`

@@ -131,12 +131,24 @@ class RejudgeCliTests(unittest.TestCase):
         write_artifact(self.root, "cave", prompt="cave drones", theme="cave level")
         code, _, err = self.run_cli(["rejudge", "cave"])
         self.assertEqual(code, 0, err)
+        first = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
         code, _, err = self.run_cli(["rejudge", "cave"])
         self.assertEqual(code, 0, err)
         metadata = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
         self.assertEqual(len(metadata["history"]), 2)
         self.assertEqual(metadata["history"][0]["verdict"]["score"], 45)
+        self.assertEqual(metadata["history"][0]["recorded_at"], metadata["created_at"])
         self.assertEqual(metadata["history"][1]["verdict"]["score"], 88)
+        self.assertEqual(metadata["history"][1]["recorded_at"], first["rejudged_at"])
+
+    def test_rejudge_migrates_schema_one_evidence(self):
+        write_artifact(self.root, "cave", prompt="cave drones", theme="cave level", schema=1)
+        code, _, err = self.run_cli(["rejudge", "cave"])
+        self.assertEqual(code, 0, err)
+        metadata = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
+        self.assertEqual(metadata["schema"], 3)
+        self.assertEqual(metadata["verdict"]["score"], 88)
+        self.assertEqual(len(metadata["history"]), 1)
 
     def test_rejudge_deduplicates_resolved_paths(self):
         write_artifact(self.root, "cave", prompt="cave drones", theme="cave level")
