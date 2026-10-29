@@ -1,45 +1,23 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-9",
-    "last_phase": "phase 4",
+    "task_id": "muse-rejudge-canonical",
+    "last_phase": "resumed",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793298345.6345088,
-    "owner": "opencode:main",
-    "started_by": "opencode:main",
-    "continuations": [],
-    "completed_at": 1793298345.9729726
+    "updated_at": 1793298459.8678052,
+    "owner": "opencode",
+    "started_by": "opencode",
+    "continuations": [
+      {
+        "agent": "opencode:main",
+        "from": "opencode",
+        "at": 1793298472.4105928
+      }
+    ],
+    "completed_at": 1793298472.410594
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-7",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1793297621.4847198,
-      "timestamp_str": "2026-10-29 21:13:41",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-7",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Plan reforge run-7: audit the latest dedupe/state commits and close the run",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297658.017055,
-      "timestamp_str": "2026-10-29 21:14:18",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Run-6 ended before the dedupe commit and its state checkpoint",
-        "benefits": "The latest changes get a reviewed pass and the run history is current",
-        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
-        "mitigation": "Review every packet hunk, keep review packets ignored, sanitize paths and complete the task"
-      }
-    },
     {
       "task_id": "reforge:run-7",
       "phase": "phase 4",
@@ -216,6 +194,16 @@
       "agent": "opencode"
     },
     {
+      "task_id": "muse-rejudge-canonical",
+      "phase": "superseded",
+      "phase_num": 4,
+      "description": "Superseded by 'reforge:run-9' without --complete or --reset",
+      "status": "superseded",
+      "timestamp": 1793298345.2708344,
+      "timestamp_str": "2026-10-29 21:25:45",
+      "agent": "opencode:main"
+    },
+    {
       "task_id": "reforge:run-9",
       "phase": "phase 2",
       "phase_num": 2,
@@ -231,16 +219,6 @@
         "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
         "mitigation": "Review every packet hunk, keep packets ignored, sanitize paths and complete the task"
       }
-    },
-    {
-      "task_id": "muse-rejudge-canonical",
-      "phase": "superseded",
-      "phase_num": 4,
-      "description": "Superseded by 'reforge:run-9' without --complete or --reset",
-      "status": "superseded",
-      "timestamp": 1793298345.2708344,
-      "timestamp_str": "2026-10-29 21:25:45",
-      "agent": "opencode:main"
     },
     {
       "task_id": "reforge:run-9",
@@ -262,6 +240,28 @@
       "timestamp": 1793298345.972974,
       "timestamp_str": "2026-10-29 21:25:45",
       "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-rejudge-canonical",
+      "phase": "resumed",
+      "phase_num": 4,
+      "description": "Resumed 'muse-rejudge-canonical' after a pause",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298459.8678052,
+      "timestamp_str": "2026-10-29 21:27:39",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "muse-rejudge-canonical",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-rejudge-canonical' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793298472.4105952,
+      "timestamp_str": "2026-10-29 21:27:52",
+      "agent": "opencode:main",
+      "continued_from": "opencode"
     }
   ]
 }
