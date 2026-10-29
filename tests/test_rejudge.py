@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -146,6 +147,23 @@ class RejudgeCliTests(unittest.TestCase):
         payload = json.loads(out)
         self.assertEqual(payload["total"], 1)
         metadata = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(metadata["history"]), 1)
+
+    def test_rejudge_deduplicates_relative_and_absolute_paths(self):
+        output = self.root / "out"
+        write_artifact(output, "cave", prompt="cave drones", theme="cave level")
+        config = MuseConfig(output_dir=Path("out"), provider="mock", judge="mock", env={})
+        previous = Path.cwd()
+        os.chdir(self.root)
+        self.addCleanup(os.chdir, previous)
+        absolute = str((output / "cave" / "muse.json").resolve())
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(["rejudge", "cave", absolute, "--json"], config=config)
+        self.assertEqual(code, 0, err.getvalue())
+        payload = json.loads(out.getvalue())
+        self.assertEqual(payload["total"], 1)
+        metadata = json.loads((output / "cave" / "muse.json").read_text(encoding="utf-8"))
         self.assertEqual(len(metadata["history"]), 1)
 
     def test_rejudge_missing_and_judge_none(self):

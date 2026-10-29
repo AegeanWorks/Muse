@@ -201,6 +201,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Set history `recorded_at` to the artifact's prior `rejudged_at`, else `created_at`, else the current time. The new top-level `rejudged_at` still records the update.
 - **Consequences**: History entries preserve the actual sequence of judgments. The cost is that old schema-1/2 evidence with a hand-edited/missing `created_at` falls back to the current time.
 
+### ADR-028: Rejudge dedupe compares canonical paths
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Deduplicating `Path` objects treated `out/cave/muse.json` and its absolute form as two artifacts, so the same evidence could be judged twice in one command.
+- **Decision**: Validate the resolved metadata path, then deduplicate on `Path.resolve()` and pass canonical absolute paths to the rejudge module.
+- **Consequences**: Relative/absolute spellings of one artifact are judged once. The cost is that rejudge reports and writes use absolute metadata paths.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

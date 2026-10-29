@@ -9,8 +9,8 @@
 - **Total Python Modules**: `35`
 - **Total Classes**: `65`
 - **Total Top-Level Functions**: `87`
-- **Total Class Methods**: `301`
-- **Total Source Lines**: `5892`
+- **Total Class Methods**: `302`
+- **Total Source Lines**: `5911`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `903` lines (`35673` bytes)
+**Size**: `904` lines (`35715` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -724,7 +724,7 @@
 ---
 
 ### [`tests/test_rejudge.py`](tests/test_rejudge.py)
-**Size**: `157` lines (`6779` bytes)
+**Size**: `175` lines (`7705` bytes)
 
 **Classes:**
 - `class FailingJudge`
@@ -740,6 +740,7 @@
   - Method `.test_rejudge_records_the_actual_judge()`
   - Method `.test_rejudge_twice_appends_history()`
   - Method `.test_rejudge_deduplicates_resolved_paths()`
+  - Method `.test_rejudge_deduplicates_relative_and_absolute_paths()`
   - Method `.test_rejudge_missing_and_judge_none()`
 
 **Functions:**

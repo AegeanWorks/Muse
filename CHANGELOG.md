@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.14.4] - 2026-10-29
+
+### Fixed
+
+- `muse rejudge` canonicalizes paths before deduplicating, so relative and
+  absolute forms of the same artifact are judged once.
+
 ## [0.14.3] - 2026-10-29
 
 ### Fixed

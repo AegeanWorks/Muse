@@ -1,41 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-8",
+    "task_id": "muse-rejudge-canonical",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793297990.0097473,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1793298247.6590571,
     "owner": "opencode:main",
     "started_by": "opencode:main",
-    "continuations": [],
-    "completed_at": 1793297990.3541813
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "muse-rejudge-dedupe",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[2/2] Rejudge dedupe complete: 203 tests, 4/4 gates; duplicate folder/json/track inputs judge once and write one history entry; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297152.8136795,
-      "timestamp_str": "2026-10-29 21:05:52",
-      "agent": "opencode:main",
-      "handoff": {
-        "next": "commit and push, then audit the latest commits if reforge is not current"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-dedupe",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-rejudge-dedupe' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793297157.929237,
-      "timestamp_str": "2026-10-29 21:05:57",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "reforge:run-6",
       "phase": "reforge run",
@@ -256,6 +231,37 @@
       "timestamp": 1793297990.3541827,
       "timestamp_str": "2026-10-29 21:19:50",
       "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-rejudge-canonical",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/2] Plan canonical rejudge dedupe: resolve each metadata path before the seen-set so relative and absolute forms of one artifact judge once",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298104.7642555,
+      "timestamp_str": "2026-10-29 21:21:44",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Path equality treats out/cave/muse.json and its absolute form as different, so the same evidence can be judged and appended twice",
+        "benefits": "One artifact is judged once regardless of how its path is written",
+        "risks": "contract: rejudge resolved paths become absolute; dependency: none; concurrency: none; state: no duplicate history",
+        "mitigation": "Dedupe on Path.resolve(), keep first-seen order, add a relative/absolute regression test and run gates"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-canonical",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] Canonical rejudge dedupe complete: 204 tests, 4/4 gates; relative and absolute forms judge once; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298247.6590571,
+      "timestamp_str": "2026-10-29 21:24:07",
+      "agent": "opencode:main",
+      "handoff": {
+        "next": "commit and push, then audit the latest commit with reforge"
+      }
     }
   ]
 }
