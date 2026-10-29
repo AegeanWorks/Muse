@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.14.3] - 2026-10-29
+
+### Fixed
+
+- Rejudge history records when the previous verdict was stored
+  (`rejudged_at`/`created_at`), not the time of the new rejudge.
+
 ## [0.14.2] - 2026-10-29
 
 ### Fixed

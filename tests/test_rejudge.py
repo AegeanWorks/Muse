@@ -92,6 +92,7 @@ class RejudgeCliTests(unittest.TestCase):
         self.assertTrue(metadata["accepted"])
         self.assertEqual(len(metadata["history"]), 1)
         self.assertEqual(metadata["history"][0]["verdict"]["score"], 45)
+        self.assertEqual(metadata["history"][0]["recorded_at"], metadata["created_at"])
         self.assertEqual(metadata["settings"]["judge"], "mock")
 
         code, listed, err = self.run_cli(["list", "--json"])

@@ -10,7 +10,7 @@
 - **Total Classes**: `65`
 - **Total Top-Level Functions**: `87`
 - **Total Class Methods**: `301`
-- **Total Source Lines**: `5891`
+- **Total Source Lines**: `5892`
 
 ---
 
@@ -339,7 +339,7 @@
 ### [`muse/rejudge.py`](muse/rejudge.py)
 > *Re-score existing artifacts and keep every previous verdict in history.*
 
-**Size**: `145` lines (`5309` bytes)
+**Size**: `145` lines (`5368` bytes)
 
 **Classes:**
 - `class RejudgeResult`
@@ -724,7 +724,7 @@
 ---
 
 ### [`tests/test_rejudge.py`](tests/test_rejudge.py)
-**Size**: `156` lines (`6691` bytes)
+**Size**: `157` lines (`6779` bytes)
 
 **Classes:**
 - `class FailingJudge`

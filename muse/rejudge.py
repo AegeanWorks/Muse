@@ -68,7 +68,7 @@ def rejudge_artifacts(
                 "accepted": payload.get("accepted"),
                 "judge_error": payload.get("judge_error"),
                 "settings": old_settings,
-                "recorded_at": now,
+                "recorded_at": payload.get("rejudged_at") or payload.get("created_at") or now,
             }
         )
         new_settings = dict(old_settings)

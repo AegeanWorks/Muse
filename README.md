@@ -192,7 +192,8 @@ check fails, with a `Fix:` line for each failure.
 
 `muse rejudge ARTIFACT...` re-scores existing audio with the current judge settings and writes the
 new verdict back to `muse.json` as schema 3. Each update appends the previous verdict, acceptance,
-judge error and settings to a `history` array, so an older judgment is never overwritten. Artifacts
+judge error, settings and the time that judgment was recorded to a `history` array, so an older
+judgment is never overwritten. Artifacts
 may be folders, `muse.json` files or track files; all are validated before judging, duplicate
 resolved paths are judged once, the judge is built once, and no provider is called. The current settings record the judge and model returned by
 the new verdict, while history keeps the prior settings. `--judge`, `--judge-model`, `--min-score`

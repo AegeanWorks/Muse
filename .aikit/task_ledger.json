@@ -1,60 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-7",
+    "task_id": "muse-rejudge-timestamp",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793297658.4524033,
+    "updated_at": 1793297887.463617,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793297658.8800976
+    "completed_at": 1793297896.35297
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-5",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'reforge:run-5' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793296336.289457,
-      "timestamp_str": "2026-10-29 20:52:16",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-rejudge",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan rejudge: re-score existing artifacts without a provider, preserve prior verdicts in schema-3 history, support multiple paths/strict/JSON",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296427.4379313,
-      "timestamp_str": "2026-10-29 20:53:47",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Changing judge model or threshold currently forces a full re-render to refresh evidence, even though the audio already exists",
-        "benefits": "Existing tracks can be re-scored cheaply, prior verdicts remain auditable, and list/show keep reading the latest result",
-        "risks": "contract: new rejudge command and schema 3 history; dependency: none; concurrency: sequential atomic updates; state: muse.json rewritten in place with history",
-        "mitigation": "Validate every artifact and audio before judging, build the judge once, write atomically per artifact, keep failures unchanged, test history/list/show and strict exits"
-      }
-    },
-    {
-      "task_id": "muse-rejudge",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Rejudge complete: 201 tests, 4/4 gates; schema-3 history, strict exit, failure rollback and list/show dogfood verified; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296645.5699098,
-      "timestamp_str": "2026-10-29 20:57:25",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "9 modified, 2 untracked",
-        "next": "commit and push the rejudge release",
-        "evidence": "201 tests OK, old/new score and history verified"
-      }
-    },
     {
       "task_id": "muse-rejudge",
       "phase": "completed",
@@ -267,6 +224,47 @@
       "status": "completed",
       "timestamp": 1793297658.8801,
       "timestamp_str": "2026-10-29 21:14:18",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-rejudge-timestamp",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/2] Plan rejudge history timestamp: record when the previous verdict was stored (rejudged_at or created_at), not when the new judgment runs",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297756.9478323,
+      "timestamp_str": "2026-10-29 21:15:56",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "History claims the old verdict was recorded at the new rejudge time, losing the actual audit timeline",
+        "benefits": "Schema-3 history keeps a truthful sequence of when each judgment entered evidence",
+        "risks": "contract: history.recorded_at only; dependency: none; concurrency: none; state: muse.json history",
+        "mitigation": "Use rejudged_at fallback created_at/now, add a regression test, run gates and push"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-timestamp",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] Rejudge history timestamp complete: 203 tests, 4/4 gates; previous judgment keeps its created/rejudged time; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297887.463617,
+      "timestamp_str": "2026-10-29 21:18:07",
+      "agent": "opencode:main",
+      "handoff": {
+        "next": "commit and push, then run reforge with step 5"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-timestamp",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-rejudge-timestamp' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793297896.3529716,
+      "timestamp_str": "2026-10-29 21:18:16",
       "agent": "opencode:main"
     }
   ]

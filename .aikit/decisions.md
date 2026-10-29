@@ -194,6 +194,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Deduplicate resolved metadata paths in first-seen order before calling the rejudge module, so each artifact is judged and written once.
 - **Consequences**: Accidental duplicates no longer double cost or history. The cost is that the CLI silently ignores repeated inputs rather than warning; the first occurrence wins.
 
+### ADR-027: Rejudge history timestamps describe the old judgment
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Each schema-3 history entry stored the new rejudge time in `recorded_at`, so the audit trail claimed the previous verdict was recorded later than it was.
+- **Decision**: Set history `recorded_at` to the artifact's prior `rejudged_at`, else `created_at`, else the current time. The new top-level `rejudged_at` still records the update.
+- **Consequences**: History entries preserve the actual sequence of judgments. The cost is that old schema-1/2 evidence with a hand-edited/missing `created_at` falls back to the current time.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).
