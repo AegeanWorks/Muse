@@ -2,7 +2,7 @@
 
 <!-- aegean:media:start -->
 <p align="center"><img src="assets/social-preview.png" alt="Muse social preview" width="100%"></p>
-<p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/license-AL--1.1-2f9e44" alt="License"></a> <a href="https://github.com/AegeanWorks/AIKit"><img src="https://img.shields.io/badge/AIKit-integrated-6f42c1" alt="AIKit Integrated"></a></p>
+<p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/license-AL--1.1-2f9e44" alt="License"></a> <a href="https://github.com/AegeanWorks/AIKit"><img src="https://img.shields.io/badge/AIKit-integrated-6f42c1" alt="AIKit Integrated"></a> <a href="https://github.com/AegeanWorks/Muse/actions/workflows/tests.yml"><img src="https://github.com/AegeanWorks/Muse/actions/workflows/tests.yml/badge.svg" alt="Tests"></a></p>
 <!-- aegean:media:end -->
 
 
@@ -279,7 +279,11 @@ muse/
 ├── LICENSES/                 <- REUSE license texts
 ├── REUSE.toml                <- Machine-readable SPDX metadata
 ├── COMMERCIAL.md             <- Commercial licensing terms
+├── CHANGELOG.md              <- Release history
 ├── README.md
+├── .github/
+│   ├── workflows/
+│   │   └── tests.yml  <- Python 3.10-3.14 CI
 ├── assets/
 ├── muse/
 │   ├── __init__.py           <- public API: compose, judge_track, types, config

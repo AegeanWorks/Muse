@@ -1,60 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-catalog-filter",
+    "task_id": "muse-ci-release",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793292167.7368035,
+    "updated_at": 1793292401.9748006,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793292180.5715897
+    "completed_at": 1793292414.932693
   },
   "checkpoints": [
-    {
-      "task_id": "muse-resume-preview",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan resume preview: dry-run reads fingerprinted state, marks reuse or render with reasons, and writes nothing; failing-first tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290636.9559188,
-      "timestamp_str": "2026-10-29 19:17:16",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Resume and dry-run were separate, so planning a resumed batch required a real run or reading the hidden state by hand",
-        "benefits": "The next paid run is reviewable track by track, with reuse/retry decisions and missing-evidence reasons, at zero provider cost",
-        "risks": "contract: new dry-run JSON fields resume/action/reason/previous_status/previous_score; dependency: none added; concurrency: read-only preview; state: no writes",
-        "mitigation": "Reuse the real state loader and evidence check, compare state bytes before and after, test missing state, rejected tracks and missing evidence"
-      }
-    },
-    {
-      "task_id": "muse-resume-preview",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Resume preview complete: 166 tests, 4/4 gates; dry-run+resume reused accepted, retried rejected, flagged missing evidence, wrote no state; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290642.5874681,
-      "timestamp_str": "2026-10-29 19:17:22",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "7 modified files",
-        "next": "commit and push the resume-preview release",
-        "evidence": "166 tests OK, preview human/JSON verified, state content unchanged"
-      }
-    },
-    {
-      "task_id": "muse-resume-preview",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-resume-preview' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793290648.4482288,
-      "timestamp_str": "2026-10-29 19:17:28",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "reforge:run-1",
       "phase": "reforge run",
@@ -275,6 +232,49 @@
       "status": "completed",
       "timestamp": 1793292180.5715914,
       "timestamp_str": "2026-10-29 19:43:00",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-ci-release",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/3] Plan CI and release history: GitHub Actions matrix for Python 3.10-3.14, CI badge, CHANGELOG covering the 0.3-0.10 feature line",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292288.2325156,
+      "timestamp_str": "2026-10-29 19:44:48",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The README promises Python 3.10+ but the suite has only run on 3.14 locally, and there is no single release history for the features and fixes accumulated since the MVP",
+        "benefits": "Every push verifies the supported Python range, and users can see what changed without reading every ADR",
+        "risks": "contract: none; dependency: GitHub-hosted Actions only; concurrency: one workflow per push; state: no project data",
+        "mitigation": "Zero-install unittest command, fail-fast disabled, README tree updated, full gates before commit"
+      }
+    },
+    {
+      "task_id": "muse-ci-release",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[3/3] CI and release history complete: Python 3.10-3.14 matrix, badge and changelog; 174 tests, YAML parsed, 4/4 gates; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292401.9748006,
+      "timestamp_str": "2026-10-29 19:46:41",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "README modified, .github and CHANGELOG untracked",
+        "next": "commit and push the CI release",
+        "evidence": "174 tests OK, yaml.safe_load parsed, check 4/4"
+      }
+    },
+    {
+      "task_id": "muse-ci-release",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-ci-release' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793292414.9326952,
+      "timestamp_str": "2026-10-29 19:46:54",
       "agent": "opencode:main"
     }
   ]
