@@ -1,82 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-ci-rollback",
+    "task_id": "reforge:run-2",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793292661.128595,
+    "updated_at": 1793292868.6042817,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793292668.1323023
+    "completed_at": 1793292869.059741
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 3",
-      "phase_num": 3,
-      "description": "Reforge stage 3: window 9, 3 commit(s), 16 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793291047.39772,
-      "timestamp_str": "2026-10-29 19:24:07",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 4",
-      "phase_num": 3,
-      "description": "Reforge stage 4: window 12, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793291173.4037824,
-      "timestamp_str": "2026-10-29 19:26:13",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 5",
-      "phase_num": 3,
-      "description": "Reforge stage 5: window 15, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
-      "files_affected": [
-        "assets/social-preview.png"
-      ],
-      "status": "in_progress",
-      "timestamp": 1793291241.7464495,
-      "timestamp_str": "2026-10-29 19:27:21",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 6",
-      "phase_num": 3,
-      "description": "Reforge stage 6: window 18, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 5 binary not analysed",
-      "files_affected": [
-        "assets/artwork.jpg",
-        "assets/logo.jpg",
-        "assets/logo.png",
-        "assets/social-preview.jpg",
-        "assets/social-preview.png"
-      ],
-      "status": "in_progress",
-      "timestamp": 1793291293.554394,
-      "timestamp_str": "2026-10-29 19:28:13",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 7",
-      "phase_num": 3,
-      "description": "Reforge stage 7: window 21, 3 commit(s), 3 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
-      "files_affected": [
-        "assets/social-preview.png"
-      ],
-      "status": "in_progress",
-      "timestamp": 1793291345.7725666,
-      "timestamp_str": "2026-10-29 19:29:05",
-      "agent": "opencode"
-    },
     {
       "task_id": "reforge:run-1",
       "phase": "reforge stage 8",
@@ -285,6 +220,66 @@
       "status": "completed",
       "timestamp": 1793292668.1323075,
       "timestamp_str": "2026-10-29 19:51:08",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=4, step=4, stop=4)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292763.11501,
+      "timestamp_str": "2026-10-29 19:52:43",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 4, 4 commit(s), 14 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793292783.4736145,
+      "timestamp_str": "2026-10-29 19:53:03",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge run-2: audit the four commits after run-1, review all 49 hunks and record the result",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292867.838008,
+      "timestamp_str": "2026-10-29 19:54:27",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Run-1 covered history through beebafe; the reforge fixes, catalog filter and CI commits are new and unreviewed",
+        "benefits": "The latest changes get an independent audit and the completed run history is recorded without leaving an in-flight ledger entry",
+        "risks": "contract: none expected; dependency: none; concurrency: reforge uses one project run; state: reforge.json and task ledger",
+        "mitigation": "Review every packet hunk, apply only exact findings, keep review packets ignored, complete the ledger task after the report"
+      }
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-2 complete: 4 commits, 49/49 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292868.6042817,
+      "timestamp_str": "2026-10-29 19:54:28",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-2",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-2' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793292869.0597427,
+      "timestamp_str": "2026-10-29 19:54:29",
       "agent": "opencode:main"
     }
   ]
