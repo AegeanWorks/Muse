@@ -187,6 +187,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Write the new top-level settings from `verdict.judge` and `verdict.model`, while the history record keeps the prior settings.
 - **Consequences**: Evidence names the actual component that scored the audio, including test/custom judges. The cost is that configuration aliases are not separately recorded in the current settings block.
 
+### ADR-026: Rejudge resolves each artifact path once
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Passing the same artifact as a folder, `muse.json` and track file in one `rejudge` command judged and appended history three times.
+- **Decision**: Deduplicate resolved metadata paths in first-seen order before calling the rejudge module, so each artifact is judged and written once.
+- **Consequences**: Accidental duplicates no longer double cost or history. The cost is that the CLI silently ignores repeated inputs rather than warning; the first occurrence wins.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

@@ -136,6 +136,17 @@ class RejudgeCliTests(unittest.TestCase):
         self.assertEqual(metadata["history"][0]["verdict"]["score"], 45)
         self.assertEqual(metadata["history"][1]["verdict"]["score"], 88)
 
+    def test_rejudge_deduplicates_resolved_paths(self):
+        write_artifact(self.root, "cave", prompt="cave drones", theme="cave level")
+        code, out, err = self.run_cli(
+            ["rejudge", "cave", "cave", str(self.root / "cave" / "track.wav"), "--json"]
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["total"], 1)
+        metadata = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(metadata["history"]), 1)
+
     def test_rejudge_missing_and_judge_none(self):
         code, _, err = self.run_cli(["rejudge", "nope"])
         self.assertEqual(code, 1)

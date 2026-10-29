@@ -1,49 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-rejudge-settings",
+    "task_id": "muse-rejudge-dedupe",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793296909.0924206,
+    "updated_at": 1793297152.8136795,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793296919.4960694
+    "completed_at": 1793297157.9292357
   },
   "checkpoints": [
-    {
-      "task_id": "muse-edge-fixes",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-edge-fixes' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793295839.7974312,
-      "timestamp_str": "2026-10-29 20:43:59",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-4",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=2, step=2, stop=2)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793295890.5519595,
-      "timestamp_str": "2026-10-29 20:44:50",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-4",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 9 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1793295892.9899926,
-      "timestamp_str": "2026-10-29 20:44:52",
-      "agent": "opencode"
-    },
     {
       "task_id": "reforge:run-4",
       "phase": "phase 2",
@@ -269,6 +237,47 @@
       "status": "completed",
       "timestamp": 1793296919.4960709,
       "timestamp_str": "2026-10-29 21:01:59",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-rejudge-dedupe",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/2] Plan rejudge path dedupe: resolve each artifact once, preserve first-seen order, and avoid duplicate judge calls/history entries",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297021.0187137,
+      "timestamp_str": "2026-10-29 21:03:41",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "A repeated folder or the same artifact passed as folder and track file is judged and appended twice in one command",
+        "benefits": "One resolved metadata path is judged once and one history entry is written per artifact",
+        "risks": "contract: rejudge input handling only; dependency: none; concurrency: none; state: no duplicate history",
+        "mitigation": "Deduplicate resolved Paths before the module call, add a regression test, run gates and push"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-dedupe",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] Rejudge dedupe complete: 203 tests, 4/4 gates; duplicate folder/json/track inputs judge once and write one history entry; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297152.8136795,
+      "timestamp_str": "2026-10-29 21:05:52",
+      "agent": "opencode:main",
+      "handoff": {
+        "next": "commit and push, then audit the latest commits if reforge is not current"
+      }
+    },
+    {
+      "task_id": "muse-rejudge-dedupe",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-rejudge-dedupe' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793297157.929237,
+      "timestamp_str": "2026-10-29 21:05:57",
       "agent": "opencode:main"
     }
   ]

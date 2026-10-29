@@ -22,4 +22,4 @@ __all__ = [
     "judge_track",
 ]
 
-__version__ = "0.14.1"
+__version__ = "0.14.2"

@@ -508,6 +508,7 @@ def _rejudge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge |
             "omit --judge none, or pass --judge gemini or --judge mock",
         )
     paths = []
+    seen: set[Path] = set()
     for value in args.artifacts:
         metadata = _resolve_artifact(value, settings.output_dir)
         if not metadata.is_file():
@@ -516,7 +517,9 @@ def _rejudge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge |
                 "no muse.json exists at the resolved path",
                 "run `muse list` to find a folder, or pass the artifact folder or muse.json path",
             )
-        paths.append(metadata)
+        if metadata not in seen:
+            seen.add(metadata)
+            paths.append(metadata)
     results = rejudge_artifacts(paths, settings, judge)
     accepted = sum(1 for result in results if result.verdict.accepted)
     payload = {
