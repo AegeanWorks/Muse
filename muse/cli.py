@@ -119,6 +119,13 @@ def build_parser() -> argparse.ArgumentParser:
     catalog = subparsers.add_parser("list", help="list scored artifacts under an output directory")
     catalog.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
     catalog.add_argument("--accepted-only", action="store_true", help="hide rejected artifacts")
+    catalog.add_argument("--match", default="", help="case-insensitive name, prompt or theme filter")
+    catalog.add_argument(
+        "--sort",
+        choices=("date", "score", "name"),
+        default="date",
+        help="sort by date (newest first), score (highest first) or name",
+    )
     catalog.add_argument("--limit", type=_positive_count, default=20, metavar="N", help="maximum artifacts (default 20)")
     catalog.add_argument("--json", action="store_true", help="machine-readable output")
 
@@ -405,6 +412,8 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
         settings.output_dir,
         accepted_only=args.accepted_only,
         limit=args.limit,
+        match=args.match,
+        sort=args.sort,
     )
     for warning in warnings:
         print(f"Warning: {warning}", file=sys.stderr)
@@ -415,6 +424,8 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
                     "artifacts": [entry.as_dict() for entry in entries],
                     "total": len(entries),
                     "output": str(settings.output_dir),
+                    "match": args.match,
+                    "sort": args.sort,
                 },
                 indent=2,
             )

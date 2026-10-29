@@ -117,6 +117,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Build a batch judge only when at least one track will render, so a fully accepted `--resume` works without a key or a listening judge; reject both `/` and `\` in `track.file` on every platform; and wrap the attempt-history read/parse in `MuseError` with What/Why/Fix.
 - **Consequences**: Resume no longer requires credentials when it reuses all evidence, catalog file names are platform-consistent, and a damaged evidence file produces a clean failure instead of a traceback. Reforge review packets are generated output and are ignored; `.aikit/reforge.json` keeps the completed run history.
 
+### ADR-016: The catalog can filter text and sort by date, score or name
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A project accumulates many artifacts, but `muse list` could only filter accepted/rejected and always ordered by creation date, so finding a theme or comparing scores required reading JSON or post-processing.
+- **Decision**: Add `--match TEXT` (case-insensitive over name, prompt and theme) and `--sort date|score|name` to the read-only catalog. Filtering and sorting happen before `--limit`; date is newest first, score puts unjudged entries last, and name is case-insensitive. The JSON payload includes the active `match` and `sort`.
+- **Consequences**: A large output directory can be queried and ranked in one command without changing evidence. The cost is a slightly larger catalog API and the rule that `--limit` applies to the filtered, sorted result rather than the raw scan.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

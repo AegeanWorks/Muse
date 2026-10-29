@@ -1,59 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge-run-1",
+    "task_id": "muse-catalog-filter",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793291879.914988,
+    "updated_at": 1793292167.7368035,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793291888.8962774
+    "completed_at": 1793292180.5715897
   },
   "checkpoints": [
-    {
-      "task_id": "muse-show",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Show and batch preflight complete: 163 tests, 4/4 gates; show human/JSON/path/missing/corrupt dogfooded, batch missing-key leaves no state; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290436.5349283,
-      "timestamp_str": "2026-10-29 19:13:56",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "9 modified files",
-        "next": "commit and push the show release",
-        "evidence": "163 tests OK, show output verified, batch preflight test passes"
-      }
-    },
-    {
-      "task_id": "muse-show",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-show' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793290440.5460021,
-      "timestamp_str": "2026-10-29 19:14:00",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-resume-preview",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Resume preview complete: 166 tests, 4/4 gates; dry-run+resume reused accepted, retried rejected, flagged missing evidence, wrote no state; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290620.1630177,
-      "timestamp_str": "2026-10-29 19:17:00",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "7 modified files",
-        "next": "commit and push the resume-preview release",
-        "evidence": "166 tests OK, preview human/JSON verified, state content unchanged"
-      }
-    },
     {
       "task_id": "muse-resume-preview",
       "phase": "phase 2",
@@ -274,6 +232,49 @@
       "status": "completed",
       "timestamp": 1793291888.8962798,
       "timestamp_str": "2026-10-29 19:38:08",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-catalog-filter",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/3] Plan catalog filters: case-insensitive name/prompt/theme match and date/score/name sort on top of the read-only listing, with tests and docs",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291969.7061808,
+      "timestamp_str": "2026-10-29 19:39:29",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The catalog can grow across many soundtrack runs, but muse list can only filter accepted/rejected and always sorts by date, forcing users to scan or post-process JSON",
+        "benefits": "A specific track or theme can be found in one command, and the highest-scoring or alphabetically named artifacts can be reviewed directly",
+        "risks": "contract: new --match/--sort flags and catalog parameters; dependency: none added; concurrency: read-only; state: none",
+        "mitigation": "Filter and sort before the limit, validate sort choices through argparse, keep defaults date/newest, and test case-insensitivity and empty matches"
+      }
+    },
+    {
+      "task_id": "muse-catalog-filter",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[3/3] Catalog filter complete: 174 tests, 4/4 gates; --match and --sort dogfooded, invalid sort is misuse; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292167.7368035,
+      "timestamp_str": "2026-10-29 19:42:47",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "8 modified files",
+        "next": "commit and push the catalog filter release",
+        "evidence": "174 tests OK, match/sort output verified"
+      }
+    },
+    {
+      "task_id": "muse-catalog-filter",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-catalog-filter' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793292180.5715914,
+      "timestamp_str": "2026-10-29 19:43:00",
       "agent": "opencode:main"
     }
   ]

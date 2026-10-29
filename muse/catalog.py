@@ -54,10 +54,17 @@ def load_artifacts(
     output_dir: Path,
     accepted_only: bool = False,
     limit: int | None = None,
+    match: str = "",
+    sort: str = "date",
 ) -> tuple[list[Artifact], list[str]]:
     """Scan one output directory level and return scored artifacts plus warnings."""
     if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int) or limit < 1):
         raise ValueError("limit must be a positive whole number")
+    if not isinstance(match, str):
+        raise ValueError("match must be a string")
+    if sort not in ("date", "score", "name"):
+        raise ValueError("sort must be date, score or name")
+    needle = match.strip().casefold()
     root = Path(output_dir)
     if not root.is_dir():
         return [], []
@@ -79,8 +86,25 @@ def load_artifacts(
             continue
         if accepted_only and not entry.accepted:
             continue
+        if needle and not any(
+            needle in value.casefold() for value in (entry.name, entry.prompt, entry.theme)
+        ):
+            continue
         entries.append(entry)
-    entries.sort(key=lambda entry: (entry.created_at, entry.folder), reverse=True)
+    if sort == "score":
+        entries.sort(
+            key=lambda entry: (
+                entry.score is not None,
+                entry.score if entry.score is not None else -1,
+                entry.created_at,
+                entry.folder,
+            ),
+            reverse=True,
+        )
+    elif sort == "name":
+        entries.sort(key=lambda entry: (entry.name.casefold(), entry.folder))
+    else:
+        entries.sort(key=lambda entry: (entry.created_at, entry.folder), reverse=True)
     if limit is not None:
         entries = entries[:limit]
     return entries, warnings

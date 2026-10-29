@@ -84,6 +84,7 @@ python -m muse batch tracks.json --dry-run --resume
 
 # review scored evidence, newest first
 python -m muse list --accepted-only --limit 10
+python -m muse list --match "cave" --sort score
 python -m muse list --json
 
 # inspect one artifact's full evidence, or print raw metadata
@@ -162,11 +163,12 @@ the old artifact folders as evidence.
 ### Catalog
 
 `muse list` scans one level of `<out>` for `muse.json`, shows the newest evidence first, and marks
-tracks whose audio file is missing. `--accepted-only` hides rejected tracks, `--limit N` caps the
-result (default 20), and `--json` prints the same fields as a machine-readable `artifacts` array
-(folder, name, prompt, theme, duration, score, verdict, accepted, attempts, paths and
-`audio_exists`). It is read-only and never calls a provider. Corrupt, oversized or unsupported
-metadata is reported on stderr and skipped instead of failing the whole listing.
+tracks whose audio file is missing. `--accepted-only` hides rejected tracks, `--match TEXT` filters
+name, prompt and theme case-insensitively, `--sort date|score|name` orders the result (date is
+newest first), `--limit N` caps it (default 20), and `--json` prints the same fields as a
+machine-readable `artifacts` array (folder, name, prompt, theme, duration, score, verdict, accepted,
+attempts, paths and `audio_exists`). It is read-only and never calls a provider. Corrupt, oversized
+or unsupported metadata is reported on stderr and skipped instead of failing the whole listing.
 
 `muse show <folder|muse.json|track-file>` resolves one artifact under `--out` (or from a path) and
 prints its prompt, theme, track, score, summary, strengths, issues, suggestions, attempts and
@@ -303,7 +305,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 170 offline unit tests, no network or keys
+├── tests/                    <- 174 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

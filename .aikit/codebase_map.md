@@ -9,8 +9,8 @@
 - **Total Python Modules**: `31`
 - **Total Classes**: `57`
 - **Total Top-Level Functions**: `73`
-- **Total Class Methods**: `256`
-- **Total Source Lines**: `4871`
+- **Total Class Methods**: `260`
+- **Total Source Lines**: `4955`
 
 ---
 
@@ -19,7 +19,7 @@
 ### [`muse/__init__.py`](muse/__init__.py)
 > *Muse: prompt-driven music with an automated listener.*
 
-**Size**: `25` lines (`588` bytes)
+**Size**: `25` lines (`589` bytes)
 
 ---
 
@@ -83,14 +83,14 @@
 ### [`muse/catalog.py`](muse/catalog.py)
 > *Read-only discovery of scored artifacts under an output directory.*
 
-**Size**: `181` lines (`6237` bytes)
+**Size**: `205` lines (`7083` bytes)
 
 **Classes:**
 - `class Artifact`
   - Method `.as_dict()`
 
 **Functions:**
-- `def load_artifacts(output_dir, accepted_only, limit)` - *Scan one output directory level and return scored artifacts plus warnings.*
+- `def load_artifacts(output_dir, accepted_only, limit, match, sort)` - *Scan one output directory level and return scored artifacts plus warnings.*
 - `def load_artifact(path)` - *Read and validate one metadata file, returning the summary and raw payload.*
 - `def _read_metadata(path)`
 - `def _entry(metadata, payload)`
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `691` lines (`26580` bytes)
+**Size**: `702` lines (`27004` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -424,7 +424,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `243` lines (`9553` bytes)
+**Size**: `292` lines (`12116` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -434,6 +434,8 @@
   - Method `.test_skips_corrupt_oversized_and_unknown_schema()`
   - Method `.test_schema_one_and_missing_audio()`
   - Method `.test_counts_attempt_history()`
+  - Method `.test_filters_by_case_insensitive_text()`
+  - Method `.test_sorts_by_score_and_name()`
   - Method `.test_rejects_windows_separator_in_file_name()`
   - Method `.test_limit_must_be_positive_when_given()`
 - `class ListCliTests`
@@ -441,6 +443,8 @@
   - Method `.run_cli(argv)`
   - Method `.test_list_json()`
   - Method `.test_list_filters_and_limits()`
+  - Method `.test_list_match_and_sort()`
+  - Method `.test_list_invalid_sort_is_misuse()`
   - Method `.test_list_empty_and_corrupt()`
   - Method `.test_list_limit_zero_is_misuse()`
 - `class ShowCliTests`

@@ -120,6 +120,30 @@ class CatalogTests(unittest.TestCase):
         entries, _ = load_artifacts(self.root)
         self.assertEqual(entries[0].attempts, 2)
 
+    def test_filters_by_case_insensitive_text(self):
+        write_artifact(self.root, "cave")
+        write_artifact(self.root, "sunny", accepted=False, score=45, verdict="does_not_fit")
+        entries, _ = load_artifacts(self.root, match="CAVE")
+        self.assertEqual([entry.folder for entry in entries], ["cave"])
+        entries, _ = load_artifacts(self.root, match="sunny theme")
+        self.assertEqual([entry.folder for entry in entries], ["sunny"])
+        entries, _ = load_artifacts(self.root, match="missing")
+        self.assertEqual(entries, [])
+
+    def test_sorts_by_score_and_name(self):
+        write_artifact(self.root, "cave", score=70)
+        write_artifact(self.root, "village", score=88)
+        write_artifact(self.root, "sunny", accepted=False, score=45, verdict="does_not_fit")
+        write_artifact(self.root, "unjudged", accepted=False, score=None, verdict=None)
+        by_score, _ = load_artifacts(self.root, sort="score")
+        self.assertEqual([entry.folder for entry in by_score], ["village", "cave", "sunny", "unjudged"])
+        by_name, _ = load_artifacts(self.root, sort="name")
+        self.assertEqual([entry.folder for entry in by_name], ["cave", "sunny", "unjudged", "village"])
+        with self.assertRaises(ValueError):
+            load_artifacts(self.root, sort="random")
+        with self.assertRaises(ValueError):
+            load_artifacts(self.root, match=1)
+
     def test_rejects_windows_separator_in_file_name(self):
         path = write_artifact(self.root, "traversal")
         payload = json.loads((path / "muse.json").read_text(encoding="utf-8"))
@@ -168,6 +192,31 @@ class ListCliTests(unittest.TestCase):
         code, out, err = self.run_cli(["list", "--limit", "1", "--json"])
         self.assertEqual(code, 0, err)
         self.assertEqual(json.loads(out)["total"], 1)
+
+    def test_list_match_and_sort(self):
+        write_artifact(self.output, "cave", score=70)
+        write_artifact(self.output, "village", score=88)
+        write_artifact(self.output, "sunny", accepted=False, score=45, verdict="does_not_fit")
+        code, out, err = self.run_cli(["list", "--match", "CAVE", "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out)["total"], 1)
+        code, out, err = self.run_cli(["list", "--sort", "score", "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            [artifact["folder"] for artifact in json.loads(out)["artifacts"]],
+            ["village", "cave", "sunny"],
+        )
+        code, out, err = self.run_cli(["list", "--sort", "name", "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            [artifact["folder"] for artifact in json.loads(out)["artifacts"]],
+            ["cave", "sunny", "village"],
+        )
+
+    def test_list_invalid_sort_is_misuse(self):
+        code, _, err = self.run_cli(["list", "--sort", "random"])
+        self.assertEqual(code, 2)
+        self.assertIn("sort", err)
 
     def test_list_empty_and_corrupt(self):
         code, out, err = self.run_cli(["list"])
