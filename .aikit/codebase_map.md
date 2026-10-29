@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `33`
-- **Total Classes**: `61`
-- **Total Top-Level Functions**: `81`
-- **Total Class Methods**: `290`
-- **Total Source Lines**: `5521`
+- **Total Python Modules**: `35`
+- **Total Classes**: `64`
+- **Total Top-Level Functions**: `87`
+- **Total Class Methods**: `298`
+- **Total Source Lines**: `5859`
 
 ---
 
@@ -83,7 +83,7 @@
 ### [`muse/catalog.py`](muse/catalog.py)
 > *Read-only discovery of scored artifacts under an output directory.*
 
-**Size**: `205` lines (`7083` bytes)
+**Size**: `205` lines (`7086` bytes)
 
 **Classes:**
 - `class Artifact`
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `834` lines (`32382` bytes)
+**Size**: `900` lines (`35577` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -116,6 +116,7 @@
 - `def _batch(args, settings, provider, judge)`
 - `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
+- `def _rejudge(args, settings, judge)`
 - `def _doctor(args, config)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
@@ -332,6 +333,22 @@
   - Method `._create(request)`
   - Method `._wait(created)`
   - Method `._output_url(final)`
+
+---
+
+### [`muse/rejudge.py`](muse/rejudge.py)
+> *Re-score existing artifacts and keep every previous verdict in history.*
+
+**Size**: `145` lines (`5317` bytes)
+
+**Classes:**
+- `class RejudgeResult`
+
+**Functions:**
+- `def rejudge_artifacts(metadata_paths, settings, judge)`
+- `def _request(payload, entry)`
+- `def _track(payload, entry, request)`
+- `def _verdict_payload(verdict)`
 
 ---
 
@@ -703,6 +720,26 @@
 
 **Functions:**
 - `def config(**changes)`
+
+---
+
+### [`tests/test_rejudge.py`](tests/test_rejudge.py)
+**Size**: `127` lines (`5347` bytes)
+
+**Classes:**
+- `class FailingJudge`
+  - Method `.judge(track, request)`
+- `class RejudgeCliTests`
+  - Method `.setUp()`
+  - Method `.run_cli(argv, judge)`
+  - Method `.test_rejudge_updates_metadata_and_history()`
+  - Method `.test_rejudge_multiple_and_strict()`
+  - Method `.test_rejudge_failure_leaves_evidence_unchanged()`
+  - Method `.test_rejudge_twice_appends_history()`
+  - Method `.test_rejudge_missing_and_judge_none()`
+
+**Functions:**
+- `def write_artifact(root, folder, *, prompt, theme, score, accepted, verdict, schema)`
 
 ---
 

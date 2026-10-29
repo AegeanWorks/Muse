@@ -21,6 +21,7 @@ from .judges.registry import build_judge, judges
 from .pipeline import compose, judge_track
 from .providers.base import MusicProvider
 from .providers.registry import providers
+from .rejudge import rejudge_artifacts
 from .types import MAX_ATTEMPTS, MAX_DURATION, Attempt, CompositionResult, MusicRequest, Track, Verdict
 
 
@@ -50,6 +51,8 @@ def main(
             return _catalog(args, settings)
         if args.command == "show":
             return _show(args, settings)
+        if args.command == "rejudge":
+            return _rejudge(args, settings, judge)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -126,6 +129,15 @@ def build_parser() -> argparse.ArgumentParser:
     judge.add_argument("--prompt", default="", help="the prompt that produced the track")
     _common(judge)
     judge.add_argument("--strict", action="store_true", help="exit 1 when the score is below threshold")
+
+    rejudge = subparsers.add_parser("rejudge", help="re-score existing artifacts without rendering")
+    rejudge.add_argument("artifacts", nargs="+", help="artifact folders, muse.json or track files")
+    rejudge.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
+    rejudge.add_argument("--judge", default=None, help="judge name, or 'none'")
+    rejudge.add_argument("--judge-model", default=None, help="judge model name")
+    rejudge.add_argument("--min-score", type=int, default=None, help="acceptance threshold 0-100")
+    rejudge.add_argument("--strict", action="store_true", help="exit 1 when any new verdict is rejected")
+    rejudge.add_argument("--json", action="store_true", help="machine-readable output")
 
     doctor = subparsers.add_parser("doctor", help="check local configuration without network calls")
     doctor.add_argument("--out", type=Path, default=None, help="artifact directory to check (default: output)")
@@ -488,6 +500,57 @@ def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | N
     return 1 if args.strict and not verdict.accepted else 0
 
 
+def _rejudge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | None) -> int:
+    if settings.judge == "none" and judge is None:
+        raise ConfigurationError(
+            "rejudge needs a listening judge",
+            "'none' disables listening, so there is no new verdict to record",
+            "omit --judge none, or pass --judge gemini or --judge mock",
+        )
+    paths = []
+    for value in args.artifacts:
+        metadata = _resolve_artifact(value, settings.output_dir)
+        if not metadata.is_file():
+            raise MuseError(
+                f"artifact not found: {metadata}",
+                "no muse.json exists at the resolved path",
+                "run `muse list` to find a folder, or pass the artifact folder or muse.json path",
+            )
+        paths.append(metadata)
+    results = rejudge_artifacts(paths, settings, judge)
+    accepted = sum(1 for result in results if result.verdict.accepted)
+    payload = {
+        "artifacts": [
+            {
+                "name": result.entry.name,
+                "metadata": str(result.entry.metadata_path),
+                "audio": str(result.entry.audio_path),
+                "old_score": result.old_score,
+                "score": result.verdict.score,
+                "verdict": result.verdict.verdict,
+                "accepted": result.verdict.accepted,
+                "history": result.history_count,
+            }
+            for result in results
+        ],
+        "total": len(results),
+        "accepted": accepted,
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 1 if args.strict and accepted < len(results) else 0
+    for result in results:
+        old = "none" if result.old_score is None else f"{result.old_score}/100"
+        state = "accepted" if result.verdict.accepted else "rejected"
+        print(
+            f"{result.entry.name}: {old} -> {result.verdict.score}/100 "
+            f"{result.verdict.verdict} ({state})"
+        )
+        print(f"  {result.entry.metadata_path}")
+    print(f"Rejudged: {accepted}/{len(results)} accepted")
+    return 1 if args.strict and accepted < len(results) else 0
+
+
 def _doctor(args: argparse.Namespace, config: MuseConfig | None) -> int:
     try:
         settings = _settings(args, config)
@@ -622,6 +685,9 @@ def _print_artifact(entry: Artifact, payload: Mapping[str, Any]) -> None:
     error = payload.get("judge_error")
     if isinstance(error, str) and error:
         print(f"Judge error: {error}")
+    history = payload.get("history")
+    if isinstance(history, list) and history:
+        print(f"History: {len(history)} previous judgment(s)")
     attempts = payload.get("attempts")
     selected = payload.get("selected_attempt")
     if isinstance(attempts, list) and attempts:

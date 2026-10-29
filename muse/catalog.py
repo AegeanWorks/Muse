@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 MAX_METADATA_BYTES = 2_000_000
-SCHEMAS = (1, 2)
+SCHEMAS = (1, 2, 3)
 
 
 @dataclass(frozen=True)

@@ -173,6 +173,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: When selected metadata carries an `attempts` list, print each take's number, score, verdict and relative audio path, marking `selected_attempt` with `<- selected`. Single-take evidence keeps the existing `Attempts: 1` line; `--json` remains the raw object.
 - **Consequences**: The retry trail is reviewable in one human-readable command and the selected take is explicit. The cost is another human renderer that must track the metadata attempt shape.
 
+### ADR-024: Rejudge rewrites evidence as schema 3 with a verdict history
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Re-scoring a track after changing the judge model or threshold required a new render, because `muse judge` only prints a verdict and `muse.json` holds one judgment.
+- **Decision**: `muse rejudge ARTIFACT...` loads existing artifacts, validates every audio/request before judging, builds one judge, collects all new verdicts, then writes each `muse.json` atomically as schema 3. The previous verdict, acceptance, judge error and settings are appended to `history`; the top-level `verdict` becomes the latest result and `rejudged_at` records the update. `--strict` exits 1 when any new verdict is rejected, and `--json` reports old/new scores and history length.
+- **Consequences**: Judge/model/threshold experiments no longer pay for another render, and every prior judgment remains auditable. The cost is a third metadata schema that catalog/show must keep reading, and a multi-artifact run is atomic per file but not across files if a later write fails.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

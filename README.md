@@ -51,6 +51,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
 5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider; `muse show` prints one artifact's full verdict, suggestions, attempts and settings.
 6. `muse doctor` checks Python, the output path, adapter names and required keys without network calls or writes.
+7. `muse rejudge` re-scores existing audio with the current judge and appends the previous verdict to `muse.json` history, without a new render.
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
@@ -101,6 +102,9 @@ python -m muse list --json
 # inspect one artifact's full evidence, or print raw metadata
 python -m muse show cave-level
 python -m muse show cave-level --json
+
+# re-score existing audio without rendering it again
+python -m muse rejudge cave-level --judge gemini --strict --json
 
 # what is wired in?
 python -m muse providers
@@ -183,6 +187,16 @@ judge and never creates the output directory. `--provider`, `--judge`, `--model`
 and `--out` check an alternate configuration; `--json` returns the same checks as a machine-readable
 array, including an invalid environment as a `configuration` check. The command exits `1` when any
 check fails, with a `Fix:` line for each failure.
+
+### Rejudge
+
+`muse rejudge ARTIFACT...` re-scores existing audio with the current judge settings and writes the
+new verdict back to `muse.json` as schema 3. Each update appends the previous verdict, acceptance,
+judge error and settings to a `history` array, so an older judgment is never overwritten. Artifacts
+may be folders, `muse.json` files or track files; all are validated before judging, the judge is
+built once, and no provider is called. `--judge`, `--judge-model`, `--min-score` and `--out` select
+the new judgment; `--strict` exits `1` when any new verdict is rejected, and `--json` reports old
+score, new score, verdict, acceptance and history length.
 
 ### Catalog
 
@@ -286,9 +300,10 @@ output/.muse-batch-<hash>.json  <- batch resume state, not track evidence
 
 Each take keeps its own folder, including rejected ones, so the full retry history is auditable.
 The selected take's `muse.json` also records `selected_attempt` and an `attempts` array with the
-prompt, score, verdict and relative artifact paths of every take. Batch runs use the same per-track
-folders plus the hidden fingerprint state file, which stores summaries only; `--resume` checks that
-the referenced audio and `muse.json` still exist before reusing a track.
+prompt, score, verdict and relative artifact paths of every take. A rejudge moves the file to schema
+3 and adds a `history` array with each previous verdict and settings. Batch runs use the same
+per-track folders plus the hidden fingerprint state file, which stores summaries only; `--resume`
+checks that the referenced audio and `muse.json` still exist before reusing a track.
 
 `muse.json` is written atomically (temporary file, fsync, replace), so an interrupted run never
 leaves truncated metadata. Repeated runs with the same name get `-2`, `-3`, ... folders instead
@@ -317,12 +332,13 @@ muse/
 │   ├── batch.py              <- JSON manifest parsing and validation
 │   ├── batch_state.py        <- fingerprinted, crash-safe batch progress
 │   ├── catalog.py            <- read-only artifact evidence discovery
-│   ├── cli.py                <- generate / batch / judge / list / show / providers commands
+│   ├── cli.py                <- generate / batch / judge / rejudge / list / show commands
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── doctor.py             <- read-only local configuration checks
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
 │   ├── pipeline.py           <- render, listen, refine, persist evidence
+│   ├── rejudge.py            <- re-score artifacts and append verdict history
 │   ├── types.py              <- frozen request, track, verdict, result
 │   ├── judges/
 │   │   ├── base.py           <- listening protocol
@@ -334,7 +350,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 196 offline unit tests, no network or keys
+├── tests/                    <- 201 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

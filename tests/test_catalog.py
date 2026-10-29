@@ -96,7 +96,7 @@ class CatalogTests(unittest.TestCase):
             entries, warnings = load_artifacts(self.root)
         self.assertEqual(entries, [])
         self.assertEqual(len(warnings), 2)
-        write_artifact(self.root, "future", schema=3)
+        write_artifact(self.root, "future", schema=4)
         entries, warnings = load_artifacts(self.root)
         self.assertEqual(entries, [])
         self.assertEqual(len(warnings), 3)

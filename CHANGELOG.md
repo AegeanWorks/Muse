@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.14.0] - 2026-10-29
+
+### Added
+
+- `muse rejudge ARTIFACT...` re-scores existing audio without a provider and
+  writes schema-3 evidence with a history array of prior verdicts and settings.
+
 ## [0.13.3] - 2026-10-29
 
 ### Added
