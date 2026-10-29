@@ -9,6 +9,14 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.14.1] - 2026-10-29
+
+### Fixed
+
+- Rejudged evidence records the judge and model reported by the new verdict,
+  rather than the configured names, so aliased/injected judges are attributed
+  correctly.
+
 ## [0.14.0] - 2026-10-29
 
 ### Added

@@ -180,6 +180,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `muse rejudge ARTIFACT...` loads existing artifacts, validates every audio/request before judging, builds one judge, collects all new verdicts, then writes each `muse.json` atomically as schema 3. The previous verdict, acceptance, judge error and settings are appended to `history`; the top-level `verdict` becomes the latest result and `rejudged_at` records the update. `--strict` exits 1 when any new verdict is rejected, and `--json` reports old/new scores and history length.
 - **Consequences**: Judge/model/threshold experiments no longer pay for another render, and every prior judgment remains auditable. The cost is a third metadata schema that catalog/show must keep reading, and a multi-artifact run is atomic per file but not across files if a later write fails.
 
+### ADR-025: Rejudged settings come from the verdict, not the configuration
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `rejudge` recorded `settings.judge` and `settings.judge_model` from `MuseConfig`, but an injected or aliased judge returns its own `judge`/`model` in the verdict; the evidence could therefore misattribute the scoring model.
+- **Decision**: Write the new top-level settings from `verdict.judge` and `verdict.model`, while the history record keeps the prior settings.
+- **Consequences**: Evidence names the actual component that scored the audio, including test/custom judges. The cost is that configuration aliases are not separately recorded in the current settings block.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

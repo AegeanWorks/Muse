@@ -8,6 +8,7 @@ from pathlib import Path
 from muse.cli import main
 from muse.config import MuseConfig
 from muse.errors import JudgeError
+from muse.types import VERDICT_FITS, Verdict
 
 
 def write_artifact(root, folder, *, prompt, theme, score=45, accepted=False, verdict="does_not_fit", schema=2):
@@ -52,6 +53,14 @@ class FailingJudge:
 
     def judge(self, track, request):
         raise JudgeError("judge unavailable", "service down", "retry later")
+
+
+class NamedJudge:
+    name = "ears"
+    model = "ears-model"
+
+    def judge(self, track, request):
+        return Verdict(88, VERDICT_FITS, "ok", (), (), (), self.name, self.model, 60)
 
 
 class RejudgeCliTests(unittest.TestCase):
@@ -106,6 +115,15 @@ class RejudgeCliTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("judge unavailable", err)
         self.assertEqual((self.root / "cave" / "muse.json").read_text(encoding="utf-8"), before)
+
+    def test_rejudge_records_the_actual_judge(self):
+        write_artifact(self.root, "cave", prompt="cave drones", theme="cave level")
+        code, _, err = self.run_cli(["rejudge", "cave"], judge=NamedJudge())
+        self.assertEqual(code, 0, err)
+        metadata = json.loads((self.root / "cave" / "muse.json").read_text(encoding="utf-8"))
+        self.assertEqual(metadata["settings"]["judge"], "ears")
+        self.assertEqual(metadata["settings"]["judge_model"], "ears-model")
+        self.assertEqual(metadata["history"][0]["settings"]["judge"], "mock")
 
     def test_rejudge_twice_appends_history(self):
         write_artifact(self.root, "cave", prompt="cave drones", theme="cave level")

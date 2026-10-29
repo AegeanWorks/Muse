@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `35`
-- **Total Classes**: `64`
+- **Total Classes**: `65`
 - **Total Top-Level Functions**: `87`
-- **Total Class Methods**: `298`
-- **Total Source Lines**: `5859`
+- **Total Class Methods**: `300`
+- **Total Source Lines**: `5877`
 
 ---
 
@@ -339,7 +339,7 @@
 ### [`muse/rejudge.py`](muse/rejudge.py)
 > *Re-score existing artifacts and keep every previous verdict in history.*
 
-**Size**: `145` lines (`5317` bytes)
+**Size**: `145` lines (`5309` bytes)
 
 **Classes:**
 - `class RejudgeResult`
@@ -724,10 +724,12 @@
 ---
 
 ### [`tests/test_rejudge.py`](tests/test_rejudge.py)
-**Size**: `127` lines (`5347` bytes)
+**Size**: `145` lines (`6145` bytes)
 
 **Classes:**
 - `class FailingJudge`
+  - Method `.judge(track, request)`
+- `class NamedJudge`
   - Method `.judge(track, request)`
 - `class RejudgeCliTests`
   - Method `.setUp()`
@@ -735,6 +737,7 @@
   - Method `.test_rejudge_updates_metadata_and_history()`
   - Method `.test_rejudge_multiple_and_strict()`
   - Method `.test_rejudge_failure_leaves_evidence_unchanged()`
+  - Method `.test_rejudge_records_the_actual_judge()`
   - Method `.test_rejudge_twice_appends_history()`
   - Method `.test_rejudge_missing_and_judge_none()`
 

@@ -194,9 +194,10 @@ check fails, with a `Fix:` line for each failure.
 new verdict back to `muse.json` as schema 3. Each update appends the previous verdict, acceptance,
 judge error and settings to a `history` array, so an older judgment is never overwritten. Artifacts
 may be folders, `muse.json` files or track files; all are validated before judging, the judge is
-built once, and no provider is called. `--judge`, `--judge-model`, `--min-score` and `--out` select
-the new judgment; `--strict` exits `1` when any new verdict is rejected, and `--json` reports old
-score, new score, verdict, acceptance and history length.
+built once, and no provider is called. The current settings record the judge and model returned by
+the new verdict, while history keeps the prior settings. `--judge`, `--judge-model`, `--min-score`
+and `--out` select the new judgment; `--strict` exits `1` when any new verdict is rejected, and
+`--json` reports old score, new score, verdict, acceptance and history length.
 
 ### Catalog
 
@@ -350,7 +351,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 201 offline unit tests, no network or keys
+├── tests/                    <- 202 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

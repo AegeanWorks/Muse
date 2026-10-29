@@ -72,8 +72,8 @@ def rejudge_artifacts(
             }
         )
         new_settings = dict(old_settings)
-        new_settings["judge"] = settings.judge
-        new_settings["judge_model"] = settings.judge_model
+        new_settings["judge"] = verdict.judge
+        new_settings["judge_model"] = verdict.model
         updated = dict(payload)
         updated["schema"] = 3
         updated["verdict"] = _verdict_payload(verdict)
