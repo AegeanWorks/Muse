@@ -1,81 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-show-history",
+    "task_id": "reforge:run-5",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793296108.7793887,
+    "updated_at": 1793296335.966843,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793296113.4859402
+    "completed_at": 1793296336.289456
   },
   "checkpoints": [
-    {
-      "task_id": "muse-generate-dryrun",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-generate-dryrun' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793295109.2116659,
-      "timestamp_str": "2026-10-29 20:31:49",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-fix-round",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/3] Plan two defects: mock judge ignores non-ASCII shared terms, and muse show resolves a bare name to a cwd folder before the configured output",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793295206.358984,
-      "timestamp_str": "2026-10-29 20:33:26",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Turkish and other Unicode themes score as disjoint in offline demos, and a same-named cwd directory can shadow the artifact the user asked show to inspect",
-        "benefits": "Offline judging matches prompts/themes in any script, and show resolves bare names against --out consistently",
-        "risks": "contract: mock scoring and bare-name lookup order; dependency: none; concurrency: read-only; state: none",
-        "mitigation": "Unicode word regex with existing English tests, explicit path fallback, test with a cwd folder and output artifact"
-      }
-    },
-    {
-      "task_id": "muse-fix-round",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[3/3] Localization and lookup fixes complete: 193 tests, 4/4 gates; Unicode mock match, agac-ormani slug, show output precedence verified; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793295447.026239,
-      "timestamp_str": "2026-10-29 20:37:27",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "12 modified files",
-        "next": "commit and push the localization fixes",
-        "evidence": "193 tests OK, Unicode dogfood 88/100"
-      }
-    },
-    {
-      "task_id": "muse-fix-round",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-fix-round' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793295457.9268274,
-      "timestamp_str": "2026-10-29 20:37:37",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-3",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=5, step=5, stop=5)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793295540.2424095,
-      "timestamp_str": "2026-10-29 20:39:00",
-      "agent": "opencode"
-    },
     {
       "task_id": "reforge:run-3",
       "phase": "reforge stage 1",
@@ -269,6 +205,66 @@
       "status": "completed",
       "timestamp": 1793296113.4859416,
       "timestamp_str": "2026-10-29 20:48:33",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-5",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=2, step=2, stop=2)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793296312.6726677,
+      "timestamp_str": "2026-10-29 20:51:52",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-5",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 2, 2 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793296314.7177558,
+      "timestamp_str": "2026-10-29 20:51:54",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-5",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge run-5: audit the show-history commit and run-4 state, then close the run",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793296335.6410577,
+      "timestamp_str": "2026-10-29 20:52:15",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The latest human-output change and the run-4 state commit are new since the last audit",
+        "benefits": "The show attempt trail gets a reviewed pass and the run history is recorded",
+        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
+        "mitigation": "Review every packet hunk, keep review packets ignored, sanitize paths and complete the task"
+      }
+    },
+    {
+      "task_id": "reforge:run-5",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-5 complete: 2 commits, 12/12 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793296335.966843,
+      "timestamp_str": "2026-10-29 20:52:15",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-5",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-5' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793296336.289457,
+      "timestamp_str": "2026-10-29 20:52:16",
       "agent": "opencode:main"
     }
   ]
