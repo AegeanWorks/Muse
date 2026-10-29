@@ -120,8 +120,14 @@ class GeminiJudge:
         }
 
     def _parse(self, response: Mapping[str, Any]) -> Mapping[str, Any]:
-        candidates = response.get("candidates") or []
-        if not candidates:
+        if not isinstance(response, Mapping):
+            raise MuseError(
+                "the judge returned a non-object response",
+                f"got {type(response).__name__}",
+                "retry; if it persists, check the Gemini service status",
+            )
+        candidates = response.get("candidates")
+        if not isinstance(candidates, list) or not candidates:
             feedback = response.get("promptFeedback") or {}
             raise MuseError(
                 "the judge returned no candidate",
@@ -129,7 +135,21 @@ class GeminiJudge:
                 "retry; if it persists, rephrase the theme",
             )
         candidate = candidates[0]
-        parts = (candidate.get("content") or {}).get("parts") or []
+        if not isinstance(candidate, Mapping) or not isinstance(candidate.get("content"), Mapping):
+            raise MuseError(
+                "the judge returned a malformed candidate",
+                f"candidate was {str(candidate)[:200]}",
+                "retry; if it persists, use --judge mock or shorten the theme",
+            )
+        parts = candidate["content"].get("parts")
+        if parts is None:
+            parts = []
+        if not isinstance(parts, list) or any(not isinstance(part, Mapping) for part in parts):
+            raise MuseError(
+                "the judge returned a malformed candidate",
+                f"candidate parts were {str(parts)[:200]}",
+                "retry; if it persists, use --judge mock or shorten the theme",
+            )
         text = "".join(str(part.get("text", "")) for part in parts).strip()
         if not text:
             reason = candidate.get("finishReason") or "unknown"

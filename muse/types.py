@@ -89,6 +89,13 @@ class Verdict:
             raise ValueError(f"verdict must be one of {', '.join(VERDICTS)}")
         if not isinstance(self.summary, str):
             raise ValueError("summary must be a string")
+        if not isinstance(self.judge, str) or not isinstance(self.model, str):
+            raise ValueError("judge and model must be strings")
+        for name in ("strengths", "issues", "suggestions"):
+            value = getattr(self, name)
+            if not isinstance(value, (tuple, list)) or any(not isinstance(item, str) for item in value):
+                raise ValueError(f"{name} must be a sequence of strings")
+            object.__setattr__(self, name, tuple(value))
         if isinstance(self.threshold, bool) or not isinstance(self.threshold, int) or not 0 <= self.threshold <= 100:
             raise ValueError("threshold must be an integer between 0 and 100")
 

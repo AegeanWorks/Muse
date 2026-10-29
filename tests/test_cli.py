@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from muse.audio import write_tone
 from muse.cli import main
@@ -149,6 +150,14 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("unknown music provider", err.getvalue())
         self.assertIn("Fix:", err.getvalue())
+
+    def test_filesystem_failure_is_explained(self):
+        with patch("muse.providers.mock.write_tone", side_effect=OSError("disk full")):
+            code, _, err = self.run_cli(["generate", "x", "--duration", "1"])
+        self.assertEqual(code, 1)
+        self.assertIn("filesystem", err)
+        self.assertIn("Fix:", err)
+        self.assertNotIn("Traceback", err)
 
     def test_attempts_json_reports_every_take(self):
         judge = ScriptedJudge(

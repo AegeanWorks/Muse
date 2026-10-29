@@ -46,6 +46,14 @@ def main(
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
         return 1
+    except OSError as exc:
+        print(
+            f"Error: a filesystem operation failed: {exc}\n"
+            "Why: an output path, audio file or state file could not be read or written.\n"
+            "Fix: check free disk space and folder permissions, then retry.",
+            file=sys.stderr,
+        )
+        return 1
     except ValueError as exc:
         print(
             f"Error: invalid request: {exc}\n"
@@ -89,6 +97,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--keep-going",
         action="store_true",
         help="record a failed track and continue with the rest of the manifest",
+    )
+    batch.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="validate the manifest and print the plan without rendering",
     )
 
     judge = subparsers.add_parser("judge", help="score an existing audio file against a theme")
@@ -178,13 +191,15 @@ def _batch(
     provider: MusicProvider | None,
     judge: MusicJudge | None,
 ) -> int:
+    requests = load_manifest(args.manifest)
+    if args.dry_run:
+        return _dry_run(args, settings, requests)
     if settings.judge == "none" and judge is None:
         raise ConfigurationError(
             "batch needs a listening judge",
             "a batch only reports accepted tracks when a judge scores every take",
             "omit --judge none, or pass --judge gemini or --judge mock",
         )
-    requests = load_manifest(args.manifest)
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
@@ -241,6 +256,43 @@ def _batch(
         if payload["reused"]:
             print(f"Reused: {payload['reused']}")
     return 1 if payload["failed"] or (args.strict and payload["rejected"]) else 0
+
+
+def _dry_run(
+    args: argparse.Namespace,
+    settings: MuseConfig,
+    requests: tuple[MusicRequest, ...],
+) -> int:
+    tracks = [
+        {
+            "name": request.label,
+            "prompt": request.prompt,
+            "theme": request.theme,
+            "duration": request.duration,
+        }
+        for request in requests
+    ]
+    payload = {
+        "dry_run": True,
+        "tracks": tracks,
+        "total": len(tracks),
+        "attempts": args.attempts,
+        "provider": settings.provider,
+        "judge": settings.judge,
+        "output": str(settings.output_dir),
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 0
+    print(
+        f"Dry run: {len(tracks)} track(s), up to {args.attempts} take(s) each "
+        f"-> {settings.output_dir}"
+    )
+    for index, request in enumerate(requests, 1):
+        intent = request.theme or "(prompt only)"
+        print(f"[{index}/{len(requests)}] {request.label}: {request.duration:g}s, theme {intent}")
+    print("No provider or judge was called.")
+    return 0
 
 
 def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | None) -> int:

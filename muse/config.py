@@ -67,12 +67,12 @@ class MuseConfig:
         source = os.environ if env is None else env
         return cls(
             env=source,
-            output_dir=Path(source.get("MUSE_OUTPUT_DIR") or "output"),
-            provider=source.get("MUSE_PROVIDER") or "replicate",
-            judge=source.get("MUSE_JUDGE") or "gemini",
-            music_model=source.get("MUSE_MUSIC_MODEL") or DEFAULT_MUSIC_MODEL,
-            replicate_version=source.get("MUSE_REPLICATE_VERSION") or None,
-            judge_model=source.get("MUSE_JUDGE_MODEL") or DEFAULT_JUDGE_MODEL,
+            output_dir=Path(_text(source, "MUSE_OUTPUT_DIR", "output")).expanduser(),
+            provider=_text(source, "MUSE_PROVIDER", "replicate"),
+            judge=_text(source, "MUSE_JUDGE", "gemini"),
+            music_model=_text(source, "MUSE_MUSIC_MODEL", DEFAULT_MUSIC_MODEL),
+            replicate_version=_text(source, "MUSE_REPLICATE_VERSION", "") or None,
+            judge_model=_text(source, "MUSE_JUDGE_MODEL", DEFAULT_JUDGE_MODEL),
             min_score=_int(source.get("MUSE_MIN_SCORE"), 60, "MUSE_MIN_SCORE"),
             http_timeout=_float(source.get("MUSE_HTTP_TIMEOUT"), 120.0, "MUSE_HTTP_TIMEOUT"),
             poll_timeout=_float(source.get("MUSE_POLL_TIMEOUT"), 600.0, "MUSE_POLL_TIMEOUT"),
@@ -100,6 +100,13 @@ class MuseConfig:
                 "create a key at https://aistudio.google.com/apikey and set GEMINI_API_KEY",
             )
         return key
+
+
+def _text(source: Mapping[str, str], key: str, default: str) -> str:
+    value = source.get(key, "")
+    if not isinstance(value, str):
+        return default
+    return value.strip() or default
 
 
 def _int(raw: str | None, default: int, name: str) -> int:

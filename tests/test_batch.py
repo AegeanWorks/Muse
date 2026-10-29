@@ -317,6 +317,41 @@ class BatchCliTests(unittest.TestCase):
         self.assertIn("manifest", err)
         self.assertIn("Fix:", err)
 
+    def test_batch_dry_run_json_makes_no_calls(self):
+        provider = CountingProvider(self.provider)
+        path = self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 2, "name": "village"},
+            ]
+        )
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--dry-run", "--attempts", "3", "--json"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(payload["total"], 2)
+        self.assertEqual(payload["attempts"], 3)
+        self.assertEqual([track["name"] for track in payload["tracks"]], ["cave", "village"])
+        self.assertEqual(provider.calls, [])
+        self.assertFalse(self.output.exists())
+
+    def test_batch_dry_run_human_output_without_a_judge(self):
+        path = self.manifest([{"prompt": "cave drones", "theme": "cave level", "duration": 1}])
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["batch", str(path), "--dry-run", "--judge", "none"],
+                config=self.config,
+                provider=self.provider,
+            )
+        self.assertEqual(code, 0, err.getvalue())
+        self.assertIn("Dry run", out.getvalue())
+        self.assertIn("No provider or judge was called", out.getvalue())
+        self.assertFalse(self.output.exists())
+
     def state_file(self):
         matches = list(self.output.glob(".muse-batch-*.json"))
         self.assertEqual(len(matches), 1)

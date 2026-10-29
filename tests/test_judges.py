@@ -82,6 +82,19 @@ class GeminiTests(unittest.TestCase):
             GeminiJudge(self.config, http=FakeHttp({"candidates": []})).judge(self.track, self.request)
         self.assertIn("no candidate", caught.exception.what)
 
+    def test_non_object_reply_is_rejected(self):
+        with self.assertRaises(MuseError) as caught:
+            GeminiJudge(self.config, http=FakeHttp([])).judge(self.track, self.request)
+        self.assertIn("non-object", caught.exception.what)
+
+    def test_malformed_candidate_is_rejected(self):
+        with self.assertRaises(MuseError) as caught:
+            GeminiJudge(
+                self.config,
+                http=FakeHttp({"candidates": [{"content": []}]}),
+            ).judge(self.track, self.request)
+        self.assertIn("malformed", caught.exception.what)
+
     def test_oversized_audio_is_rejected_before_upload(self):
         with patch("muse.judges.gemini.MAX_INLINE_BYTES", 10):
             with self.assertRaises(JudgeError) as caught:

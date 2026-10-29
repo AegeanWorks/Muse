@@ -61,6 +61,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `MusicRequest`, `Verdict` and `MuseConfig` validate types, finite bounds and acceptance values at construction, and coerce `output_dir` to `Path`. `slugify` suffixes Windows reserved names. `unique_directory` uses atomic `mkdir`, `write_json_atomic` cleans its temp file on failure, fsyncs the file and (on POSIX) the directory, and reports `OSError` as `MuseError`. Downloads accept only http(s), reject empty bodies, cap the stream at 128 MB, retry truncated responses and report folder failures. Gemini checks the file size before reading. Manifest and batch-state reads are bounded, and Replicate validates handles and poll responses and evaluates the final poll.
 - **Consequences**: Invalid inputs now fail at the public boundary instead of surfacing later as tracebacks, and interrupted or failed writes leave the previous evidence intact. The cost is stricter library validation (float thresholds and boolean durations are rejected), a 128 MB download ceiling, and directory fsync skipped on Windows where the operation is unavailable.
 
+### ADR-008: Batch dry-run validates a plan without spending or writing
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A 50-track manifest with up to five takes per track can cost hundreds of provider and judge calls, but there was no way to validate the manifest and inspect the plan before spending.
+- **Decision**: `muse batch --dry-run` validates the manifest with the normal loader, then prints each track's name, prompt, theme and duration plus the provider, judge, output root and attempt count. It writes no artifacts or batch state and calls neither the provider nor the judge, so it also accepts `--judge none`. With `--json` it emits a `dry_run: true` payload with the same track list.
+- **Consequences**: A costly plan can be reviewed and corrected before the first paid call, and CI can validate manifests without keys. The cost is a second rendering path for the batch summary and the rule that dry-run properties (provider/judge names) are reported but not resolved, so an unknown provider is caught only by a real run.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

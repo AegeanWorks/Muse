@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `29`
 - **Total Classes**: `51`
-- **Total Top-Level Functions**: `60`
-- **Total Class Methods**: `213`
-- **Total Source Lines**: `3866`
+- **Total Top-Level Functions**: `62`
+- **Total Class Methods**: `220`
+- **Total Source Lines**: `4050`
 
 ---
 
@@ -83,7 +83,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `467` lines (`17721` bytes)
+**Size**: `519` lines (`19347` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -94,6 +94,7 @@
 - `def _settings(args, config)`
 - `def _generate(args, settings, provider, judge)`
 - `def _batch(args, settings, provider, judge)`
+- `def _dry_run(args, settings, requests)`
 - `def _judge(args, settings, judge)`
 - `def _providers(args)`
 - `def _result_payload(result)`
@@ -114,7 +115,7 @@
 ### [`muse/config.py`](muse/config.py)
 > *Configuration resolved from explicit values, environment variables and defaults.*
 
-**Size**: `128` lines (`5090` bytes)
+**Size**: `135` lines (`5312` bytes)
 
 **Classes:**
 - `class MuseConfig`
@@ -125,6 +126,7 @@
   - Method `.gemini_key()`
 
 **Functions:**
+- `def _text(source, key, default)`
 - `def _int(raw, default, name)`
 - `def _float(raw, default, name)`
 
@@ -159,7 +161,7 @@
 ### [`muse/judges/gemini.py`](muse/judges/gemini.py)
 > *Gemini audio judge: listens to the rendered track and scores theme fit.*
 
-**Size**: `176` lines (`7204` bytes)
+**Size**: `196` lines (`8217` bytes)
 
 **Classes:**
 - `class GeminiJudge`
@@ -292,7 +294,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `130` lines (`3961` bytes)
+**Size**: `137` lines (`4440` bytes)
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -341,7 +343,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `433` lines (`18495` bytes)
+**Size**: `468` lines (`20092` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -380,6 +382,8 @@
   - Method `.test_batch_applies_attempts_per_track()`
   - Method `.test_batch_without_a_judge_is_refused()`
   - Method `.test_batch_missing_manifest_exits_one()`
+  - Method `.test_batch_dry_run_json_makes_no_calls()`
+  - Method `.test_batch_dry_run_human_output_without_a_judge()`
   - Method `.state_file()`
   - Method `.test_batch_writes_state_after_each_track()`
   - Method `.test_resume_reuses_accepted_tracks()`
@@ -391,7 +395,7 @@
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
-**Size**: `203` lines (`7713` bytes)
+**Size**: `212` lines (`8117` bytes)
 
 **Classes:**
 - `class ScriptedJudge`
@@ -413,6 +417,7 @@
   - Method `.test_judge_reports_strengths()`
   - Method `.test_unknown_flag_is_misuse()`
   - Method `.test_unknown_provider_exits_one()`
+  - Method `.test_filesystem_failure_is_explained()`
   - Method `.test_attempts_json_reports_every_take()`
   - Method `.test_attempts_human_output_lists_takes()`
   - Method `.test_attempts_out_of_range_is_misuse()`
@@ -424,7 +429,7 @@
 ---
 
 ### [`tests/test_judges.py`](tests/test_judges.py)
-**Size**: `148` lines (`6473` bytes)
+**Size**: `161` lines (`7053` bytes)
 
 **Classes:**
 - `class FakeHttp`
@@ -437,6 +442,8 @@
   - Method `.test_boolean_score_is_rejected()`
   - Method `.test_unknown_verdict_is_rejected()`
   - Method `.test_missing_candidate_is_rejected()`
+  - Method `.test_non_object_reply_is_rejected()`
+  - Method `.test_malformed_candidate_is_rejected()`
   - Method `.test_oversized_audio_is_rejected_before_upload()`
   - Method `.test_oversized_audio_is_rejected_before_reading()`
   - Method `.test_unreadable_track_is_explained()`
@@ -563,7 +570,7 @@
 ---
 
 ### [`tests/test_types.py`](tests/test_types.py)
-**Size**: `165` lines (`6753` bytes)
+**Size**: `206` lines (`8413` bytes)
 
 **Classes:**
 - `class MusicRequestTests`
@@ -579,10 +586,12 @@
   - Method `.test_accepts_at_threshold()`
   - Method `.test_rejects_below_threshold()`
   - Method `.test_invalid_values_are_rejected()`
+  - Method `.test_sequences_are_normalized_and_validated()`
 - `class ConfigTests`
   - Method `.test_defaults()`
   - Method `.test_environment_overrides()`
   - Method `.test_empty_environment_values_fall_back_to_defaults()`
+  - Method `.test_environment_text_is_trimmed_and_expanded()`
   - Method `.test_invalid_number_is_a_configuration_error()`
   - Method `.test_threshold_outside_percent_is_rejected()`
   - Method `.test_non_positive_timeouts_are_rejected()`

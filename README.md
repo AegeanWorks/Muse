@@ -75,6 +75,9 @@ python -m muse batch tracks.json --attempts 2 --strict --json
 # after a failure, reuse accepted tracks and retry the rest
 python -m muse batch tracks.json --resume --keep-going
 
+# inspect the plan without calling a provider or judge
+python -m muse batch tracks.json --dry-run --json
+
 # what is wired in?
 python -m muse providers
 ```
@@ -115,6 +118,10 @@ with the same provider, judge and `--attempts` setting:
 as `generate`. Unknown keys, wrong types, an empty track list and more than 50 tracks are rejected
 with a `Why:` and `Fix:`. Batch needs a listening judge and runs sequentially.
 
+`--dry-run` validates the same manifest and prints the track plan, provider, judge and output
+root without calling either service or writing artifacts or state. It also accepts `--judge none`,
+because no listening happens.
+
 Each run writes a hidden `<out>/.muse-batch-<hash>.json` state file after every track. The hash
 covers the validated manifest, so changing a prompt, theme, duration or name starts a different
 state; provider and judge flags are not part of the hash, so run without `--resume` to re-judge
@@ -129,6 +136,7 @@ failure is recorded and the command stops. A failed track always exits `1`; `--s
 
 | Batch flag | Meaning |
 |---|---|
+| `--dry-run` | Validate and print the plan; no provider, judge, artifact or state write |
 | `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
 | `--keep-going` | Record a failed track and continue with the rest |
 | `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
@@ -266,7 +274,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 137 offline unit tests, no network or keys
+├── tests/                    <- 144 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

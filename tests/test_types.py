@@ -72,6 +72,29 @@ class VerdictTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Verdict(84, VERDICT_FITS, None, (), (), (), "mock", "m", 60)
 
+    def test_sequences_are_normalized_and_validated(self):
+        verdict = Verdict(
+            84,
+            VERDICT_FITS,
+            "ok",
+            ["low register"],
+            ("slow pulse",),
+            ["add strings"],
+            "mock",
+            "m",
+            60,
+        )
+        self.assertEqual(verdict.strengths, ("low register",))
+        self.assertEqual(verdict.issues, ("slow pulse",))
+        self.assertEqual(verdict.suggestions, ("add strings",))
+        for bad in ("abc", [1], None):
+            with self.assertRaises(ValueError):
+                Verdict(84, VERDICT_FITS, "ok", bad, (), (), "mock", "m", 60)
+        with self.assertRaises(ValueError):
+            Verdict(84, VERDICT_FITS, "ok", (), (), (), 1, "m", 60)
+        with self.assertRaises(ValueError):
+            Verdict(84, VERDICT_FITS, "ok", (), (), (), "mock", None, 60)
+
 
 class ConfigTests(unittest.TestCase):
     def test_defaults(self):
@@ -112,6 +135,24 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.judge, "gemini")
         self.assertEqual(config.music_model, "stability-ai/stable-audio-2.5")
         self.assertEqual(config.judge_model, "gemini-2.5-flash")
+
+    def test_environment_text_is_trimmed_and_expanded(self):
+        config = MuseConfig.from_env(
+            {
+                "MUSE_OUTPUT_DIR": " ~/muse-art ",
+                "MUSE_PROVIDER": " mock ",
+                "MUSE_JUDGE": " mock ",
+                "MUSE_MUSIC_MODEL": " meta/musicgen ",
+                "MUSE_JUDGE_MODEL": " gemini-2.5-pro ",
+                "MUSE_REPLICATE_VERSION": "  ",
+            }
+        )
+        self.assertEqual(config.output_dir, Path("~/muse-art").expanduser())
+        self.assertEqual(config.provider, "mock")
+        self.assertEqual(config.judge, "mock")
+        self.assertEqual(config.music_model, "meta/musicgen")
+        self.assertEqual(config.judge_model, "gemini-2.5-pro")
+        self.assertIsNone(config.replicate_version)
 
     def test_invalid_number_is_a_configuration_error(self):
         with self.assertRaises(ConfigurationError):
