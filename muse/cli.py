@@ -17,7 +17,7 @@ from .judges.registry import judges
 from .pipeline import compose, judge_track
 from .providers.base import MusicProvider
 from .providers.registry import providers
-from .types import MAX_DURATION, CompositionResult, MusicRequest, Track, Verdict
+from .types import MAX_ATTEMPTS, MAX_DURATION, Attempt, CompositionResult, MusicRequest, Track, Verdict
 
 
 def main(
@@ -66,6 +66,13 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--theme", default="", help="project theme the track must serve")
     generate.add_argument("--duration", type=float, default=30.0, help="seconds, up to 190")
     generate.add_argument("--name", default="", help="artifact folder name")
+    generate.add_argument(
+        "--attempts",
+        type=_attempt_count,
+        default=1,
+        metavar="N",
+        help=f"render up to N takes, folding judge suggestions into the next prompt (default 1, max {MAX_ATTEMPTS})",
+    )
     _common(generate)
     generate.add_argument("--strict", action="store_true", help="exit 1 when the verdict is missing or below threshold")
     generate.add_argument(
@@ -84,6 +91,16 @@ def build_parser() -> argparse.ArgumentParser:
     listing = subparsers.add_parser("providers", help="list music providers and judges")
     listing.add_argument("--json", action="store_true", help="machine-readable output")
     return parser
+
+
+def _attempt_count(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("attempts must be a whole number") from exc
+    if not 1 <= number <= MAX_ATTEMPTS:
+        raise argparse.ArgumentTypeError(f"attempts must be between 1 and {MAX_ATTEMPTS}")
+    return number
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
@@ -126,6 +143,7 @@ def _generate(
         provider=provider,
         judge=judge,
         require_judge=not args.allow_unjudged,
+        max_attempts=args.attempts,
     )
     if args.json:
         print(json.dumps(_result_payload(result), indent=2))
@@ -193,6 +211,19 @@ def _result_payload(result: CompositionResult) -> dict[str, Any]:
         "verdict": None if result.verdict is None else _verdict_dict(result.verdict),
         "accepted": result.accepted,
         "judge_error": result.judge_error,
+        "attempts": [_attempt_payload(attempt) for attempt in result.attempts],
+    }
+
+
+def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
+    return {
+        "number": attempt.number,
+        "prompt": attempt.prompt,
+        "audio": str(attempt.track.path),
+        "metadata": str(attempt.metadata_path),
+        "score": attempt.score,
+        "verdict": None if attempt.verdict is None else attempt.verdict.verdict,
+        "accepted": attempt.accepted,
     }
 
 
@@ -215,6 +246,15 @@ def _verdict_dict(verdict: Verdict) -> dict[str, Any]:
 
 
 def _print_result(result: CompositionResult) -> None:
+    if len(result.attempts) > 1:
+        print("Attempts:")
+        for attempt in result.attempts:
+            if attempt.verdict is None:
+                label = "none"
+            else:
+                label = f"{attempt.verdict.score}/100 {attempt.verdict.verdict}"
+            marker = " <- selected" if attempt.metadata_path == result.metadata_path else ""
+            print(f"  {attempt.number}. {label}  {attempt.track.path}{marker}")
     print(f"Rendered: {result.track.path} ({result.track.duration_seconds:g}s, {result.track.provider}/{result.track.model})")
     print(f"Metadata: {result.metadata_path}")
     if result.verdict is None:

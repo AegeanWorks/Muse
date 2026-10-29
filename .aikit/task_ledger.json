@@ -1,15 +1,15 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-review-hardening",
+    "task_id": "muse-refine-loop",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1792966185.7095184,
-    "owner": "kilo:main",
-    "started_by": "kilo:main",
+    "updated_at": 1793284903.7578657,
+    "owner": "opencode:main",
+    "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1792966285.971549
+    "completed_at": 1793284995.3330426
   },
   "checkpoints": [
     {
@@ -103,6 +103,65 @@
       "timestamp": 1792966285.9715502,
       "timestamp_str": "2026-10-26 01:11:25",
       "agent": "kilo:main"
+    },
+    {
+      "task_id": "muse-refine-loop",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/4] Plan the auto-refine loop: failing-first tests, prompt revision, best-take selection, attempts history, CLI flag",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793284506.235308,
+      "timestamp_str": "2026-10-29 17:35:06",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The judge already returns concrete prompt suggestions, but the pipeline reports them and stops; a user must re-run and rewrite the prompt by hand to improve a rejected track",
+        "benefits": "One command retries a rejected track with the judge's own suggestions, keeps every attempt as evidence, and returns the best take, so automation can reach an acceptable score without a human loop",
+        "risks": "contract: new --attempts flag, CompositionResult.attempts, muse.json schema 2; dependency: none added; concurrency: none; state: one extra output folder per attempt, provider cost per attempt",
+        "mitigation": "Default attempts=1 preserves current behavior, cap at 5, reuse the existing atomic artifact path, stop early on acceptance, failing-first tests for every branch"
+      }
+    },
+    {
+      "task_id": "muse-refine-loop",
+      "phase": "phase 3",
+      "phase_num": 3,
+      "description": "[3/4] Implemented the refine loop: tests first, 84 offline tests pass; pipeline attempts, schema 2, --attempts, README and ADR-004",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793284827.9748518,
+      "timestamp_str": "2026-10-29 17:40:27",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "uncommitted project changes",
+        "next": "run Phase 4 gates, dogfood strict/misuse paths, then complete",
+        "evidence": "84 tests OK, mock retry 45->88, attempts metadata verified"
+      }
+    },
+    {
+      "task_id": "muse-refine-loop",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Phase 4 gates 4/4; 84 offline tests; dogfood: attempts human+JSON, strict 0/1, misuse 2, judge-none 1; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793284903.7578657,
+      "timestamp_str": "2026-10-29 17:41:43",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "13 modified files, nothing pushed",
+        "next": "review the uncommitted diff, then commit when authorized",
+        "evidence": "check 4/4, mock retry 45->88, metadata schema 2 history verified"
+      }
+    },
+    {
+      "task_id": "muse-refine-loop",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-refine-loop' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793284995.3330443,
+      "timestamp_str": "2026-10-29 17:43:15",
+      "agent": "opencode:main"
     }
   ]
 }

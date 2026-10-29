@@ -6,7 +6,7 @@
 <!-- aegean:media:end -->
 
 
-Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme, exposed as a CLI and Python library.
+Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme and can retry using the judge's own suggestions, exposed as a CLI and Python library.
 
 ## ⚡ 30-Second Cold-Start Quick Reference
 
@@ -21,6 +21,11 @@ Prompt-driven AI music creation with an automated listener that scores how well 
   $env:GEMINI_API_KEY = "<your key>"
   python -m muse generate "tense low drones, slow heartbeat, metallic scrapes" --theme "abandoned mine level" --duration 45 --name mine-theme
   ```
+- **Retry until it fits** (each take is billed):
+  ```bash
+  python -m muse generate "tense low drones" --theme "abandoned mine level" --duration 45 --attempts 3
+  ```
+  A rejected take is re-rendered with the judge's suggestions appended to the prompt; the best-scoring take is returned and every take stays in its own folder.
 - **Canonical Regression Shield Gate**:
   ```bash
   python -m unittest discover -s tests -t .
@@ -39,8 +44,9 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 1. A **provider** renders your prompt into audio (default: `stability-ai/stable-audio-2.5` on Replicate).
 2. A **judge** listens to the rendered file with Gemini and returns a schema-checked verdict: a 0-100 fit score, a verdict, strengths, issues and concrete prompt suggestions.
 3. The pipeline writes the audio plus `muse.json` evidence (request, model, settings, verdict) into `output/<slug>/`, so any project can ship a track together with the reason it was accepted.
+4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
 
-If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead.
+If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
 ## Command line
 
@@ -54,6 +60,9 @@ python -m muse generate "glitchy percussion, rising tension" --theme "boss phase
 # listen to an existing file
 python -m muse judge output/boss-phase-two/track.wav --theme "boss phase two" --prompt "glitchy percussion"
 
+# retry a rejected take with the judge's suggestions, keeping the best result
+python -m muse generate "glitchy percussion" --theme "boss phase two" --attempts 3
+
 # what is wired in?
 python -m muse providers
 ```
@@ -63,6 +72,7 @@ python -m muse providers
 | `--theme TEXT` | Project theme the track must serve; defaults to the prompt for judging |
 | `--duration SECONDS` | Requested length, up to 190 |
 | `--name TEXT` | Artifact folder name (default: theme or prompt slug) |
+| `--attempts N` | Render up to `N` takes (1-5, default 1), refining the prompt with the previous verdict's suggestions |
 | `--out DIR` | Artifact root (default: `output/`) |
 | `--provider NAME` | `replicate` (default) or `mock` |
 | `--model SLUG` | Replicate model, e.g. `meta/musicgen` for 30-second clips |
@@ -88,12 +98,19 @@ result = compose(
         name="title-theme",
     ),
     MuseConfig.from_env(),
+    max_attempts=3,
 )
 print(result.track.path)          # output/title-theme/track.wav
 print(result.verdict.score)       # 84
 print(result.accepted)            # True
 print(result.metadata_path)       # output/title-theme/muse.json
+print(len(result.attempts))       # 2, every take in order
+print(result.attempts[0].score)   # 52, the rejected first take
 ```
+
+`compose` stops as soon as a take is accepted, when the verdict has no suggestions, or at
+`max_attempts` (maximum 5). The returned result describes the best-scoring take, while
+`result.attempts` keeps every take with its prompt, verdict and artifact paths.
 
 Judging only:
 
@@ -136,15 +153,20 @@ Default model notes:
   `MUSE_REPLICATE_VERSION`; the provider then posts to `/v1/predictions`.
 - Model-specific knobs (`steps`, `cfg_scale`, `seed`, `model_version`, ...) go through
   `MusicRequest.extra` in the library; only prompt and duration are sent by default.
-- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever.
+- Replicate bills per prediction and Gemini bills audio input tokens. Duration is the main cost lever; `--attempts N` multiplies both by the number of takes actually rendered.
 
 ## Artifacts
 
 ```text
 output/<slug>/
 ├── track.wav        <- rendered audio (or .mp3 when the model returns mp3)
-└── muse.json        <- request, model, settings, verdict, accepted, judge_error
+└── muse.json        <- schema 2: attempt, request, model, settings, verdict, accepted, judge_error
+output/<slug>-2/     <- second take of an --attempts run, same files
 ```
+
+Each take keeps its own folder, including rejected ones, so the full retry history is auditable.
+The selected take's `muse.json` also records `selected_attempt` and an `attempts` array with the
+prompt, score, verdict and relative artifact paths of every take.
 
 `muse.json` is written atomically (temporary file, fsync, replace), so an interrupted run never
 leaves truncated metadata. Repeated runs with the same name get `-2`, `-3`, ... folders instead
@@ -163,6 +185,7 @@ muse/
 ├── REUSE.toml                <- Machine-readable SPDX metadata
 ├── COMMERCIAL.md             <- Commercial licensing terms
 ├── README.md
+├── assets/
 ├── muse/
 │   ├── __init__.py           <- public API: compose, judge_track, types, config
 │   ├── __main__.py           <- `python -m muse`
@@ -172,7 +195,7 @@ muse/
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
-│   ├── pipeline.py           <- render, listen, persist evidence
+│   ├── pipeline.py           <- render, listen, refine, persist evidence
 │   ├── types.py              <- frozen request, track, verdict, result
 │   ├── judges/
 │   │   ├── base.py           <- listening protocol
@@ -184,7 +207,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 69 offline unit tests, no network or keys
+├── tests/                    <- 84 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 
@@ -212,6 +235,7 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `the track is too large for the Gemini audio judge` | inline audio exceeds 14 MB (base64 adds a third) | shorten `--duration` |
 | `the judge returned an invalid score` | model drifted from the schema | retry, or switch `MUSE_JUDGE_MODEL` |
 | `unknown music provider` / `unknown judge` | typo | run `python -m muse providers` |
+| `attempts need a listening judge` | `--attempts` above 1 with `--judge none` | omit `--attempts`, or use `gemini`/`mock` |
 
 <!-- aegean:brand-assets:start -->
 ## 🎨 Brand Assets

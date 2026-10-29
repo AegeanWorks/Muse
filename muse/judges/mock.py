@@ -32,7 +32,13 @@ class MockJudge:
             summary = "No theme was supplied, so only the prompt was considered."
             strengths = ("prompt is present",)
             issues = ("add a theme for a meaningful judgement",)
-        suggestions = () if score >= self.config.min_score else ("add theme words to the prompt",)
+        theme_words = ", ".join(sorted(_words(request.theme)))
+        if score >= self.config.min_score:
+            suggestions: tuple[str, ...] = ()
+        elif theme_words:
+            suggestions = (f"add these theme words to the prompt: {theme_words}",)
+        else:
+            suggestions = ("add theme words to the prompt",)
         return Verdict(
             score=score,
             verdict=verdict,

@@ -108,6 +108,12 @@ class MockJudgeTests(unittest.TestCase):
         self.assertEqual(verdict.verdict, VERDICT_MISS)
         self.assertFalse(verdict.accepted)
 
+    def test_disjoint_terms_suggest_the_theme_words(self):
+        verdict = self.judge.judge(self.track(), MusicRequest("sunny beach", theme="cave level"))
+        suggestion = " ".join(verdict.suggestions).lower()
+        self.assertIn("cave", suggestion)
+        self.assertIn("level", suggestion)
+
     def test_missing_theme_is_partial(self):
         verdict = self.judge.judge(self.track(), MusicRequest("cave drones"))
         self.assertEqual(verdict.verdict, "partially_fits")

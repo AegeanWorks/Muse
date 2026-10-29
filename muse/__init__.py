@@ -5,9 +5,10 @@ from __future__ import annotations
 from .config import MuseConfig
 from .errors import ConfigurationError, GenerationError, JudgeError, MuseError
 from .pipeline import compose, judge_track
-from .types import CompositionResult, MusicRequest, Track, Verdict
+from .types import Attempt, CompositionResult, MusicRequest, Track, Verdict
 
 __all__ = [
+    "Attempt",
     "CompositionResult",
     "ConfigurationError",
     "GenerationError",
@@ -21,4 +22,4 @@ __all__ = [
     "judge_track",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"

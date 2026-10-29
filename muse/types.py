@@ -12,6 +12,7 @@ VERDICT_MISS = "does_not_fit"
 VERDICTS = (VERDICT_FITS, VERDICT_PARTIAL, VERDICT_MISS)
 
 MAX_DURATION = 190.0
+MAX_ATTEMPTS = 5
 
 
 @dataclass(frozen=True)
@@ -72,11 +73,32 @@ class Verdict:
 
 
 @dataclass(frozen=True)
+class Attempt:
+    """One rendered take and the verdict that judged it."""
+
+    number: int
+    prompt: str
+    track: Track
+    verdict: Verdict | None
+    metadata_path: Path
+    judge_error: str | None = None
+
+    @property
+    def accepted(self) -> bool:
+        return self.verdict is not None and self.verdict.accepted
+
+    @property
+    def score(self) -> int | None:
+        return None if self.verdict is None else self.verdict.score
+
+
+@dataclass(frozen=True)
 class CompositionResult:
     track: Track
     verdict: Verdict | None
     metadata_path: Path
     judge_error: str | None = None
+    attempts: tuple[Attempt, ...] = ()
 
     @property
     def accepted(self) -> bool:

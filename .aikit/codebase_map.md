@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `26`
-- **Total Classes**: `40`
-- **Total Top-Level Functions**: `34`
-- **Total Class Methods**: `125`
-- **Total Source Lines**: `2061`
+- **Total Classes**: `44`
+- **Total Top-Level Functions**: `44`
+- **Total Class Methods**: `146`
+- **Total Source Lines**: `2496`
 
 ---
 
@@ -19,7 +19,7 @@
 ### [`muse/__init__.py`](muse/__init__.py)
 > *Muse: prompt-driven music with an automated listener.*
 
-**Size**: `24` lines (`564` bytes)
+**Size**: `25` lines (`588` bytes)
 
 ---
 
@@ -57,17 +57,19 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, judge, inspect providers.*
 
-**Size**: `242` lines (`9215` bytes)
+**Size**: `282` lines (`10769` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
 - `def build_parser()`
+- `def _attempt_count(value)`
 - `def _common(parser)`
 - `def _settings(args, config)`
 - `def _generate(args, settings, provider, judge)`
 - `def _judge(args, settings, judge)`
 - `def _providers(args)`
 - `def _result_payload(result)`
+- `def _attempt_payload(attempt)`
 - `def _verdict_payload(verdict, path)`
 - `def _verdict_dict(verdict)`
 - `def _print_result(result)`
@@ -141,7 +143,7 @@
 ### [`muse/judges/mock.py`](muse/judges/mock.py)
 > *Deterministic offline judge used by tests and demos.*
 
-**Size**: `50` lines (`1826` bytes)
+**Size**: `56` lines (`2063` bytes)
 
 **Classes:**
 - `class MockJudge`
@@ -188,13 +190,19 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `125` lines (`3930` bytes)
+**Size**: `245` lines (`8050` bytes)
 
 **Functions:**
-- `def compose(request, config, provider, judge, require_judge)`
+- `def compose(request, config, provider, judge, require_judge, max_attempts)`
 - `def judge_track(track, request, config, judge)`
+- `def revise_prompt(prompt, verdict)` - *Append the judge's actionable suggestions without repeating or overlong text.*
+- `def _validate_attempts(max_attempts)`
+- `def _render_and_judge(request, settings, engine, judge, require_judge, number, planned)`
 - `def _listen(track, request, settings, judge, require_judge)`
-- `def _metadata(request, track, verdict, judge_error, settings)`
+- `def _metadata(request, track, verdict, judge_error, settings, number, planned)`
+- `def _record_history(best, attempts, settings)`
+- `def _attempt_summary(attempt, settings)`
+- `def _display_path(path, root)`
 
 ---
 
@@ -250,7 +258,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `83` lines (`2026` bytes)
+**Size**: `105` lines (`2551` bytes)
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -260,6 +268,9 @@
 - `class Track`
 - `class Verdict`
   - Property `.accepted`
+- `class Attempt` - *One rendered take and the verdict that judged it.*
+  - Property `.accepted`
+  - Property `.score`
 - `class CompositionResult`
   - Property `.accepted`
 
@@ -291,12 +302,15 @@
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
-**Size**: `122` lines (`4902` bytes)
+**Size**: `203` lines (`7713` bytes)
 
 **Classes:**
+- `class ScriptedJudge`
+  - Method `.__init__(verdicts)`
+  - Method `.judge(track, request)`
 - `class CliTests`
   - Method `.setUp()`
-  - Method `.run_cli(argv)`
+  - Method `.run_cli(argv, judge)`
   - Method `.test_generate_json()`
   - Method `.test_strict_rejects_low_score()`
   - Method `.test_judge_existing_file()`
@@ -310,11 +324,18 @@
   - Method `.test_judge_reports_strengths()`
   - Method `.test_unknown_flag_is_misuse()`
   - Method `.test_unknown_provider_exits_one()`
+  - Method `.test_attempts_json_reports_every_take()`
+  - Method `.test_attempts_human_output_lists_takes()`
+  - Method `.test_attempts_out_of_range_is_misuse()`
+  - Method `.test_attempts_with_judge_none_is_explained()`
+
+**Functions:**
+- `def verdict(score, kind, suggestions)`
 
 ---
 
 ### [`tests/test_judges.py`](tests/test_judges.py)
-**Size**: `123` lines (`5134` bytes)
+**Size**: `129` lines (`5436` bytes)
 
 **Classes:**
 - `class FakeHttp`
@@ -333,6 +354,7 @@
   - Method `.track()`
   - Method `.test_shared_terms_fit()`
   - Method `.test_disjoint_terms_miss()`
+  - Method `.test_disjoint_terms_suggest_the_theme_words()`
   - Method `.test_missing_theme_is_partial()`
 - `class JudgeRegistryTests`
   - Method `.test_unknown_judge_is_explained()`
@@ -371,13 +393,16 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `117` lines (`5043` bytes)
+**Size**: `276` lines (`11224` bytes)
 
 **Classes:**
 - `class FailingJudge`
   - Method `.judge(track, request)`
 - `class FailingProvider`
   - Method `.generate(request, destination)`
+- `class ScriptedJudge`
+  - Method `.__init__(verdicts)`
+  - Method `.judge(track, request)`
 - `class PipelineTests`
   - Method `.setUp()`
   - Method `.test_compose_writes_audio_verdict_and_metadata()`
@@ -388,6 +413,20 @@
   - Method `.test_tokens_never_reach_metadata()`
   - Method `.test_failed_generation_removes_empty_run_folder()`
   - Method `.test_judge_track_uses_injected_judge()`
+  - Method `.test_attempts_stop_after_acceptance()`
+  - Method `.test_rejected_track_is_retried_with_judge_suggestions()`
+  - Method `.test_best_attempt_wins_when_none_are_accepted()`
+  - Method `.test_attempts_stop_when_the_judge_offers_no_suggestions()`
+  - Method `.test_attempts_without_a_judge_are_refused()`
+  - Method `.test_attempt_count_is_bounded()`
+  - Method `.test_mock_judge_refinement_reaches_fit_offline()`
+- `class RevisePromptTests`
+  - Method `.test_returns_the_prompt_when_nothing_is_actionable()`
+  - Method `.test_appends_distinct_suggestions_once()`
+  - Method `.test_keeps_the_prompt_within_the_limit()`
+
+**Functions:**
+- `def verdict(score, kind, suggestions)`
 
 ---
 

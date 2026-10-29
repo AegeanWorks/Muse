@@ -4,11 +4,11 @@ import unittest
 from pathlib import Path
 
 from muse.config import MuseConfig
-from muse.errors import GenerationError, JudgeError
+from muse.errors import ConfigurationError, GenerationError, JudgeError
 from muse.judges.mock import MockJudge
-from muse.pipeline import compose, judge_track
+from muse.pipeline import PROMPT_LIMIT, compose, judge_track, revise_prompt
 from muse.providers.mock import MockMusicProvider
-from muse.types import MusicRequest, Track
+from muse.types import MAX_ATTEMPTS, VERDICT_FITS, VERDICT_MISS, MusicRequest, Track, Verdict
 
 
 class FailingJudge:
@@ -27,6 +27,34 @@ class FailingProvider:
         raise GenerationError("render failed", "the model is down", "retry later")
 
 
+class ScriptedJudge:
+    name = "scripted"
+    model = "scripted"
+
+    def __init__(self, verdicts):
+        self.verdicts = list(verdicts)
+        self.requests = []
+
+    def judge(self, track, request):
+        self.requests.append(request)
+        index = min(len(self.requests) - 1, len(self.verdicts) - 1)
+        return self.verdicts[index]
+
+
+def verdict(score, kind=VERDICT_MISS, suggestions=()):
+    return Verdict(
+        score=score,
+        verdict=kind,
+        summary="scripted verdict",
+        strengths=(),
+        issues=(),
+        suggestions=tuple(suggestions),
+        judge="scripted",
+        model="scripted",
+        threshold=60,
+    )
+
+
 class PipelineTests(unittest.TestCase):
     def setUp(self):
         folder = tempfile.TemporaryDirectory()
@@ -43,7 +71,9 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(result.accepted)
         self.assertEqual(result.track.path.parent.name, "cave")
         payload = json.loads(result.metadata_path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["schema"], 1)
+        self.assertEqual(payload["schema"], 2)
+        self.assertEqual(payload["attempt"]["number"], 1)
+        self.assertEqual(payload["attempt"]["planned"], 1)
         self.assertEqual(payload["request"]["theme"], "cave level")
         self.assertEqual(payload["track"]["provider"], "mock")
         self.assertEqual(payload["verdict"]["score"], 88)
@@ -113,5 +143,134 @@ class PipelineTests(unittest.TestCase):
 
     def test_judge_track_uses_injected_judge(self):
         track = Track(Path("x.wav"), "mock", "m", 1.0, "cave", "cave")
-        verdict = judge_track(track, MusicRequest("cave", theme="cave"), self.config, self.judge)
-        self.assertEqual(verdict.judge, "mock")
+        result = judge_track(track, MusicRequest("cave", theme="cave"), self.config, self.judge)
+        self.assertEqual(result.judge, "mock")
+
+    def test_attempts_stop_after_acceptance(self):
+        judge = ScriptedJudge([verdict(88, VERDICT_FITS)])
+        request = MusicRequest("cave drones", theme="cave level", duration=1)
+        result = compose(
+            request,
+            self.config,
+            provider=self.provider,
+            judge=judge,
+            max_attempts=3,
+        )
+        self.assertTrue(result.accepted)
+        self.assertEqual(len(result.attempts), 1)
+        self.assertEqual(len(list(self.output.iterdir())), 1)
+
+    def test_rejected_track_is_retried_with_judge_suggestions(self):
+        judge = ScriptedJudge(
+            [
+                verdict(40, suggestions=("include cave drones",)),
+                verdict(90, VERDICT_FITS),
+            ]
+        )
+        request = MusicRequest("sunny beach", theme="cave level", duration=1, name="take")
+        result = compose(
+            request,
+            self.config,
+            provider=self.provider,
+            judge=judge,
+            max_attempts=3,
+        )
+        self.assertEqual([item.prompt for item in judge.requests], ["sunny beach", "sunny beach; include cave drones"])
+        self.assertEqual(len(result.attempts), 2)
+        self.assertEqual(result.verdict.score, 90)
+        self.assertTrue(result.accepted)
+        self.assertEqual(result.attempts[-1].number, 2)
+        payload = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload["schema"], 2)
+        self.assertEqual(payload["selected_attempt"], 2)
+        self.assertEqual([item["number"] for item in payload["attempts"]], [1, 2])
+        self.assertTrue(payload["attempts"][0]["audio"].endswith("track.wav"))
+        first = json.loads(result.attempts[0].metadata_path.read_text(encoding="utf-8"))
+        self.assertEqual(first["attempt"]["number"], 1)
+        self.assertEqual(first["attempt"]["planned"], 3)
+        self.assertNotEqual(result.attempts[0].metadata_path, result.metadata_path)
+
+    def test_best_attempt_wins_when_none_are_accepted(self):
+        judge = ScriptedJudge(
+            [
+                verdict(30, suggestions=("add strings",)),
+                verdict(50, suggestions=("add brass",)),
+            ]
+        )
+        result = compose(
+            MusicRequest("sunny beach", theme="cave level", duration=1),
+            self.config,
+            provider=self.provider,
+            judge=judge,
+            max_attempts=2,
+        )
+        self.assertEqual(len(result.attempts), 2)
+        self.assertEqual(result.verdict.score, 50)
+        self.assertFalse(result.accepted)
+        self.assertEqual(result.metadata_path, result.attempts[1].metadata_path)
+        payload = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+        self.assertEqual(payload["selected_attempt"], 2)
+
+    def test_attempts_stop_when_the_judge_offers_no_suggestions(self):
+        judge = ScriptedJudge([verdict(40)])
+        result = compose(
+            MusicRequest("sunny beach", theme="cave level", duration=1),
+            self.config,
+            provider=self.provider,
+            judge=judge,
+            max_attempts=3,
+        )
+        self.assertEqual(len(result.attempts), 1)
+        self.assertEqual(len(list(self.output.iterdir())), 1)
+
+    def test_attempts_without_a_judge_are_refused(self):
+        config = self.config.with_overrides(judge="none")
+        with self.assertRaises(ConfigurationError) as caught:
+            compose(
+                MusicRequest("x", duration=1),
+                config,
+                provider=self.provider,
+                max_attempts=2,
+            )
+        self.assertIn("listening judge", caught.exception.what)
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_attempt_count_is_bounded(self):
+        with self.assertRaises(ValueError):
+            compose(
+                MusicRequest("x", duration=1),
+                self.config,
+                provider=self.provider,
+                judge=self.judge,
+                max_attempts=MAX_ATTEMPTS + 1,
+            )
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_mock_judge_refinement_reaches_fit_offline(self):
+        request = MusicRequest("sunny beach", theme="cave level", duration=1)
+        result = compose(
+            request,
+            self.config,
+            provider=self.provider,
+            judge=self.judge,
+            max_attempts=2,
+        )
+        self.assertEqual(len(result.attempts), 2)
+        self.assertIn("cave", result.attempts[1].prompt.lower())
+        self.assertTrue(result.accepted)
+
+
+class RevisePromptTests(unittest.TestCase):
+    def test_returns_the_prompt_when_nothing_is_actionable(self):
+        base = "cave drones"
+        result = revise_prompt(base, verdict(40, suggestions=("cave drones", "  ", "")))
+        self.assertEqual(result, base)
+
+    def test_appends_distinct_suggestions_once(self):
+        result = revise_prompt("cave drones", verdict(40, suggestions=("Add strings", "add strings")))
+        self.assertEqual(result, "cave drones; Add strings")
+
+    def test_keeps_the_prompt_within_the_limit(self):
+        base = "x" * (PROMPT_LIMIT - 5)
+        result = revise_prompt(base, verdict(40, suggestions=("add a choir", "add brass")))
+        self.assertEqual(result, base)

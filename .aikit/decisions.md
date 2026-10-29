@@ -33,6 +33,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Use `urllib`, `json`, `wave` and `dataclasses` only. The retry, backoff, timeout, atomic download and inline-audio limit rules live in `muse/net.py` and the adapters.
 - **Consequences**: No install step and no dependency drift; both providers share one tested HTTP policy. The cost is owning retry and schema handling that SDKs would otherwise supply.
 
+### ADR-004: Rejected takes are retried with the judge's suggestions, and the best take wins
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: The judge already returns concrete prompt suggestions, but the pipeline printed them and stopped; improving a rejected track meant a human rewriting the prompt and re-running the command.
+- **Decision**: `--attempts N` (1-5, default 1) renders a take, judges it, and while the score is below the threshold, the verdict has suggestions, and takes remain, appends those suggestions to the prompt and renders again. Every take keeps its own artifact folder; the selected take is the highest score, ties going to the earlier take, and its `muse.json` (schema 2) records `attempt`, `selected_attempt` and the full `attempts` history. `--attempts` above 1 requires a listening judge; `--strict` judges the selected take.
+- **Consequences**: One command can reach an acceptable score without a human loop, and every rejected take remains auditable. The cost is one provider prediction and one judge call per take, plus cosmetic folder suffixes; refinement is a bounded heuristic (suggestions are appended, not rewritten), so a judge that offers nothing actionable stops the loop early.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

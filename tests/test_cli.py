@@ -10,6 +10,35 @@ from muse.cli import main
 from muse.config import MuseConfig
 from muse.judges.mock import MockJudge
 from muse.providers.mock import MockMusicProvider
+from muse.types import VERDICT_FITS, VERDICT_MISS, Verdict
+
+
+class ScriptedJudge:
+    name = "scripted"
+    model = "scripted"
+
+    def __init__(self, verdicts):
+        self.verdicts = list(verdicts)
+        self.requests = []
+
+    def judge(self, track, request):
+        self.requests.append(request)
+        index = min(len(self.requests) - 1, len(self.verdicts) - 1)
+        return self.verdicts[index]
+
+
+def verdict(score, kind=VERDICT_MISS, suggestions=()):
+    return Verdict(
+        score=score,
+        verdict=kind,
+        summary="scripted verdict",
+        strengths=(),
+        issues=(),
+        suggestions=tuple(suggestions),
+        judge="scripted",
+        model="scripted",
+        threshold=60,
+    )
 
 
 class CliTests(unittest.TestCase):
@@ -21,10 +50,10 @@ class CliTests(unittest.TestCase):
         self.provider = MockMusicProvider(self.config)
         self.judge = MockJudge(self.config)
 
-    def run_cli(self, argv):
+    def run_cli(self, argv, judge=None):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = main(argv, config=self.config, provider=self.provider, judge=self.judge)
+            code = main(argv, config=self.config, provider=self.provider, judge=judge or self.judge)
         return code, out.getvalue(), err.getvalue()
 
     def test_generate_json(self):
@@ -119,4 +148,56 @@ class CliTests(unittest.TestCase):
             code = main(["generate", "x", "--provider", "sunos", "--duration", "1"], config=self.config)
         self.assertEqual(code, 1)
         self.assertIn("unknown music provider", err.getvalue())
+        self.assertIn("Fix:", err.getvalue())
+
+    def test_attempts_json_reports_every_take(self):
+        judge = ScriptedJudge(
+            [
+                verdict(40, suggestions=("include cave",)),
+                verdict(90, VERDICT_FITS),
+            ]
+        )
+        code, out, err = self.run_cli(
+            ["generate", "sunny beach", "--theme", "cave level", "--duration", "1", "--attempts", "2", "--json"],
+            judge=judge,
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertTrue(payload["accepted"])
+        self.assertEqual(len(payload["attempts"]), 2)
+        self.assertFalse(payload["attempts"][0]["accepted"])
+        self.assertTrue(payload["attempts"][1]["accepted"])
+        self.assertEqual(payload["attempts"][1]["score"], 90)
+
+    def test_attempts_human_output_lists_takes(self):
+        judge = ScriptedJudge(
+            [
+                verdict(40, suggestions=("include cave",)),
+                verdict(90, VERDICT_FITS),
+            ]
+        )
+        code, out, err = self.run_cli(
+            ["generate", "sunny beach", "--theme", "cave level", "--duration", "1", "--attempts", "2"],
+            judge=judge,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertIn("Attempts:", out)
+        self.assertIn("<- selected", out)
+
+    def test_attempts_out_of_range_is_misuse(self):
+        code, _, err = self.run_cli(["generate", "x", "--duration", "1", "--attempts", "0"])
+        self.assertEqual(code, 2)
+        self.assertIn("attempts", err)
+        self.assertNotIn("Traceback", err)
+
+    def test_attempts_with_judge_none_is_explained(self):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["generate", "x", "--duration", "1", "--judge", "none", "--attempts", "2"],
+                config=self.config,
+                provider=self.provider,
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("listening judge", err.getvalue())
         self.assertIn("Fix:", err.getvalue())
