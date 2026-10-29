@@ -39,6 +39,10 @@ def compose(
             "omit --attempts, or pass --judge gemini or --judge mock",
         )
     engine = provider or build_provider(settings.provider, settings)
+    listener = judge
+    if require_judge and listener is None and settings.judge != "none":
+        # Build the required judge before the first render: a missing key must not cost a prediction.
+        listener = build_judge(settings.judge, settings)
     attempts: list[Attempt] = []
     prompt = request.prompt
     for number in range(1, max_attempts + 1):
@@ -47,7 +51,7 @@ def compose(
             current,
             settings,
             engine,
-            judge,
+            listener,
             require_judge,
             number,
             max_attempts,
@@ -153,7 +157,14 @@ def _listen(
 ) -> tuple[Verdict | None, str | None]:
     if judge is None and settings.judge == "none":
         return None, None
-    listener = judge or build_judge(settings.judge, settings)
+    listener = judge
+    if listener is None:
+        try:
+            listener = build_judge(settings.judge, settings)
+        except MuseError as exc:
+            if require_judge:
+                raise
+            return None, exc.what
     try:
         return listener.judge(track, request), None
     except MuseError as exc:

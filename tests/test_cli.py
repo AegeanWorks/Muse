@@ -151,6 +151,19 @@ class CliTests(unittest.TestCase):
         self.assertIn("unknown music provider", err.getvalue())
         self.assertIn("Fix:", err.getvalue())
 
+    def test_allow_unjudged_missing_key_exits_zero(self):
+        config = self.config.with_overrides(judge="gemini")
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["generate", "x", "--duration", "1", "--provider", "mock", "--allow-unjudged"],
+                config=config,
+                provider=self.provider,
+            )
+        self.assertEqual(code, 0, err.getvalue())
+        self.assertIn("Verdict: none", out.getvalue())
+        self.assertIn("GEMINI_API_KEY", out.getvalue())
+
     def test_filesystem_failure_is_explained(self):
         with patch("muse.providers.mock.write_tone", side_effect=OSError("disk full")):
             code, _, err = self.run_cli(["generate", "x", "--duration", "1"])

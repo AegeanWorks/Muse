@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `31`
-- **Total Classes**: `55`
+- **Total Classes**: `56`
 - **Total Top-Level Functions**: `69`
-- **Total Class Methods**: `237`
-- **Total Source Lines**: `4480`
+- **Total Class Methods**: `242`
+- **Total Source Lines**: `4542`
 
 ---
 
@@ -245,7 +245,7 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `245` lines (`8050` bytes)
+**Size**: `256` lines (`8482` bytes)
 
 **Functions:**
 - `def compose(request, config, provider, judge, require_judge, max_attempts)`
@@ -439,7 +439,7 @@
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
-**Size**: `212` lines (`8117` bytes)
+**Size**: `225` lines (`8708` bytes)
 
 **Classes:**
 - `class ScriptedJudge`
@@ -461,6 +461,7 @@
   - Method `.test_judge_reports_strengths()`
   - Method `.test_unknown_flag_is_misuse()`
   - Method `.test_unknown_provider_exits_one()`
+  - Method `.test_allow_unjudged_missing_key_exits_zero()`
   - Method `.test_filesystem_failure_is_explained()`
   - Method `.test_attempts_json_reports_every_take()`
   - Method `.test_attempts_human_output_lists_takes()`
@@ -546,12 +547,15 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `276` lines (`11224` bytes)
+**Size**: `314` lines (`12674` bytes)
 
 **Classes:**
 - `class FailingJudge`
   - Method `.judge(track, request)`
 - `class FailingProvider`
+  - Method `.generate(request, destination)`
+- `class CountingProvider`
+  - Method `.__init__(inner)`
   - Method `.generate(request, destination)`
 - `class ScriptedJudge`
   - Method `.__init__(verdicts)`
@@ -563,6 +567,8 @@
   - Method `.test_judge_none_skips_listening()`
   - Method `.test_required_judge_failure_raises_but_keeps_evidence()`
   - Method `.test_optional_judge_failure_keeps_audio()`
+  - Method `.test_required_judge_is_built_before_rendering()`
+  - Method `.test_allow_unjudged_renders_when_the_judge_cannot_be_built()`
   - Method `.test_tokens_never_reach_metadata()`
   - Method `.test_failed_generation_removes_empty_run_folder()`
   - Method `.test_judge_track_uses_injected_judge()`

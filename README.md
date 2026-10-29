@@ -46,7 +46,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 ## What it does
 
 1. A **provider** renders your prompt into audio (default: `stability-ai/stable-audio-2.5` on Replicate).
-2. A **judge** listens to the rendered file with Gemini and returns a schema-checked verdict: a 0-100 fit score, a verdict, strengths, issues and concrete prompt suggestions.
+2. A **judge** listens to the rendered file with Gemini and returns a schema-checked verdict: a 0-100 fit score, a verdict, strengths, issues and concrete prompt suggestions. A required judge is built before the first render, so a missing judge key fails without spending a prediction.
 3. The pipeline writes the audio plus `muse.json` evidence (request, model, settings, verdict) into `output/<slug>/`, so any project can ship a track together with the reason it was accepted.
 4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
 5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider.
@@ -100,7 +100,7 @@ python -m muse providers
 | `--judge-model NAME` | Judge model, default `gemini-2.5-flash` |
 | `--min-score N` | Acceptance threshold 0-100, default 60 |
 | `--strict` | Exit 1 when the verdict is missing or below the threshold |
-| `--allow-unjudged` | Keep audio and metadata if the judge call fails |
+| `--allow-unjudged` | Keep audio, metadata and exit 0 when the judge cannot be built or fails |
 | `--json` | Print a machine-readable result |
 
 Exit codes: `0` success, `1` operational failure (with `Why:` and `Fix:`), `2` argument misuse.
@@ -289,7 +289,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 155 offline unit tests, no network or keys
+├── tests/                    <- 158 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

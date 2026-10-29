@@ -82,6 +82,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Track a deadline with an injectable monotonic clock. Before each sleep, compute the remaining budget, sleep at most that remainder, and fail once the budget is exhausted; always evaluate the last poll response before deciding. Polls use the smaller of the poll interval and the remaining budget.
 - **Consequences**: `MUSE_POLL_TIMEOUT` now means actual wall-clock time including request latency, and tests can drive the clock deterministically. The cost is an injected clock parameter on the provider and no retry of a poll that starts after the deadline.
 
+### ADR-011: A required judge is built before the first render
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `compose` built the judge after the provider had already rendered, so a missing `GEMINI_API_KEY` or an unknown judge name spent a prediction and left evidence before failing. `--allow-unjudged` also failed on judge construction errors instead of returning the unjudged take.
+- **Decision**: When `require_judge` is true, build the judge before the first provider call and reuse it for every attempt. When `require_judge` is false, keep the lazy path but catch judge construction errors and return `(verdict=None, judge_error=...)` with the audio and metadata, so `--allow-unjudged` exits 0 as documented. An unknown judge under `--allow-unjudged` therefore also degrades to recorded evidence rather than a failed run.
+- **Consequences**: Required-judge misconfiguration costs no provider calls, and unjudged runs preserve both audio and the reason judging was skipped. The cost is that `--allow-unjudged` can hide a judge-name typo from the exit code; `--strict` and the printed `judge_error` still expose it.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

@@ -27,6 +27,19 @@ class FailingProvider:
         raise GenerationError("render failed", "the model is down", "retry later")
 
 
+class CountingProvider:
+    name = "counting"
+    model = "counting"
+
+    def __init__(self, inner):
+        self.inner = inner
+        self.calls = 0
+
+    def generate(self, request, destination):
+        self.calls += 1
+        return self.inner.generate(request, destination)
+
+
 class ScriptedJudge:
     name = "scripted"
     model = "scripted"
@@ -123,6 +136,31 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.judge_error, "judge unavailable")
         payload = json.loads(result.metadata_path.read_text(encoding="utf-8"))
         self.assertEqual(payload["judge_error"], "judge unavailable")
+
+    def test_required_judge_is_built_before_rendering(self):
+        config = self.config.with_overrides(judge="gemini")
+        provider = CountingProvider(self.provider)
+        with self.assertRaises(ConfigurationError) as caught:
+            compose(MusicRequest("x", duration=1), config, provider=provider)
+        self.assertIn("GEMINI_API_KEY", caught.exception.what)
+        self.assertEqual(provider.calls, 0)
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_allow_unjudged_renders_when_the_judge_cannot_be_built(self):
+        config = self.config.with_overrides(judge="gemini")
+        provider = CountingProvider(self.provider)
+        result = compose(
+            MusicRequest("x", duration=1),
+            config,
+            provider=provider,
+            require_judge=False,
+        )
+        self.assertEqual(provider.calls, 1)
+        self.assertTrue(result.track.path.is_file())
+        self.assertIsNone(result.verdict)
+        self.assertIn("GEMINI_API_KEY", result.judge_error)
+        payload = json.loads(result.metadata_path.read_text(encoding="utf-8"))
+        self.assertIn("GEMINI_API_KEY", payload["judge_error"])
 
     def test_tokens_never_reach_metadata(self):
         config = self.config.with_overrides(env={"GEMINI_API_KEY": "top-secret", "REPLICATE_API_TOKEN": "other"})
