@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from muse.batch import MAX_BATCH_TRACKS, MAX_MANIFEST_BYTES, load_manifest
 from muse.batch_state import load_state, manifest_fingerprint, save_state, state_path
@@ -206,6 +207,28 @@ class BatchStateTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError) as caught:
             load_state(path, fingerprint)
         self.assertIn("inconsistent", caught.exception.what)
+
+    def test_state_size_is_capped(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        path.parent.mkdir(parents=True)
+        with patch("muse.batch_state.MAX_STATE_BYTES", 20):
+            path.write_text("x" * 21, encoding="utf-8")
+            with self.assertRaises(ConfigurationError) as caught:
+                load_state(path, fingerprint)
+        self.assertIn("limit", caught.exception.what)
+
+    def test_boolean_schema_is_rejected(self):
+        fingerprint = manifest_fingerprint((MusicRequest("cave"),))
+        path = state_path(self.root / "out", fingerprint)
+        path.parent.mkdir(parents=True)
+        path.write_text(
+            json.dumps({"schema": True, "manifest": fingerprint, "tracks": []}),
+            encoding="utf-8",
+        )
+        with self.assertRaises(ConfigurationError) as caught:
+            load_state(path, fingerprint)
+        self.assertIn("schema", caught.exception.what)
 
 
 class BatchCliTests(unittest.TestCase):

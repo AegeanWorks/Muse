@@ -98,6 +98,19 @@ class ReplicateTests(unittest.TestCase):
             provider.generate(MusicRequest("x"), self.destination)
         self.assertIn("timed out", caught.exception.what)
 
+    def test_last_poll_can_be_the_success(self):
+        http = FakeHttp(
+            [
+                {"status": "starting", "urls": {"get": "https://api.test/p/7"}},
+                {"status": "succeeded", "output": "https://delivery.test/track.wav"},
+            ]
+        )
+        provider = ReplicateMusicProvider(
+            config(poll_timeout=0.001), http=http, sleep=lambda _: None
+        )
+        track = provider.generate(MusicRequest("cave drones", duration=1), self.destination)
+        self.assertTrue(track.path.is_file())
+
     def test_empty_output_is_reported(self):
         http = FakeHttp(
             [
@@ -116,6 +129,30 @@ class ReplicateTests(unittest.TestCase):
         with self.assertRaises(GenerationError) as caught:
             provider.generate(MusicRequest("x"), self.destination)
         self.assertIn("prediction handle", caught.exception.what)
+
+    def test_malformed_handle_is_reported(self):
+        http = FakeHttp([{"status": "starting", "urls": []}])
+        provider = ReplicateMusicProvider(config(), http=http, sleep=lambda _: None)
+        with self.assertRaises(GenerationError) as caught:
+            provider.generate(MusicRequest("x"), self.destination)
+        self.assertIn("prediction handle", caught.exception.what)
+
+    def test_malformed_poll_response_is_reported(self):
+        http = FakeHttp(
+            [
+                {"status": "starting", "urls": {"get": "https://api.test/p/6"}},
+                ["not", "an", "object"],
+            ]
+        )
+        provider = ReplicateMusicProvider(config(), http=http, sleep=lambda _: None)
+        with self.assertRaises(GenerationError) as caught:
+            provider.generate(MusicRequest("x"), self.destination)
+        self.assertIn("malformed prediction", caught.exception.what)
+
+    def test_poll_interval_must_be_positive(self):
+        for interval in (0, -1, float("nan"), True):
+            with self.assertRaises(ConfigurationError):
+                ReplicateMusicProvider(config(), poll_interval=interval)
 
 
 class RegistryTests(unittest.TestCase):

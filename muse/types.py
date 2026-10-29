@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping
@@ -26,13 +27,27 @@ class MusicRequest:
     extra: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if not isinstance(self.prompt, str):
+            raise ValueError("prompt must be a string")
+        if not isinstance(self.theme, str):
+            raise ValueError("theme must be a string")
+        if not isinstance(self.name, str):
+            raise ValueError("name must be a string")
+        if not isinstance(self.extra, Mapping):
+            raise ValueError("extra must be a mapping")
+        duration = self.duration
+        if isinstance(duration, bool) or not isinstance(duration, (int, float)):
+            raise ValueError("duration must be a number of seconds")
+        duration = float(duration)
+        if not math.isfinite(duration) or not 0 < duration <= MAX_DURATION:
+            raise ValueError(f"duration must be between 0 and {MAX_DURATION:g} seconds")
         prompt = self.prompt.strip()
         if not prompt:
             raise ValueError("prompt must not be empty")
-        if not 0 < self.duration <= MAX_DURATION:
-            raise ValueError(f"duration must be between 0 and {MAX_DURATION:g} seconds")
         object.__setattr__(self, "prompt", prompt)
         object.__setattr__(self, "theme", self.theme.strip())
+        object.__setattr__(self, "name", self.name.strip())
+        object.__setattr__(self, "duration", duration)
 
     @property
     def intent(self) -> str:
@@ -66,6 +81,16 @@ class Verdict:
     judge: str
     model: str
     threshold: int = 60
+
+    def __post_init__(self) -> None:
+        if isinstance(self.score, bool) or not isinstance(self.score, int) or not 0 <= self.score <= 100:
+            raise ValueError("score must be an integer between 0 and 100")
+        if self.verdict not in VERDICTS:
+            raise ValueError(f"verdict must be one of {', '.join(VERDICTS)}")
+        if not isinstance(self.summary, str):
+            raise ValueError("summary must be a string")
+        if isinstance(self.threshold, bool) or not isinstance(self.threshold, int) or not 0 <= self.threshold <= 100:
+            raise ValueError("threshold must be an integer between 0 and 100")
 
     @property
     def accepted(self) -> bool:

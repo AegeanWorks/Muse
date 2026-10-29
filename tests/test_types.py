@@ -1,6 +1,8 @@
+import math
 import unittest
+from pathlib import Path
 
-from muse import MusicRequest
+from muse import MusicRequest, __version__
 from muse.config import ConfigurationError, MuseConfig
 from muse.types import MAX_DURATION, VERDICT_FITS, Verdict
 
@@ -24,6 +26,27 @@ class MusicRequestTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MusicRequest("x", duration=duration)
 
+    def test_text_fields_must_be_strings(self):
+        for field in ("prompt", "theme", "name"):
+            values = {"prompt": "x", field: 123}
+            with self.assertRaises(ValueError) as caught:
+                MusicRequest(**values)
+            self.assertIn(field, str(caught.exception))
+        with self.assertRaises(ValueError):
+            MusicRequest("x", theme=None)
+        with self.assertRaises(ValueError):
+            MusicRequest("x", extra=[])
+
+    def test_duration_must_be_a_finite_number(self):
+        for duration in (True, False, "30", None, math.nan, math.inf, -math.inf):
+            with self.assertRaises(ValueError):
+                MusicRequest("x", duration=duration)
+
+    def test_duration_is_stored_as_float(self):
+        request = MusicRequest("x", duration=1)
+        self.assertIsInstance(request.duration, float)
+        self.assertEqual(request.duration, 1.0)
+
     def test_label_prefers_name_then_theme(self):
         self.assertEqual(MusicRequest("x", name="Intro", theme="menu").label, "Intro")
         self.assertEqual(MusicRequest("x", theme="menu").label, "menu")
@@ -37,6 +60,17 @@ class VerdictTests(unittest.TestCase):
     def test_rejects_below_threshold(self):
         verdict = Verdict(59, VERDICT_FITS, "ok", (), (), (), "mock", "m", 60)
         self.assertFalse(verdict.accepted)
+
+    def test_invalid_values_are_rejected(self):
+        for score in (-1, 101, True, 84.0):
+            with self.assertRaises(ValueError):
+                Verdict(score, VERDICT_FITS, "ok", (), (), (), "mock", "m", 60)
+        with self.assertRaises(ValueError):
+            Verdict(84, "great", "ok", (), (), (), "mock", "m", 60)
+        with self.assertRaises(ValueError):
+            Verdict(84, VERDICT_FITS, "ok", (), (), (), "mock", "m", 101)
+        with self.assertRaises(ValueError):
+            Verdict(84, VERDICT_FITS, None, (), (), (), "mock", "m", 60)
 
 
 class ConfigTests(unittest.TestCase):
@@ -63,6 +97,22 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.min_score, 75)
         self.assertEqual(config.http_timeout, 9.5)
 
+    def test_empty_environment_values_fall_back_to_defaults(self):
+        config = MuseConfig.from_env(
+            {
+                "MUSE_OUTPUT_DIR": "",
+                "MUSE_PROVIDER": "",
+                "MUSE_JUDGE": "",
+                "MUSE_MUSIC_MODEL": "",
+                "MUSE_JUDGE_MODEL": "",
+            }
+        )
+        self.assertEqual(config.output_dir, Path("output"))
+        self.assertEqual(config.provider, "replicate")
+        self.assertEqual(config.judge, "gemini")
+        self.assertEqual(config.music_model, "stability-ai/stable-audio-2.5")
+        self.assertEqual(config.judge_model, "gemini-2.5-flash")
+
     def test_invalid_number_is_a_configuration_error(self):
         with self.assertRaises(ConfigurationError):
             MuseConfig.from_env({"MUSE_MIN_SCORE": "high"})
@@ -78,6 +128,21 @@ class ConfigTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             MuseConfig(poll_timeout=0)
 
+    def test_non_finite_or_wrongly_typed_values_are_rejected(self):
+        for value in (True, "60", 60.5):
+            with self.assertRaises(ConfigurationError):
+                MuseConfig(min_score=value)
+        for value in (math.nan, math.inf, "120", True):
+            with self.assertRaises(ConfigurationError):
+                MuseConfig(http_timeout=value)
+            with self.assertRaises(ConfigurationError):
+                MuseConfig(poll_timeout=value)
+
+    def test_output_dir_accepts_a_string(self):
+        config = MuseConfig(output_dir="art")
+        self.assertIsInstance(config.output_dir, Path)
+        self.assertEqual(config.output_dir.name, "art")
+
     def test_missing_tokens_are_explained(self):
         config = MuseConfig.from_env({})
         with self.assertRaises(ConfigurationError) as replicate:
@@ -91,3 +156,10 @@ class ConfigTests(unittest.TestCase):
         config = MuseConfig.from_env({"REPLICATE_API_TOKEN": "super-secret"})
         self.assertNotIn("super-secret", repr(config))
         self.assertEqual(config.replicate_token(), "super-secret")
+
+
+class PackagingTests(unittest.TestCase):
+    def test_pyproject_version_matches_the_module(self):
+        root = Path(__file__).resolve().parents[1]
+        text = (root / "pyproject.toml").read_text(encoding="utf-8")
+        self.assertIn(f'version = "{__version__}"', text)

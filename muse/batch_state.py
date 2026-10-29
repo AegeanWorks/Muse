@@ -12,6 +12,7 @@ from .errors import ConfigurationError, MuseError
 from .types import MusicRequest
 
 STATE_SCHEMA = 1
+MAX_STATE_BYTES = 8_000_000
 STATUSES = ("accepted", "rejected", "failed")
 
 
@@ -44,13 +45,31 @@ def load_state(path: Path, fingerprint: str) -> dict[int, dict[str, Any]]:
             "run the batch without --resume to start a new run",
         )
     try:
-        payload = json.loads(source.read_text(encoding="utf-8"))
+        # hygiene: allow binary read is capped at MAX_STATE_BYTES + 1; UTF-8 is decoded below
+        with source.open("rb") as handle:
+            raw = handle.read(MAX_STATE_BYTES + 1)
     except OSError as exc:
         raise MuseError(
             f"the batch state could not be read: {source}",
             exc.strerror or "the file could not be read",
             "check permissions or run the batch without --resume",
         ) from exc
+    if len(raw) > MAX_STATE_BYTES:
+        raise ConfigurationError(
+            f"the batch state is above the {MAX_STATE_BYTES} byte limit",
+            f"got {len(raw)} bytes",
+            "delete the state file or run without --resume",
+        )
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ConfigurationError(
+            "the batch state is not UTF-8 text",
+            str(exc),
+            "delete the state file or run without --resume",
+        ) from exc
+    try:
+        payload = json.loads(text)
     except ValueError as exc:
         raise ConfigurationError(
             "the batch state is not valid JSON",
@@ -63,7 +82,7 @@ def load_state(path: Path, fingerprint: str) -> dict[int, dict[str, Any]]:
             f"got {type(payload).__name__}",
             "delete the state file or run without --resume",
         )
-    if payload.get("schema") != STATE_SCHEMA:
+    if type(payload.get("schema")) is not int or payload.get("schema") != STATE_SCHEMA:
         raise ConfigurationError(
             "the batch state has an unknown schema",
             f"schema was {payload.get('schema')!r}",

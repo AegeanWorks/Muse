@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import time
@@ -11,10 +12,12 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping
+from urllib.parse import urlparse
 
 from .errors import MuseError
 
 RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
+MAX_DOWNLOAD_BYTES = 128 * 1024 * 1024
 
 
 @dataclass(frozen=True)
@@ -60,7 +63,21 @@ class HttpClient:
         return response.json()
 
     def download(self, url: str, destination: Path, headers: Mapping[str, str] | None = None) -> None:
-        destination.parent.mkdir(parents=True, exist_ok=True)
+        scheme = urlparse(url).scheme.lower()
+        if scheme not in {"http", "https"}:
+            raise MuseError(
+                "the download URL must use http or https",
+                f"got scheme {scheme or 'missing'!r}",
+                "use the https URL returned by the provider",
+            )
+        try:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise MuseError(
+                f"could not create the download folder: {destination.parent}",
+                str(exc),
+                "check that the output path is writable and is not a file",
+            ) from exc
         temporary = destination.with_name(f"{destination.name}.part_{uuid.uuid4().hex[:8]}")
         request = urllib.request.Request(url, headers=dict(headers or {}), method="GET")
         detail = "no response"
@@ -68,12 +85,15 @@ class HttpClient:
             retryable = True
             try:
                 self._stream(request, temporary)
-                os.replace(temporary, destination)
-                return
+                if temporary.stat().st_size == 0:
+                    detail = "the service returned an empty file"
+                else:
+                    os.replace(temporary, destination)
+                    return
             except urllib.error.HTTPError as exc:
                 detail = f"HTTP {exc.code}: {_excerpt(exc.read())}"
                 retryable = exc.code in RETRY_STATUS
-            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError) as exc:
                 detail = f"{type(exc).__name__}: {exc}"
             finally:
                 temporary.unlink(missing_ok=True)
@@ -87,6 +107,7 @@ class HttpClient:
         )
 
     def _stream(self, request: urllib.request.Request, path: Path) -> None:
+        total = 0
         with self._opener(request, timeout=self.timeout) as response:
             # hygiene: allow binary audio stream, encoding does not apply
             with path.open("wb") as handle:
@@ -94,6 +115,13 @@ class HttpClient:
                     chunk = response.read(65536)
                     if not chunk:
                         break
+                    total += len(chunk)
+                    if total > MAX_DOWNLOAD_BYTES:
+                        raise MuseError(
+                            "the downloaded audio is too large",
+                            f"exceeded the {MAX_DOWNLOAD_BYTES} byte download limit",
+                            "check the provider output URL, or render a shorter track",
+                        )
                     handle.write(chunk)
                 handle.flush()
                 os.fsync(handle.fileno())
@@ -106,7 +134,14 @@ class HttpClient:
         headers: Mapping[str, str] | None = None,
         retries: bool = False,
     ) -> HttpResponse:
-        body = None if payload is None else json.dumps(payload).encode("utf-8")
+        try:
+            body = None if payload is None else json.dumps(payload).encode("utf-8")
+        except (TypeError, ValueError) as exc:
+            raise MuseError(
+                "the request could not be encoded as JSON",
+                str(exc),
+                "pass only JSON-compatible values in the request payload",
+            ) from exc
         request_headers = {"Content-Type": "application/json", **(headers or {})}
         attempts = self.retries if retries else 0
         for attempt in range(attempts + 1):
@@ -114,7 +149,7 @@ class HttpClient:
                 response = self._once(method, url, body, request_headers)
             except urllib.error.HTTPError as exc:
                 response = HttpResponse(exc.code, dict(exc.headers or {}), exc.read())
-            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            except (urllib.error.URLError, http.client.HTTPException, TimeoutError, OSError) as exc:
                 if attempt >= attempts:
                     raise MuseError(
                         "the service could not be reached",

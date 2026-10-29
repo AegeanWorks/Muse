@@ -58,11 +58,33 @@ class GeminiJudge:
         )
 
     def _payload(self, track: Track, request: MusicRequest) -> Mapping[str, Any]:
-        audio = Path(track.path).read_bytes()
+        path = Path(track.path)
+        try:
+            size = path.stat().st_size
+        except OSError as exc:
+            raise MuseError(
+                "the judge could not read the track",
+                str(exc),
+                "check that the rendered file still exists and is readable",
+            ) from exc
+        if size > MAX_INLINE_BYTES:
+            raise JudgeError(
+                "the track is too large for the Gemini audio judge",
+                f"{size / 1048576:.1f} MB exceeds the {MAX_INLINE_BYTES / 1048576:g} MB inline limit",
+                "render a shorter --duration",
+            )
+        try:
+            audio = path.read_bytes()
+        except OSError as exc:
+            raise MuseError(
+                "the judge could not read the track",
+                str(exc),
+                "check that the rendered file still exists and is readable",
+            ) from exc
         if len(audio) > MAX_INLINE_BYTES:
             raise JudgeError(
                 "the track is too large for the Gemini audio judge",
-                f"{len(audio) / 1048576:.1f} MB exceeds the 14 MB inline limit",
+                f"{len(audio) / 1048576:.1f} MB exceeds the {MAX_INLINE_BYTES / 1048576:g} MB inline limit",
                 "render a shorter --duration",
             )
         instruction = (
@@ -132,7 +154,7 @@ def _validate(data: object) -> None:
     if not isinstance(data, Mapping):
         raise MuseError("the judge reply is not an object", "expected JSON object", "retry the command")
     score = data.get("score")
-    if not isinstance(score, int) or not 0 <= score <= 100:
+    if isinstance(score, bool) or not isinstance(score, int) or not 0 <= score <= 100:
         raise MuseError(
             "the judge returned an invalid score",
             f"score was {score!r}; expected an integer 0-100",

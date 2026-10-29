@@ -68,6 +68,11 @@ class GeminiTests(unittest.TestCase):
             GeminiJudge(self.config, http=FakeHttp(reply(score=150))).judge(self.track, self.request)
         self.assertIn("invalid score", caught.exception.what)
 
+    def test_boolean_score_is_rejected(self):
+        with self.assertRaises(MuseError) as caught:
+            GeminiJudge(self.config, http=FakeHttp(reply(score=True))).judge(self.track, self.request)
+        self.assertIn("invalid score", caught.exception.what)
+
     def test_unknown_verdict_is_rejected(self):
         with self.assertRaises(MuseError):
             GeminiJudge(self.config, http=FakeHttp(reply(verdict="great"))).judge(self.track, self.request)
@@ -82,6 +87,20 @@ class GeminiTests(unittest.TestCase):
             with self.assertRaises(JudgeError) as caught:
                 GeminiJudge(self.config, http=FakeHttp(reply())).judge(self.track, self.request)
         self.assertIn("too large", caught.exception.what)
+
+    def test_oversized_audio_is_rejected_before_reading(self):
+        with patch("muse.judges.gemini.MAX_INLINE_BYTES", 10):
+            with patch.object(Path, "read_bytes", side_effect=AssertionError("read too early")):
+                with self.assertRaises(JudgeError):
+                    GeminiJudge(self.config, http=FakeHttp(reply())).judge(self.track, self.request)
+
+    def test_unreadable_track_is_explained(self):
+        folder = Path(self.path).parent / "not-a-file"
+        folder.mkdir()
+        track = Track(folder, "file", "local", 1.0, "x", "x")
+        with self.assertRaises(MuseError) as caught:
+            GeminiJudge(self.config, http=FakeHttp(reply())).judge(track, self.request)
+        self.assertIn("could not read", caught.exception.what)
 
     def test_empty_verdict_text_is_rejected(self):
         with self.assertRaises(MuseError) as caught:

@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `29`
-- **Total Classes**: `49`
-- **Total Top-Level Functions**: `59`
-- **Total Class Methods**: `182`
-- **Total Source Lines**: `3369`
+- **Total Classes**: `51`
+- **Total Top-Level Functions**: `60`
+- **Total Class Methods**: `213`
+- **Total Source Lines**: `3866`
 
 ---
 
@@ -33,18 +33,19 @@
 ### [`muse/artifacts.py`](muse/artifacts.py)
 > *Artifact directories and crash-safe JSON metadata.*
 
-**Size**: `34` lines (`981` bytes)
+**Size**: `88` lines (`2769` bytes)
 
 **Functions:**
 - `def unique_directory(parent, label)`
 - `def write_json_atomic(path, payload)`
+- `def _fsync_directory(path)`
 
 ---
 
 ### [`muse/audio.py`](muse/audio.py)
 > *Small audio helpers that need no third-party packages.*
 
-**Size**: `51` lines (`1526` bytes)
+**Size**: `71` lines (`2150` bytes)
 
 **Functions:**
 - `def slugify(text, fallback)`
@@ -57,7 +58,7 @@
 ### [`muse/batch.py`](muse/batch.py)
 > *Batch manifest parsing: one JSON file, many themed tracks.*
 
-**Size**: `140` lines (`5220` bytes)
+**Size**: `142` lines (`5379` bytes)
 
 **Functions:**
 - `def load_manifest(path)` - *Read a JSON manifest and return one validated request per track.*
@@ -69,7 +70,7 @@
 ### [`muse/batch_state.py`](muse/batch_state.py)
 > *Crash-safe progress state for resumable batch runs.*
 
-**Size**: `144` lines (`5592` bytes)
+**Size**: `163` lines (`6350` bytes)
 
 **Functions:**
 - `def manifest_fingerprint(requests)` - *Hash the validated requests so a changed manifest cannot reuse old progress.*
@@ -82,7 +83,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `461` lines (`17554` bytes)
+**Size**: `467` lines (`17721` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -113,7 +114,7 @@
 ### [`muse/config.py`](muse/config.py)
 > *Configuration resolved from explicit values, environment variables and defaults.*
 
-**Size**: `112` lines (`4421` bytes)
+**Size**: `128` lines (`5090` bytes)
 
 **Classes:**
 - `class MuseConfig`
@@ -158,7 +159,7 @@
 ### [`muse/judges/gemini.py`](muse/judges/gemini.py)
 > *Gemini audio judge: listens to the rendered track and scores theme fit.*
 
-**Size**: `154` lines (`6281` bytes)
+**Size**: `176` lines (`7204` bytes)
 
 **Classes:**
 - `class GeminiJudge`
@@ -202,7 +203,7 @@
 ### [`muse/net.py`](muse/net.py)
 > *Minimal JSON and download HTTP client with retry and timeouts.*
 
-**Size**: `146` lines (`5654` bytes)
+**Size**: `181` lines (`7228` bytes)
 
 **Classes:**
 - `class HttpResponse`
@@ -276,7 +277,7 @@
 ### [`muse/providers/replicate.py`](muse/providers/replicate.py)
 > *Music generation through Replicate-hosted models.*
 
-**Size**: `115` lines (`4464` bytes)
+**Size**: `141` lines (`5706` bytes)
 
 **Classes:**
 - `class ReplicateMusicProvider`
@@ -291,7 +292,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `105` lines (`2551` bytes)
+**Size**: `130` lines (`3961` bytes)
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -300,6 +301,7 @@
   - Property `.label`
 - `class Track`
 - `class Verdict`
+  - Method `.__post_init__()`
   - Property `.accepted`
 - `class Attempt` - *One rendered take and the verdict that judged it.*
   - Property `.accepted`
@@ -317,12 +319,13 @@
 ---
 
 ### [`tests/test_audio.py`](tests/test_audio.py)
-**Size**: `55` lines (`2199` bytes)
+**Size**: `90` lines (`4051` bytes)
 
 **Classes:**
 - `class SlugTests`
   - Method `.test_slugifies_prompt()`
   - Method `.test_falls_back_when_nothing_remains()`
+  - Method `.test_avoids_windows_reserved_device_names()`
 - `class MimeTests`
   - Method `.test_known_and_unknown_suffixes()`
 - `class ToneTests`
@@ -330,12 +333,15 @@
   - Method `.test_duration_of_non_wav_is_none()`
 - `class ArtifactTests`
   - Method `.test_unique_directories_get_suffixes()`
+  - Method `.test_unwritable_parent_is_a_muse_error()`
   - Method `.test_json_write_leaves_no_temp_file()`
+  - Method `.test_failed_json_write_keeps_the_previous_file_and_no_temp()`
+  - Method `.test_storage_failure_is_a_muse_error()`
 
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `410` lines (`17454` bytes)
+**Size**: `433` lines (`18495` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -363,6 +369,8 @@
   - Method `.test_missing_or_mismatched_state_is_explained()`
   - Method `.test_corrupt_state_is_explained()`
   - Method `.test_inconsistent_state_is_explained()`
+  - Method `.test_state_size_is_capped()`
+  - Method `.test_boolean_schema_is_rejected()`
 - `class BatchCliTests`
   - Method `.setUp()`
   - Method `.manifest(tracks)`
@@ -416,7 +424,7 @@
 ---
 
 ### [`tests/test_judges.py`](tests/test_judges.py)
-**Size**: `129` lines (`5436` bytes)
+**Size**: `148` lines (`6473` bytes)
 
 **Classes:**
 - `class FakeHttp`
@@ -426,9 +434,12 @@
   - Method `.setUp()`
   - Method `.test_sends_audio_and_returns_verdict()`
   - Method `.test_invalid_score_is_rejected()`
+  - Method `.test_boolean_score_is_rejected()`
   - Method `.test_unknown_verdict_is_rejected()`
   - Method `.test_missing_candidate_is_rejected()`
   - Method `.test_oversized_audio_is_rejected_before_upload()`
+  - Method `.test_oversized_audio_is_rejected_before_reading()`
+  - Method `.test_unreadable_track_is_explained()`
   - Method `.test_empty_verdict_text_is_rejected()`
 - `class MockJudgeTests`
   - Method `.setUp()`
@@ -447,17 +458,22 @@
 ---
 
 ### [`tests/test_net.py`](tests/test_net.py)
-**Size**: `115` lines (`4482` bytes)
+**Size**: `201` lines (`8700` bytes)
 
 **Classes:**
 - `class FlakyClient`
   - Method `.__init__(responses)`
+  - Method `._once(method, url, body, headers)`
+- `class BrokenClient`
+  - Method `.__init__()`
   - Method `._once(method, url, body, headers)`
 - `class HttpClientTests`
   - Method `.test_retries_retryable_status()`
   - Method `.test_does_not_retry_client_error()`
   - Method `.test_retries_are_exhausted()`
   - Method `.test_non_json_body_is_explained()`
+  - Method `.test_truncated_json_response_is_retried()`
+  - Method `.test_unserializable_payload_is_explained()`
 - `class FakeResponse`
   - Method `.__init__(chunks)`
   - Method `.__enter__()`
@@ -470,6 +486,11 @@
   - Method `.test_failed_download_leaves_no_partial_file()`
   - Method `.test_download_retries_transport_failure()`
   - Method `.test_download_does_not_retry_http_404()`
+  - Method `.test_download_rejects_non_http_urls()`
+  - Method `.test_download_rejects_an_empty_file()`
+  - Method `.test_truncated_download_is_retried_and_cleaned()`
+  - Method `.test_download_size_is_capped()`
+  - Method `.test_download_folder_failure_is_explained()`
 
 ---
 
@@ -512,7 +533,7 @@
 ---
 
 ### [`tests/test_providers.py`](tests/test_providers.py)
-**Size**: `135` lines (`5780` bytes)
+**Size**: `172` lines (`7469` bytes)
 
 **Classes:**
 - `class FakeHttp`
@@ -525,8 +546,12 @@
   - Method `.test_pinned_version_uses_predictions_endpoint()`
   - Method `.test_failed_prediction_is_reported()`
   - Method `.test_timeout_is_reported()`
+  - Method `.test_last_poll_can_be_the_success()`
   - Method `.test_empty_output_is_reported()`
   - Method `.test_missing_handle_is_reported()`
+  - Method `.test_malformed_handle_is_reported()`
+  - Method `.test_malformed_poll_response_is_reported()`
+  - Method `.test_poll_interval_must_be_positive()`
 - `class RegistryTests`
   - Method `.test_mock_provider_is_pickable()`
   - Method `.test_unknown_provider_is_explained()`
@@ -538,7 +563,7 @@
 ---
 
 ### [`tests/test_types.py`](tests/test_types.py)
-**Size**: `93` lines (`3630` bytes)
+**Size**: `165` lines (`6753` bytes)
 
 **Classes:**
 - `class MusicRequestTests`
@@ -546,17 +571,26 @@
   - Method `.test_theme_wins_as_intent()`
   - Method `.test_empty_prompt_is_rejected()`
   - Method `.test_duration_bounds()`
+  - Method `.test_text_fields_must_be_strings()`
+  - Method `.test_duration_must_be_a_finite_number()`
+  - Method `.test_duration_is_stored_as_float()`
   - Method `.test_label_prefers_name_then_theme()`
 - `class VerdictTests`
   - Method `.test_accepts_at_threshold()`
   - Method `.test_rejects_below_threshold()`
+  - Method `.test_invalid_values_are_rejected()`
 - `class ConfigTests`
   - Method `.test_defaults()`
   - Method `.test_environment_overrides()`
+  - Method `.test_empty_environment_values_fall_back_to_defaults()`
   - Method `.test_invalid_number_is_a_configuration_error()`
   - Method `.test_threshold_outside_percent_is_rejected()`
   - Method `.test_non_positive_timeouts_are_rejected()`
+  - Method `.test_non_finite_or_wrongly_typed_values_are_rejected()`
+  - Method `.test_output_dir_accepts_a_string()`
   - Method `.test_missing_tokens_are_explained()`
   - Method `.test_tokens_are_not_in_repr()`
+- `class PackagingTests`
+  - Method `.test_pyproject_version_matches_the_module()`
 
 ---

@@ -344,7 +344,13 @@ def _evidence_exists(entry: dict[str, Any]) -> bool:
         return False
     for key in ("audio", "metadata"):
         value = payload.get(key)
-        if not isinstance(value, str) or not Path(value).is_file():
+        if not isinstance(value, str):
+            return False
+        candidate = Path(value)
+        try:
+            if not candidate.is_file() or candidate.stat().st_size == 0:
+                return False
+        except OSError:
             return False
     return True
 

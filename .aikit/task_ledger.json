@@ -1,34 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-batch-resume",
+    "task_id": "muse-hardening-pass",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793285874.0517645,
+    "updated_at": 1793286823.3047922,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793285885.1837852
+    "completed_at": 1793286827.7990005
   },
   "checkpoints": [
-    {
-      "task_id": "muse-mvp",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/5] Plan Muse MVP: provider protocol + Replicate adapter, Gemini audio judge, crash-safe artifacts, CLI/library, offline tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1792964436.1452994,
-      "timestamp_str": "2026-10-26 00:40:36",
-      "agent": "kilo:main",
-      "impact_assessment": {
-        "why": "Projects need original themed music plus an automated listener that proves the track fits before shipping",
-        "benefits": "One command returns audio and a scored verdict; adapters are swappable and the whole suite runs without keys or network",
-        "risks": "contract: new CLI and Python API; dependency: Replicate and Gemini over stdlib urllib only; concurrency: none; state: artifacts under output/, secrets stay in env",
-        "mitigation": "Protocol boundaries with mock adapters, schema-checked judge replies, atomic metadata writes, failing-first unit tests"
-      }
-    },
     {
       "task_id": "muse-mvp",
       "phase": "phase 4",
@@ -263,6 +246,49 @@
       "status": "completed",
       "timestamp": 1793285885.1837869,
       "timestamp_str": "2026-10-29 17:58:05",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-hardening-pass",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/5] Audit source, tests and packaging for correctness gaps; prioritize crash-safety, input validation, bounded reads and static findings",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793285999.758781,
+      "timestamp_str": "2026-10-29 17:59:59",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The feature work is complete but the project has not had a full defect audit; a push should ship verified code, not just passing happy-path tests",
+        "benefits": "Crash-safe artifact writes, clear validation for library callers, bounded manifest reads and a clean static check reduce silent corruption and traceback paths",
+        "risks": "contract: input validation may reject previously accepted library values; dependency: none added; concurrency: none; state: artifact writes become stricter",
+        "mitigation": "Failing-first tests for every behaviour change, keep valid inputs unchanged, run all 4 gates and dogfood before pushing"
+      }
+    },
+    {
+      "task_id": "muse-hardening-pass",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[5/5] Hardening pass: 137 tests, 4/4 gates; fixed final-poll timeout, malformed provider/state handling, temp-file leaks, bounded manifest/state/download IO, input validation and Windows reserved names; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793286823.3047922,
+      "timestamp_str": "2026-10-29 18:13:43",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "21 modified files",
+        "next": "commit the hardening pass and push all local commits",
+        "evidence": "137 tests OK, check 4/4, dogfood clean errors for NaN timeout, file output path and bad manifest"
+      }
+    },
+    {
+      "task_id": "muse-hardening-pass",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-hardening-pass' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793286827.7990024,
+      "timestamp_str": "2026-10-29 18:13:47",
       "agent": "opencode:main"
     }
   ]

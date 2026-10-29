@@ -1,8 +1,10 @@
+import http.client
 import io
 import tempfile
 import unittest
 import urllib.error
 from pathlib import Path
+from unittest.mock import patch
 
 from muse.errors import MuseError
 from muse.net import HttpClient, HttpResponse
@@ -16,6 +18,16 @@ class FlakyClient(HttpClient):
 
     def _once(self, method, url, body, headers):
         return self.responses.pop(0)
+
+
+class BrokenClient(HttpClient):
+    def __init__(self):
+        super().__init__(timeout=1, retries=1, backoff=1.0, sleep=lambda _: None)
+        self.calls = 0
+
+    def _once(self, method, url, body, headers):
+        self.calls += 1
+        raise http.client.IncompleteRead(b"partial")
 
 
 class HttpClientTests(unittest.TestCase):
@@ -42,6 +54,20 @@ class HttpClientTests(unittest.TestCase):
         with self.assertRaises(MuseError) as caught:
             client.json("GET", "https://example.test")
         self.assertIn("non-JSON", caught.exception.what)
+
+    def test_truncated_json_response_is_retried(self):
+        client = BrokenClient()
+        with self.assertRaises(MuseError) as caught:
+            client.json("GET", "https://example.test")
+        self.assertIn("could not be reached", caught.exception.what)
+        self.assertEqual(client.calls, 2)
+
+    def test_unserializable_payload_is_explained(self):
+        client = FlakyClient([])
+        with self.assertRaises(MuseError) as caught:
+            client.json("POST", "https://example.test", {"bad": object()})
+        self.assertIn("encoded", caught.exception.what)
+        self.assertEqual(client.responses, [])
 
 
 class FakeResponse:
@@ -107,9 +133,69 @@ class DownloadTests(unittest.TestCase):
             not_found = urllib.error.HTTPError(
                 "https://example.test/track.wav", 404, "missing", {}, io.BytesIO(b"missing")
             )
+            self.addCleanup(not_found.close)
             opener = ScriptedOpener([not_found])
             client = HttpClient(timeout=1, retries=3, sleep=lambda _: None, opener=opener)
             with self.assertRaises(MuseError) as caught:
                 client.download("https://example.test/track.wav", destination)
             self.assertIn("404", caught.exception.why)
             self.assertEqual(len(opener.requests), 1)
+
+    def test_download_rejects_non_http_urls(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "track.wav"
+            opener = ScriptedOpener([])
+            client = HttpClient(timeout=1, retries=0, sleep=lambda _: None, opener=opener)
+            with self.assertRaises(MuseError) as caught:
+                client.download("file:///etc/passwd", destination)
+            self.assertIn("http", caught.exception.what.lower())
+            self.assertEqual(opener.requests, [])
+            self.assertEqual(list(Path(folder).iterdir()), [])
+
+    def test_download_rejects_an_empty_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "track.wav"
+            opener = ScriptedOpener([FakeResponse([b""])])
+            client = HttpClient(timeout=1, retries=0, sleep=lambda _: None, opener=opener)
+            with self.assertRaises(MuseError) as caught:
+                client.download("https://example.test/track.wav", destination)
+            self.assertIn("empty", caught.exception.why)
+            self.assertFalse(destination.exists())
+
+    def test_truncated_download_is_retried_and_cleaned(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "track.wav"
+            opener = ScriptedOpener(
+                [
+                    FakeResponse([b"RIFF", http.client.IncompleteRead(b"partial")]),
+                    FakeResponse([b"RIFFdata", b""]),
+                ]
+            )
+            sleeps = []
+            client = HttpClient(timeout=1, retries=1, sleep=sleeps.append, opener=opener)
+            client.download("https://example.test/track.wav", destination)
+            self.assertEqual(destination.read_bytes(), b"RIFFdata")
+            self.assertEqual(sleeps, [1.5])
+            self.assertEqual([path.name for path in Path(folder).iterdir()], ["track.wav"])
+
+    def test_download_size_is_capped(self):
+        with tempfile.TemporaryDirectory() as folder:
+            destination = Path(folder) / "track.wav"
+            opener = ScriptedOpener([FakeResponse([b"123456789"])])
+            client = HttpClient(timeout=1, retries=0, sleep=lambda _: None, opener=opener)
+            with patch("muse.net.MAX_DOWNLOAD_BYTES", 5):
+                with self.assertRaises(MuseError) as caught:
+                    client.download("https://example.test/track.wav", destination)
+            self.assertIn("too large", caught.exception.what)
+            self.assertFalse(destination.exists())
+            self.assertEqual(list(Path(folder).iterdir()), [])
+
+    def test_download_folder_failure_is_explained(self):
+        with tempfile.TemporaryDirectory() as folder:
+            blocker = Path(folder) / "blocker"
+            blocker.write_text("not a directory", encoding="utf-8")
+            destination = blocker / "track.wav"
+            client = HttpClient(timeout=1, retries=0, sleep=lambda _: None, opener=ScriptedOpener([]))
+            with self.assertRaises(MuseError) as caught:
+                client.download("https://example.test/track.wav", destination)
+            self.assertIn("folder", caught.exception.what.lower())

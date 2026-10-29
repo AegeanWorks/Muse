@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from pathlib import Path
 from typing import Any, Callable, Mapping
@@ -9,7 +10,7 @@ from urllib.parse import urlparse
 
 from ..audio import wav_duration
 from ..config import MuseConfig
-from ..errors import GenerationError, MuseError
+from ..errors import ConfigurationError, GenerationError
 from ..net import HttpClient
 from ..types import MusicRequest, Track
 
@@ -27,6 +28,17 @@ class ReplicateMusicProvider:
         sleep: Callable[[float], None] = time.sleep,
         poll_interval: float = 2.0,
     ) -> None:
+        if (
+            isinstance(poll_interval, bool)
+            or not isinstance(poll_interval, (int, float))
+            or not math.isfinite(poll_interval)
+            or poll_interval <= 0
+        ):
+            raise ConfigurationError(
+                "the poll interval must be a positive number",
+                f"got {poll_interval!r}",
+                "pass a positive number of seconds such as 2",
+            )
         self.config = config
         self.model = config.music_model
         self._http = http or HttpClient(timeout=config.http_timeout)
@@ -34,7 +46,7 @@ class ReplicateMusicProvider:
         self._poll_interval = poll_interval
         self._headers = {
             "Authorization": f"Bearer {config.replicate_token()}",
-            "User-Agent": "muse/0.1",
+            "User-Agent": "muse",
         }
 
     def generate(self, request: MusicRequest, destination: Path) -> Track:
@@ -69,7 +81,8 @@ class ReplicateMusicProvider:
             body = {"input": payload}
             endpoint = f"{BASE_URL}/models/{self.model}/predictions"
         result = self._http.json("POST", endpoint, body, self._headers)
-        if not isinstance(result, Mapping) or not result.get("urls", {}).get("get"):
+        urls = result.get("urls") if isinstance(result, Mapping) else None
+        if not isinstance(urls, Mapping) or not isinstance(urls.get("get"), str):
             raise GenerationError(
                 "Replicate did not return a prediction handle",
                 f"response was {str(result)[:200]}",
@@ -82,17 +95,30 @@ class ReplicateMusicProvider:
         deadline_attempts = max(1, int(self.config.poll_timeout / self._poll_interval) + 1)
         current: Mapping[str, Any] = created
         for _ in range(deadline_attempts):
+            if not isinstance(current, Mapping):
+                raise GenerationError(
+                    "Replicate returned a malformed prediction",
+                    f"expected an object, got {type(current).__name__}",
+                    "retry; if it persists, check the Replicate service status",
+                )
             status = current.get("status")
             if status in FINISHED:
                 break
             self._sleep(self._poll_interval)
             current = self._http.json("GET", poll_url, None, self._headers)
         else:
-            raise GenerationError(
-                "music generation timed out",
-                f"Replicate did not finish within {self.config.poll_timeout:g}s",
-                "retry with a shorter --duration or raise MUSE_POLL_TIMEOUT",
-            )
+            if not isinstance(current, Mapping):
+                raise GenerationError(
+                    "Replicate returned a malformed prediction",
+                    f"expected an object, got {type(current).__name__}",
+                    "retry; if it persists, check the Replicate service status",
+                )
+            if current.get("status") not in FINISHED:
+                raise GenerationError(
+                    "music generation timed out",
+                    f"Replicate did not finish within {self.config.poll_timeout:g}s",
+                    "retry with a shorter --duration or raise MUSE_POLL_TIMEOUT",
+                )
         if current.get("status") != "succeeded":
             detail = current.get("error") or current.get("status") or "unknown state"
             raise GenerationError(

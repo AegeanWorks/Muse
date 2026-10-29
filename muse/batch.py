@@ -18,7 +18,9 @@ def load_manifest(path: Path) -> tuple[MusicRequest, ...]:
     """Read a JSON manifest and return one validated request per track."""
     source = Path(path)
     try:
-        raw = source.read_bytes()
+        # hygiene: allow binary read is capped at MAX_MANIFEST_BYTES + 1; UTF-8 is decoded below
+        with source.open("rb") as handle:
+            raw = handle.read(MAX_MANIFEST_BYTES + 1)
     except OSError as exc:
         raise MuseError(
             f"batch manifest not found or unreadable: {source}",

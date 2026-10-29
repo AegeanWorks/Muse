@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -27,36 +28,51 @@ class MuseConfig:
     env: Mapping[str, str] = field(default_factory=lambda: os.environ, repr=False, compare=False)
 
     def __post_init__(self) -> None:
+        if isinstance(self.min_score, bool) or not isinstance(self.min_score, int):
+            raise ConfigurationError(
+                "MUSE_MIN_SCORE must be a whole number",
+                f"got {self.min_score!r}",
+                "set --min-score or MUSE_MIN_SCORE to an integer between 0 and 100",
+            )
         if not 0 <= self.min_score <= 100:
             raise ConfigurationError(
                 f"acceptance threshold {self.min_score} is outside 0-100",
                 "a verdict score is always 0-100, so no track could satisfy this threshold",
                 "set --min-score or MUSE_MIN_SCORE to an integer between 0 and 100",
             )
-        if self.http_timeout <= 0:
+        for name, value in (("MUSE_HTTP_TIMEOUT", self.http_timeout), ("MUSE_POLL_TIMEOUT", self.poll_timeout)):
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                or value <= 0
+            ):
+                raise ConfigurationError(
+                    f"{name} must be a positive number",
+                    f"got {value!r}",
+                    f"set {name} to a positive number of seconds such as 120",
+                )
+        try:
+            output_dir = Path(self.output_dir)
+        except TypeError as exc:
             raise ConfigurationError(
-                "MUSE_HTTP_TIMEOUT must be greater than zero",
-                "every request would time out immediately",
-                "set MUSE_HTTP_TIMEOUT to a positive number of seconds such as 120",
-            )
-        if self.poll_timeout <= 0:
-            raise ConfigurationError(
-                "MUSE_POLL_TIMEOUT must be greater than zero",
-                "generation would be abandoned before the first status check",
-                "set MUSE_POLL_TIMEOUT to a positive number of seconds such as 600",
-            )
+                "MUSE_OUTPUT_DIR must be a filesystem path",
+                f"got {self.output_dir!r}",
+                "set MUSE_OUTPUT_DIR to a directory such as output",
+            ) from exc
+        object.__setattr__(self, "output_dir", output_dir)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "MuseConfig":
         source = os.environ if env is None else env
         return cls(
             env=source,
-            output_dir=Path(source.get("MUSE_OUTPUT_DIR", "output")),
-            provider=source.get("MUSE_PROVIDER", "replicate"),
-            judge=source.get("MUSE_JUDGE", "gemini"),
-            music_model=source.get("MUSE_MUSIC_MODEL", DEFAULT_MUSIC_MODEL),
+            output_dir=Path(source.get("MUSE_OUTPUT_DIR") or "output"),
+            provider=source.get("MUSE_PROVIDER") or "replicate",
+            judge=source.get("MUSE_JUDGE") or "gemini",
+            music_model=source.get("MUSE_MUSIC_MODEL") or DEFAULT_MUSIC_MODEL,
             replicate_version=source.get("MUSE_REPLICATE_VERSION") or None,
-            judge_model=source.get("MUSE_JUDGE_MODEL", DEFAULT_JUDGE_MODEL),
+            judge_model=source.get("MUSE_JUDGE_MODEL") or DEFAULT_JUDGE_MODEL,
             min_score=_int(source.get("MUSE_MIN_SCORE"), 60, "MUSE_MIN_SCORE"),
             http_timeout=_float(source.get("MUSE_HTTP_TIMEOUT"), 120.0, "MUSE_HTTP_TIMEOUT"),
             poll_timeout=_float(source.get("MUSE_POLL_TIMEOUT"), 600.0, "MUSE_POLL_TIMEOUT"),
