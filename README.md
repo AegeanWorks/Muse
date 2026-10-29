@@ -49,6 +49,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 2. A **judge** listens to the rendered file with Gemini and returns a schema-checked verdict: a 0-100 fit score, a verdict, strengths, issues and concrete prompt suggestions.
 3. The pipeline writes the audio plus `muse.json` evidence (request, model, settings, verdict) into `output/<slug>/`, so any project can ship a track together with the reason it was accepted.
 4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
+5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider.
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
@@ -77,6 +78,10 @@ python -m muse batch tracks.json --resume --keep-going
 
 # inspect the plan without calling a provider or judge
 python -m muse batch tracks.json --dry-run --json
+
+# review scored evidence, newest first
+python -m muse list --accepted-only --limit 10
+python -m muse list --json
 
 # what is wired in?
 python -m muse providers
@@ -143,6 +148,15 @@ failure is recorded and the command stops. A failed track always exits `1`; `--s
 
 To start a batch over from scratch, run without `--resume`; that replaces the state file but keeps
 the old artifact folders as evidence.
+
+### Catalog
+
+`muse list` scans one level of `<out>` for `muse.json`, shows the newest evidence first, and marks
+tracks whose audio file is missing. `--accepted-only` hides rejected tracks, `--limit N` caps the
+result (default 20), and `--json` prints the same fields as a machine-readable `artifacts` array
+(folder, name, prompt, theme, duration, score, verdict, accepted, attempts, paths and
+`audio_exists`). It is read-only and never calls a provider. Corrupt, oversized or unsupported
+metadata is reported on stderr and skipped instead of failing the whole listing.
 
 ## Python library
 
@@ -258,7 +272,8 @@ muse/
 │   ├── audio.py              <- WAV duration, MIME sniffing, offline tone
 │   ├── batch.py              <- JSON manifest parsing and validation
 │   ├── batch_state.py        <- fingerprinted, crash-safe batch progress
-│   ├── cli.py                <- generate / batch / judge / providers commands
+│   ├── catalog.py            <- read-only artifact evidence discovery
+│   ├── cli.py                <- generate / batch / judge / list / providers commands
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
@@ -274,7 +289,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 144 offline unit tests, no network or keys
+├── tests/                    <- 155 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 
@@ -307,6 +322,7 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `the batch manifest ...` | missing file, invalid JSON, unknown keys or bad types | read the `Why:`/`Fix:` lines; the manifest needs a `tracks` array of prompt objects |
 | `no batch state to resume` | `--resume` before any batch ran, or a changed `--out` | run without `--resume`, or point `--out` at the previous artifact root |
 | `the batch state belongs to a different manifest` | a prompt, theme, duration or name changed | restore the manifest, or run without `--resume` for a fresh batch |
+| `Warning: .../muse.json: ...` | corrupt, oversized or unsupported evidence | `muse list` skips it; repair or remove that artifact folder |
 
 <!-- aegean:brand-assets:start -->
 ## 🎨 Brand Assets

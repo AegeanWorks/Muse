@@ -12,6 +12,7 @@ from . import __version__
 from .audio import wav_duration
 from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
+from .catalog import load_artifacts
 from .config import MuseConfig
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
@@ -42,6 +43,8 @@ def main(
             return _batch(args, settings, provider, judge)
         if args.command == "judge":
             return _judge(args, settings, judge)
+        if args.command == "list":
+            return _catalog(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -111,6 +114,12 @@ def build_parser() -> argparse.ArgumentParser:
     _common(judge)
     judge.add_argument("--strict", action="store_true", help="exit 1 when the score is below threshold")
 
+    catalog = subparsers.add_parser("list", help="list scored artifacts under an output directory")
+    catalog.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
+    catalog.add_argument("--accepted-only", action="store_true", help="hide rejected artifacts")
+    catalog.add_argument("--limit", type=_positive_count, default=20, metavar="N", help="maximum artifacts (default 20)")
+    catalog.add_argument("--json", action="store_true", help="machine-readable output")
+
     listing = subparsers.add_parser("providers", help="list music providers and judges")
     listing.add_argument("--json", action="store_true", help="machine-readable output")
     return parser
@@ -123,6 +132,16 @@ def _attempt_count(value: str) -> int:
         raise argparse.ArgumentTypeError("attempts must be a whole number") from exc
     if not 1 <= number <= MAX_ATTEMPTS:
         raise argparse.ArgumentTypeError(f"attempts must be between 1 and {MAX_ATTEMPTS}")
+    return number
+
+
+def _positive_count(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("limit must be a whole number") from exc
+    if number < 1:
+        raise argparse.ArgumentTypeError("limit must be at least 1")
     return number
 
 
@@ -330,6 +349,41 @@ def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | N
     else:
         _print_verdict(verdict)
     return 1 if args.strict and not verdict.accepted else 0
+
+
+def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
+    entries, warnings = load_artifacts(
+        settings.output_dir,
+        accepted_only=args.accepted_only,
+        limit=args.limit,
+    )
+    for warning in warnings:
+        print(f"Warning: {warning}", file=sys.stderr)
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "artifacts": [entry.as_dict() for entry in entries],
+                    "total": len(entries),
+                    "output": str(settings.output_dir),
+                },
+                indent=2,
+            )
+        )
+        return 0
+    if not entries:
+        print(f"No artifacts found under {settings.output_dir}.")
+        return 0
+    for entry in entries:
+        if entry.score is None:
+            score = "none"
+        else:
+            score = f"{entry.score}/100 {entry.verdict or ''}".strip()
+        state = "accepted" if entry.accepted else "rejected"
+        missing = "" if entry.audio_exists else " [audio missing]"
+        print(f"{state:<8} {score:<18} {entry.audio_path}{missing}  {entry.theme or entry.prompt}")
+    print(f"Artifacts: {len(entries)}")
+    return 0
 
 
 def _providers(args: argparse.Namespace) -> int:

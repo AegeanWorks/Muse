@@ -26,6 +26,17 @@ class FakeHttp:
         write_tone(Path(destination), 0.25)
 
 
+class SlowHttp(FakeHttp):
+    def __init__(self, responses, clock):
+        super().__init__(responses)
+        self.clock = clock
+
+    def json(self, method, url, payload=None, headers=None):
+        if method == "GET":
+            self.clock[0] += 100
+        return super().json(method, url, payload, headers)
+
+
 def config(**changes):
     return MuseConfig(env={"REPLICATE_API_TOKEN": "token"}, **changes)
 
@@ -91,12 +102,37 @@ class ReplicateTests(unittest.TestCase):
                 {"status": "processing"},
             ]
         )
+        now = [0.0]
         provider = ReplicateMusicProvider(
-            config(poll_timeout=0.001), http=http, sleep=lambda _: None
+            config(poll_timeout=0.001),
+            http=http,
+            sleep=lambda seconds: now.__setitem__(0, now[0] + seconds),
+            clock=lambda: now[0],
         )
         with self.assertRaises(GenerationError) as caught:
             provider.generate(MusicRequest("x"), self.destination)
         self.assertIn("timed out", caught.exception.what)
+
+    def test_slow_polls_respect_the_wall_clock_budget(self):
+        now = [0.0]
+        http = SlowHttp(
+            [
+                {"status": "starting", "urls": {"get": "https://api.test/p/8"}},
+                {"status": "processing"},
+                {"status": "processing"},
+            ],
+            now,
+        )
+        provider = ReplicateMusicProvider(
+            config(poll_timeout=10),
+            http=http,
+            sleep=lambda seconds: now.__setitem__(0, now[0] + seconds),
+            clock=lambda: now[0],
+        )
+        with self.assertRaises(GenerationError) as caught:
+            provider.generate(MusicRequest("x"), self.destination)
+        self.assertIn("timed out", caught.exception.what)
+        self.assertEqual(sum(1 for call in http.calls if call["method"] == "GET"), 1)
 
     def test_last_poll_can_be_the_success(self):
         http = FakeHttp(

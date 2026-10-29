@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `29`
-- **Total Classes**: `51`
-- **Total Top-Level Functions**: `62`
-- **Total Class Methods**: `220`
-- **Total Source Lines**: `4050`
+- **Total Python Modules**: `31`
+- **Total Classes**: `55`
+- **Total Top-Level Functions**: `69`
+- **Total Class Methods**: `237`
+- **Total Source Lines**: `4480`
 
 ---
 
@@ -80,15 +80,33 @@
 
 ---
 
+### [`muse/catalog.py`](muse/catalog.py)
+> *Read-only discovery of scored artifacts under an output directory.*
+
+**Size**: `165` lines (`5799` bytes)
+
+**Classes:**
+- `class Artifact`
+  - Method `.as_dict()`
+
+**Functions:**
+- `def load_artifacts(output_dir, accepted_only, limit)` - *Scan one output directory level and return scored artifacts plus warnings.*
+- `def _read_metadata(path)`
+- `def _entry(metadata, payload)`
+- `def _text(value)`
+
+---
+
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `519` lines (`19347` bytes)
+**Size**: `573` lines (`21455` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
 - `def build_parser()`
 - `def _attempt_count(value)`
+- `def _positive_count(value)`
 - `def _add_attempts(parser)`
 - `def _common(parser)`
 - `def _settings(args, config)`
@@ -96,6 +114,7 @@
 - `def _batch(args, settings, provider, judge)`
 - `def _dry_run(args, settings, requests)`
 - `def _judge(args, settings, judge)`
+- `def _catalog(args, settings)`
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
@@ -279,11 +298,11 @@
 ### [`muse/providers/replicate.py`](muse/providers/replicate.py)
 > *Music generation through Replicate-hosted models.*
 
-**Size**: `141` lines (`5706` bytes)
+**Size**: `137` lines (`5435` bytes)
 
 **Classes:**
 - `class ReplicateMusicProvider`
-  - Method `.__init__(config, http, sleep, poll_interval)`
+  - Method `.__init__(config, http, sleep, poll_interval, clock)`
   - Method `.generate(request, destination)`
   - Method `._create(request)`
   - Method `._wait(created)`
@@ -391,6 +410,31 @@
   - Method `.test_resume_without_state_is_refused()`
   - Method `.test_keep_going_records_failure_and_resume_finishes()`
   - Method `.test_resume_rerenders_when_evidence_is_missing()`
+
+---
+
+### [`tests/test_catalog.py`](tests/test_catalog.py)
+**Size**: `179` lines (`6810` bytes)
+
+**Classes:**
+- `class CatalogTests`
+  - Method `.setUp()`
+  - Method `.test_reads_filters_and_limits()`
+  - Method `.test_sorts_newest_first()`
+  - Method `.test_skips_corrupt_oversized_and_unknown_schema()`
+  - Method `.test_schema_one_and_missing_audio()`
+  - Method `.test_counts_attempt_history()`
+  - Method `.test_limit_must_be_positive_when_given()`
+- `class ListCliTests`
+  - Method `.setUp()`
+  - Method `.run_cli(argv)`
+  - Method `.test_list_json()`
+  - Method `.test_list_filters_and_limits()`
+  - Method `.test_list_empty_and_corrupt()`
+  - Method `.test_list_limit_zero_is_misuse()`
+
+**Functions:**
+- `def write_artifact(root, folder, *, schema, accepted, score, verdict, created, audio)`
 
 ---
 
@@ -540,19 +584,23 @@
 ---
 
 ### [`tests/test_providers.py`](tests/test_providers.py)
-**Size**: `172` lines (`7469` bytes)
+**Size**: `208` lines (`8718` bytes)
 
 **Classes:**
 - `class FakeHttp`
   - Method `.__init__(responses)`
   - Method `.json(method, url, payload, headers)`
   - Method `.download(url, destination, headers)`
+- `class SlowHttp`
+  - Method `.__init__(responses, clock)`
+  - Method `.json(method, url, payload, headers)`
 - `class ReplicateTests`
   - Method `.setUp()`
   - Method `.test_official_model_flow()`
   - Method `.test_pinned_version_uses_predictions_endpoint()`
   - Method `.test_failed_prediction_is_reported()`
   - Method `.test_timeout_is_reported()`
+  - Method `.test_slow_polls_respect_the_wall_clock_budget()`
   - Method `.test_last_poll_can_be_the_success()`
   - Method `.test_empty_output_is_reported()`
   - Method `.test_missing_handle_is_reported()`

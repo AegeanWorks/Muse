@@ -27,6 +27,7 @@ class ReplicateMusicProvider:
         http: HttpClient | None = None,
         sleep: Callable[[float], None] = time.sleep,
         poll_interval: float = 2.0,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         if (
             isinstance(poll_interval, bool)
@@ -44,6 +45,7 @@ class ReplicateMusicProvider:
         self._http = http or HttpClient(timeout=config.http_timeout)
         self._sleep = sleep
         self._poll_interval = poll_interval
+        self._clock = clock
         self._headers = {
             "Authorization": f"Bearer {config.replicate_token()}",
             "User-Agent": "muse",
@@ -92,9 +94,9 @@ class ReplicateMusicProvider:
 
     def _wait(self, created: Mapping[str, Any]) -> Mapping[str, Any]:
         poll_url = created["urls"]["get"]
-        deadline_attempts = max(1, int(self.config.poll_timeout / self._poll_interval) + 1)
+        deadline = self._clock() + self.config.poll_timeout
         current: Mapping[str, Any] = created
-        for _ in range(deadline_attempts):
+        while True:
             if not isinstance(current, Mapping):
                 raise GenerationError(
                     "Replicate returned a malformed prediction",
@@ -104,21 +106,15 @@ class ReplicateMusicProvider:
             status = current.get("status")
             if status in FINISHED:
                 break
-            self._sleep(self._poll_interval)
-            current = self._http.json("GET", poll_url, None, self._headers)
-        else:
-            if not isinstance(current, Mapping):
-                raise GenerationError(
-                    "Replicate returned a malformed prediction",
-                    f"expected an object, got {type(current).__name__}",
-                    "retry; if it persists, check the Replicate service status",
-                )
-            if current.get("status") not in FINISHED:
+            remaining = deadline - self._clock()
+            if remaining <= 0:
                 raise GenerationError(
                     "music generation timed out",
                     f"Replicate did not finish within {self.config.poll_timeout:g}s",
                     "retry with a shorter --duration or raise MUSE_POLL_TIMEOUT",
                 )
+            self._sleep(min(self._poll_interval, remaining))
+            current = self._http.json("GET", poll_url, None, self._headers)
         if current.get("status") != "succeeded":
             detail = current.get("error") or current.get("status") or "unknown state"
             raise GenerationError(

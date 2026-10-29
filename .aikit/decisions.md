@@ -68,6 +68,20 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `muse batch --dry-run` validates the manifest with the normal loader, then prints each track's name, prompt, theme and duration plus the provider, judge, output root and attempt count. It writes no artifacts or batch state and calls neither the provider nor the judge, so it also accepts `--judge none`. With `--json` it emits a `dry_run: true` payload with the same track list.
 - **Consequences**: A costly plan can be reviewed and corrected before the first paid call, and CI can validate manifests without keys. The cost is a second rendering path for the batch summary and the rule that dry-run properties (provider/judge names) are reported but not resolved, so an unknown provider is caught only by a real run.
 
+### ADR-009: The artifact catalog is a read-only evidence view
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Every run writes `muse.json` evidence, but the only way to find and compare finished tracks was to walk the output folders by hand; batch summaries only cover one run.
+- **Decision**: `muse list` scans one output level for `muse.json`, accepts schema 1 and 2, validates the request, track and verdict fields, and reads each file through a 2 MB cap. Corrupt, oversized or unsupported metadata is reported as a warning and skipped; missing audio is marked but the entry remains visible. Results sort newest first by `created_at` then folder, support `--accepted-only`, `--limit` (default 20) and `--json`, and never call a provider or judge.
+- **Consequences**: Finished evidence is reviewable in one read-only command and JSON consumers get stable fields without touching the filesystem. The cost is a second schema reader to keep in step with `muse.json`, and a listing that reports but cannot repair corrupt evidence.
+
+### ADR-010: Replicate polling uses a monotonic wall-clock deadline
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `MUSE_POLL_TIMEOUT` was converted into a number of poll attempts, so slow HTTP responses could exceed the configured wait by minutes or hours, and the final poll was previously discarded.
+- **Decision**: Track a deadline with an injectable monotonic clock. Before each sleep, compute the remaining budget, sleep at most that remainder, and fail once the budget is exhausted; always evaluate the last poll response before deciding. Polls use the smaller of the poll interval and the remaining budget.
+- **Consequences**: `MUSE_POLL_TIMEOUT` now means actual wall-clock time including request latency, and tests can drive the clock deterministically. The cost is an injected clock parameter on the provider and no retry of a poll that starts after the deadline.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

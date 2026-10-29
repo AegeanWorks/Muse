@@ -1,49 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-audit-round2",
+    "task_id": "muse-catalog",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793287474.932073,
+    "updated_at": 1793287895.4571567,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793287498.9278152
+    "completed_at": 1793287913.7597814
   },
   "checkpoints": [
-    {
-      "task_id": "muse-review-hardening",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[3/3] Review fixes implemented: 69 offline tests, 4/4 gates, strict and misuse dogfood; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1792966084.8850725,
-      "timestamp_str": "2026-10-26 01:08:04",
-      "agent": "kilo:main"
-    },
-    {
-      "task_id": "muse-review-hardening",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[3/3] Review fixes implemented: 69 offline tests, 4/4 gates, staged secret scan clean; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1792966185.7095184,
-      "timestamp_str": "2026-10-26 01:09:45",
-      "agent": "kilo:main"
-    },
-    {
-      "task_id": "muse-review-hardening",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-review-hardening' completed successfully.",
-      "status": "completed",
-      "timestamp": 1792966285.9715502,
-      "timestamp_str": "2026-10-26 01:11:25",
-      "agent": "kilo:main"
-    },
     {
       "task_id": "muse-refine-loop",
       "phase": "phase 2",
@@ -289,6 +257,49 @@
       "status": "completed",
       "timestamp": 1793287498.9278324,
       "timestamp_str": "2026-10-29 18:24:58",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-catalog",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/5] Plan a read-only artifact catalog: scan muse.json evidence, filter/limit/JSON output, plus a monotonic Replicate poll deadline; failing-first tests",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793287593.3061924,
+      "timestamp_str": "2026-10-29 18:26:33",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Finished tracks are only discoverable by walking output folders, and Replicate's poll_timeout is an attempt count that ignores request latency, so both review and time budgets are weaker than documented",
+        "benefits": "One command lists scored evidence without provider calls, and a real deadline stops polling when the configured wall-clock budget is spent",
+        "risks": "contract: new list command and catalog fields; dependency: none added; concurrency: read-only scan; state: corrupt or oversized metadata is skipped with a warning",
+        "mitigation": "Read metadata with a size cap, validate schema fields, warn instead of traceback, keep list read-only, and inject a clock for deadline tests"
+      }
+    },
+    {
+      "task_id": "muse-catalog",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[5/5] Catalog and deadline round complete: 155 tests, 4/4 gates; muse list human/JSON/filter/limit dogfooded, corrupt metadata warned, Replicate slow-poll deadline tested; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793287895.4571567,
+      "timestamp_str": "2026-10-29 18:31:35",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "9 modified, 2 untracked",
+        "next": "commit and push the catalog release",
+        "evidence": "155 tests OK, list output verified, check 4/4"
+      }
+    },
+    {
+      "task_id": "muse-catalog",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-catalog' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793287913.7597826,
+      "timestamp_str": "2026-10-29 18:31:53",
       "agent": "opencode:main"
     }
   ]
