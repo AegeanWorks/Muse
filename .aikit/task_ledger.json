@@ -1,77 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-6",
+    "task_id": "reforge:run-7",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793297236.694845,
+    "updated_at": 1793297658.4524033,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793297237.0216606
+    "completed_at": 1793297658.8800976
   },
   "checkpoints": [
-    {
-      "task_id": "muse-show-history",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-show-history' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793296113.4859416,
-      "timestamp_str": "2026-10-29 20:48:33",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-5",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=2, step=2, stop=2)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296312.6726677,
-      "timestamp_str": "2026-10-29 20:51:52",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-5",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1793296314.7177558,
-      "timestamp_str": "2026-10-29 20:51:54",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-5",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Plan reforge run-5: audit the show-history commit and run-4 state, then close the run",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296335.6410577,
-      "timestamp_str": "2026-10-29 20:52:15",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "The latest human-output change and the run-4 state commit are new since the last audit",
-        "benefits": "The show attempt trail gets a reviewed pass and the run history is recorded",
-        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
-        "mitigation": "Review every packet hunk, keep review packets ignored, sanitize paths and complete the task"
-      }
-    },
-    {
-      "task_id": "reforge:run-5",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-5 complete: 2 commits, 12/12 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296335.966843,
-      "timestamp_str": "2026-10-29 20:52:15",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "reforge:run-5",
       "phase": "completed",
@@ -267,6 +207,66 @@
       "status": "completed",
       "timestamp": 1793297237.0216622,
       "timestamp_str": "2026-10-29 21:07:17",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-7",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=2, step=2, stop=2)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297619.0210872,
+      "timestamp_str": "2026-10-29 21:13:39",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-7",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 2, 2 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793297621.4847198,
+      "timestamp_str": "2026-10-29 21:13:41",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-7",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge run-7: audit the latest dedupe/state commits and close the run",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297658.017055,
+      "timestamp_str": "2026-10-29 21:14:18",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Run-6 ended before the dedupe commit and its state checkpoint",
+        "benefits": "The latest changes get a reviewed pass and the run history is current",
+        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
+        "mitigation": "Review every packet hunk, keep review packets ignored, sanitize paths and complete the task"
+      }
+    },
+    {
+      "task_id": "reforge:run-7",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-7 complete: 2 commits, 13/13 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297658.4524033,
+      "timestamp_str": "2026-10-29 21:14:18",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-7",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-7' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793297658.8801,
+      "timestamp_str": "2026-10-29 21:14:18",
       "agent": "opencode:main"
     }
   ]
