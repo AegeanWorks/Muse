@@ -145,6 +145,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: The CLI loads and filters all matches, reports `total` as that full count, slices to `--limit` for display, and reports `shown` as the returned count. Human output says `X shown of Y` when truncated. The library `load_artifacts` keeps its own `limit` parameter for callers that want server-side slicing.
 - **Consequences**: Paging metadata is correct and the human summary is honest. The cost is that the CLI parses every matching `muse.json` even when the default limit is small; for local catalogs this is cheaper than incorrect counts.
 
+### ADR-020: Single-track dry-run mirrors batch dry-run without spending
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Batch had a zero-call plan, but inspecting one resolved generate request still meant invoking the pipeline or reading the README to work out settings.
+- **Decision**: Add `muse generate --dry-run` after request validation and before `compose`. It prints the normalized prompt/theme/duration/name, attempt count, provider/model, judge/model, threshold and output root, and returns `0` without calling a provider or judge, checking keys, or creating the output directory. `--json` emits the same plan.
+- **Consequences**: Single-track automation can validate inputs and see the exact plan for free. The cost is another plan renderer to keep aligned with the generate flags, and the dry-run reports names without resolving whether adapters or keys exist (`muse doctor` covers that).
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `33`
-- **Total Classes**: `60`
-- **Total Top-Level Functions**: `80`
-- **Total Class Methods**: `279`
-- **Total Source Lines**: `5312`
+- **Total Classes**: `61`
+- **Total Top-Level Functions**: `81`
+- **Total Class Methods**: `284`
+- **Total Source Lines**: `5409`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `765` lines (`29716` bytes)
+**Size**: `802` lines (`31048` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -112,6 +112,7 @@
 - `def _common(parser)`
 - `def _settings(args, config)`
 - `def _generate(args, settings, provider, judge)`
+- `def _dry_run_generate(args, settings, request)`
 - `def _batch(args, settings, provider, judge)`
 - `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
@@ -485,16 +486,22 @@
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
-**Size**: `225` lines (`8708` bytes)
+**Size**: `285` lines (`10678` bytes)
 
 **Classes:**
+- `class CountingProvider`
+  - Method `.__init__(inner)`
+  - Method `.generate(request, destination)`
 - `class ScriptedJudge`
   - Method `.__init__(verdicts)`
   - Method `.judge(track, request)`
 - `class CliTests`
   - Method `.setUp()`
-  - Method `.run_cli(argv, judge)`
+  - Method `.run_cli(argv, judge, provider)`
   - Method `.test_generate_json()`
+  - Method `.test_generate_dry_run_makes_no_calls()`
+  - Method `.test_generate_dry_run_human_without_a_judge()`
+  - Method `.test_generate_dry_run_still_validates_input()`
   - Method `.test_strict_rejects_low_score()`
   - Method `.test_judge_existing_file()`
   - Method `.test_judge_missing_file_exits_one()`

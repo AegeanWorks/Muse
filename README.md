@@ -54,7 +54,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
-`muse batch` runs the same provider, judge and retry loop over a JSON manifest, one track at a time, and prints a set-level summary.
+`muse batch` runs the same provider, judge and retry loop over a JSON manifest, one track at a time, and prints a set-level summary. `muse generate --dry-run` validates one request and prints its resolved plan without a provider or judge call.
 
 ## Command line
 
@@ -70,6 +70,9 @@ python -m muse judge output/boss-phase-two/track.wav --theme "boss phase two" --
 
 # retry a rejected take with the judge's suggestions, keeping the best result
 python -m muse generate "glitchy percussion" --theme "boss phase two" --attempts 3
+
+# validate one plan without calling a provider or judge
+python -m muse generate "cave drones" --theme "cave level" --dry-run --json
 
 # render a whole soundtrack from one manifest, failing CI if any track is rejected
 python -m muse batch tracks.json --attempts 2 --strict --json
@@ -109,6 +112,7 @@ python -m muse providers
 | `--duration SECONDS` | Requested length, up to 190 |
 | `--name TEXT` | Artifact folder name (default: theme or prompt slug) |
 | `--attempts N` | Render up to `N` takes (1-5, default 1), refining the prompt with the previous verdict's suggestions |
+| `--dry-run` | Validate and print the single-track plan; no provider or judge call |
 | `--out DIR` | Artifact root (default: `output/`) |
 | `--provider NAME` | `replicate` (default) or `mock` |
 | `--model SLUG` | Replicate model, e.g. `meta/musicgen` for 30-second clips |
@@ -327,7 +331,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 187 offline unit tests, no network or keys
+├── tests/                    <- 190 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

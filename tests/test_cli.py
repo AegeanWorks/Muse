@@ -14,6 +14,19 @@ from muse.providers.mock import MockMusicProvider
 from muse.types import VERDICT_FITS, VERDICT_MISS, Verdict
 
 
+class CountingProvider:
+    name = "counting"
+    model = "counting"
+
+    def __init__(self, inner):
+        self.inner = inner
+        self.calls = 0
+
+    def generate(self, request, destination):
+        self.calls += 1
+        return self.inner.generate(request, destination)
+
+
 class ScriptedJudge:
     name = "scripted"
     model = "scripted"
@@ -51,10 +64,15 @@ class CliTests(unittest.TestCase):
         self.provider = MockMusicProvider(self.config)
         self.judge = MockJudge(self.config)
 
-    def run_cli(self, argv, judge=None):
+    def run_cli(self, argv, judge=None, provider=None):
         out, err = io.StringIO(), io.StringIO()
         with redirect_stdout(out), redirect_stderr(err):
-            code = main(argv, config=self.config, provider=self.provider, judge=judge or self.judge)
+            code = main(
+                argv,
+                config=self.config,
+                provider=provider or self.provider,
+                judge=judge or self.judge,
+            )
         return code, out.getvalue(), err.getvalue()
 
     def test_generate_json(self):
@@ -68,6 +86,48 @@ class CliTests(unittest.TestCase):
         self.assertTrue(payload["accepted"])
         self.assertTrue(Path(payload["audio"]).is_file())
         self.assertTrue(Path(payload["metadata"]).is_file())
+
+    def test_generate_dry_run_makes_no_calls(self):
+        provider = CountingProvider(self.provider)
+        code, out, err = self.run_cli(
+            [
+                "generate",
+                "cave drones",
+                "--theme",
+                "cave level",
+                "--duration",
+                "2",
+                "--attempts",
+                "3",
+                "--dry-run",
+                "--json",
+            ],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(payload["request"]["prompt"], "cave drones")
+        self.assertEqual(payload["attempts"], 3)
+        self.assertEqual(provider.calls, 0)
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_generate_dry_run_human_without_a_judge(self):
+        provider = CountingProvider(self.provider)
+        code, out, err = self.run_cli(
+            ["generate", "cave drones", "--theme", "cave level", "--duration", "1", "--dry-run", "--judge", "none"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertIn("Dry run", out)
+        self.assertIn("No provider or judge was called", out)
+        self.assertEqual(provider.calls, 0)
+        self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_generate_dry_run_still_validates_input(self):
+        code, _, err = self.run_cli(["generate", "   ", "--dry-run"])
+        self.assertEqual(code, 2)
+        self.assertIn("invalid request", err)
 
     def test_strict_rejects_low_score(self):
         code, out, _ = self.run_cli(

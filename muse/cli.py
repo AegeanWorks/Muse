@@ -87,6 +87,7 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--duration", type=float, default=30.0, help="seconds, up to 190")
     generate.add_argument("--name", default="", help="artifact folder name")
     _add_attempts(generate)
+    generate.add_argument("--dry-run", action="store_true", help="validate and print the plan without rendering")
     _common(generate)
     generate.add_argument("--strict", action="store_true", help="exit 1 when the verdict is missing or below threshold")
     generate.add_argument(
@@ -221,6 +222,8 @@ def _generate(
         duration=args.duration,
         name=args.name,
     )
+    if args.dry_run:
+        return _dry_run_generate(args, settings, request)
     result = compose(
         request,
         settings,
@@ -234,6 +237,40 @@ def _generate(
     else:
         _print_result(result)
     return 1 if args.strict and not result.accepted else 0
+
+
+def _dry_run_generate(
+    args: argparse.Namespace,
+    settings: MuseConfig,
+    request: MusicRequest,
+) -> int:
+    payload = {
+        "dry_run": True,
+        "request": {
+            "prompt": request.prompt,
+            "theme": request.theme,
+            "duration": request.duration,
+            "name": request.name,
+        },
+        "attempts": args.attempts,
+        "provider": settings.provider,
+        "music_model": settings.music_model,
+        "judge": settings.judge,
+        "judge_model": settings.judge_model,
+        "min_score": settings.min_score,
+        "output": str(settings.output_dir),
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 0
+    print(f"Dry run: {request.prompt!r}")
+    print(f"Theme: {request.theme or '(prompt)'}")
+    print(f"Duration: {request.duration:g}s, attempts: {args.attempts}")
+    print(f"Provider: {settings.provider}/{settings.music_model}")
+    print(f"Judge: {settings.judge}/{settings.judge_model} (min score {settings.min_score})")
+    print(f"Output: {settings.output_dir}")
+    print("No provider or judge was called.")
+    return 0
 
 
 def _batch(

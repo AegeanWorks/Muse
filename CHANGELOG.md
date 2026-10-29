@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.13.0] - 2026-10-29
+
+### Added
+
+- `muse generate --dry-run` validates a single request and prints its resolved
+  provider, judge, attempts and output plan without any provider or judge call.
+
 ## [0.12.1] - 2026-10-29
 
 ### Fixed

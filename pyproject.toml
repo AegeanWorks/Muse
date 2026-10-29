@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "muse-aikit"
-version = "0.12.1"
+version = "0.13.0"
 description = "Prompt-driven AI music creation with an automated listener that scores theme fit."
 readme = "README.md"
 requires-python = ">=3.10"
