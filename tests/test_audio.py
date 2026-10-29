@@ -16,6 +16,11 @@ class SlugTests(unittest.TestCase):
     def test_falls_back_when_nothing_remains(self):
         self.assertEqual(slugify("***", fallback="theme"), "theme")
 
+    def test_transliterates_turkish_and_accented_text(self):
+        self.assertEqual(slugify("Ağaç Ormanı"), "agac-ormani")
+        self.assertEqual(slugify("Karanlık Mağara"), "karanlik-magara")
+        self.assertEqual(slugify("Café"), "cafe")
+
     def test_avoids_windows_reserved_device_names(self):
         self.assertEqual(slugify("CON"), "con-track")
         self.assertEqual(slugify("com1"), "com1-track")

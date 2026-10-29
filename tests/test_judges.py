@@ -150,6 +150,14 @@ class MockJudgeTests(unittest.TestCase):
         verdict = self.judge.judge(self.track(), MusicRequest("cave drones"))
         self.assertEqual(verdict.verdict, "partially_fits")
 
+    def test_unicode_terms_are_shared(self):
+        verdict = self.judge.judge(
+            self.track(),
+            MusicRequest("ağaç", theme="ağaç ormanı"),
+        )
+        self.assertEqual(verdict.verdict, VERDICT_FITS)
+        self.assertTrue(verdict.accepted)
+
 
 class JudgeRegistryTests(unittest.TestCase):
     def test_unknown_judge_is_explained(self):

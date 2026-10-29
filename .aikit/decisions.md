@@ -152,6 +152,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Add `muse generate --dry-run` after request validation and before `compose`. It prints the normalized prompt/theme/duration/name, attempt count, provider/model, judge/model, threshold and output root, and returns `0` without calling a provider or judge, checking keys, or creating the output directory. `--json` emits the same plan.
 - **Consequences**: Single-track automation can validate inputs and see the exact plan for free. The cost is another plan renderer to keep aligned with the generate flags, and the dry-run reports names without resolving whether adapters or keys exist (`muse doctor` covers that).
 
+### ADR-021: Unicode-aware offline judging and slugs; show prefers the configured output
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: The mock judge tokenized only ASCII, so shared Turkish or accented words scored as disjoint; slugs dropped those characters (`ağaç` became `a-a`); and a bare `muse show` name could resolve to an unrelated same-named folder in the working directory before `--out`.
+- **Decision**: Tokenize the mock judge with a casefolded Unicode word regex, transliterate Turkish characters and NFKD accents before slugging, and resolve bare `show` names under the configured output first; explicit paths still win.
+- **Consequences**: Offline demos behave in the project's languages and artifact folders stay readable/stable. The cost is a small transliteration table and a resolution rule that a bare name means output unless the user writes a path.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

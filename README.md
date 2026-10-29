@@ -196,7 +196,8 @@ metadata is reported on stderr and skipped instead of failing the whole listing.
 
 `muse show <folder|muse.json|track-file>` resolves one artifact under `--out` (or from a path) and
 prints its prompt, theme, track, score, summary, strengths, issues, suggestions, attempts and
-settings. `--json` prints the raw `muse.json` object instead; `show` writes nothing.
+settings. A bare name prefers `--out`; pass an explicit path to inspect a folder elsewhere.
+`--json` prints the raw `muse.json` object instead; `show` writes nothing.
 
 ## Python library
 
@@ -331,7 +332,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 190 offline unit tests, no network or keys
+├── tests/                    <- 193 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

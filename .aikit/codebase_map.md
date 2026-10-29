@@ -9,8 +9,8 @@
 - **Total Python Modules**: `33`
 - **Total Classes**: `61`
 - **Total Top-Level Functions**: `81`
-- **Total Class Methods**: `284`
-- **Total Source Lines**: `5409`
+- **Total Class Methods**: `287`
+- **Total Source Lines**: `5446`
 
 ---
 
@@ -45,7 +45,7 @@
 ### [`muse/audio.py`](muse/audio.py)
 > *Small audio helpers that need no third-party packages.*
 
-**Size**: `71` lines (`2150` bytes)
+**Size**: `76` lines (`2431` bytes)
 
 **Functions:**
 - `def slugify(text, fallback)`
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `802` lines (`31048` bytes)
+**Size**: `811` lines (`31436` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -223,7 +223,7 @@
 ### [`muse/judges/mock.py`](muse/judges/mock.py)
 > *Deterministic offline judge used by tests and demos.*
 
-**Size**: `56` lines (`2063` bytes)
+**Size**: `56` lines (`2064` bytes)
 
 **Classes:**
 - `class MockJudge`
@@ -365,12 +365,13 @@
 ---
 
 ### [`tests/test_audio.py`](tests/test_audio.py)
-**Size**: `90` lines (`4051` bytes)
+**Size**: `95` lines (`4305` bytes)
 
 **Classes:**
 - `class SlugTests`
   - Method `.test_slugifies_prompt()`
   - Method `.test_falls_back_when_nothing_remains()`
+  - Method `.test_transliterates_turkish_and_accented_text()`
   - Method `.test_avoids_windows_reserved_device_names()`
 - `class MimeTests`
   - Method `.test_known_and_unknown_suffixes()`
@@ -449,7 +450,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `296` lines (`12289` bytes)
+**Size**: `306` lines (`12685` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -477,6 +478,7 @@
   - Method `.run_cli(argv)`
   - Method `.test_show_human_and_json()`
   - Method `.test_show_accepts_a_folder_or_metadata_path()`
+  - Method `.test_bare_name_prefers_output_over_cwd()`
   - Method `.test_show_marks_missing_audio()`
   - Method `.test_show_missing_and_corrupt()`
 
@@ -550,7 +552,7 @@
 ---
 
 ### [`tests/test_judges.py`](tests/test_judges.py)
-**Size**: `161` lines (`7053` bytes)
+**Size**: `169` lines (`7329` bytes)
 
 **Classes:**
 - `class FakeHttp`
@@ -576,6 +578,7 @@
   - Method `.test_disjoint_terms_miss()`
   - Method `.test_disjoint_terms_suggest_the_theme_words()`
   - Method `.test_missing_theme_is_partial()`
+  - Method `.test_unicode_terms_are_shared()`
 - `class JudgeRegistryTests`
   - Method `.test_unknown_judge_is_explained()`
   - Method `.test_mock_judge_is_pickable()`

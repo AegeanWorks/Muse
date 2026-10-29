@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -7,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from muse.catalog import load_artifacts
-from muse.cli import main
+from muse.cli import _resolve_artifact, main
 from muse.config import MuseConfig
 
 
@@ -276,6 +277,15 @@ class ShowCliTests(unittest.TestCase):
             code, out, err = self.run_cli(["show", argument])
             self.assertEqual(code, 0, err)
             self.assertIn("cave prompt", out)
+
+    def test_bare_name_prefers_output_over_cwd(self):
+        write_artifact(self.output, "cave")
+        (self.root / "cave").mkdir()
+        previous = Path.cwd()
+        os.chdir(self.root)
+        self.addCleanup(os.chdir, previous)
+        resolved = _resolve_artifact("cave", self.output)
+        self.assertEqual(resolved, self.output / "cave" / "muse.json")
 
     def test_show_marks_missing_audio(self):
         write_artifact(self.output, "cave", audio=False)

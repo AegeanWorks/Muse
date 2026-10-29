@@ -6,6 +6,7 @@ import math
 import os
 import re
 import struct
+import unicodedata
 import uuid
 import wave
 from pathlib import Path
@@ -25,9 +26,13 @@ _WINDOWS_RESERVED = frozenset(
     | {f"lpt{number}" for number in range(1, 10)}
 )
 
+_TURKISH = str.maketrans({"ı": "i", "İ": "I", "ğ": "g", "ü": "u", "ş": "s", "ö": "o", "ç": "c"})
+
 
 def slugify(text: str, fallback: str = "track") -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    transliterated = unicodedata.normalize("NFKD", text.translate(_TURKISH))
+    ascii_text = transliterated.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-")
     slug = slug[:48].rstrip("-") or fallback
     return f"{slug}-track" if slug in _WINDOWS_RESERVED else slug
 

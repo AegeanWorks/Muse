@@ -571,11 +571,20 @@ def _show(args: argparse.Namespace, settings: MuseConfig) -> int:
 
 def _resolve_artifact(value: str, output_dir: Path) -> Path:
     candidate = Path(value)
+    if candidate.is_absolute() or len(candidate.parts) > 1:
+        if candidate.is_dir():
+            return candidate / "muse.json"
+        if candidate.is_file():
+            return candidate if candidate.name == "muse.json" else candidate.parent / "muse.json"
+        return candidate / "muse.json"
+    preferred = Path(output_dir) / candidate / "muse.json"
+    if preferred.is_file():
+        return preferred
     if candidate.is_dir():
         return candidate / "muse.json"
     if candidate.is_file():
         return candidate if candidate.name == "muse.json" else candidate.parent / "muse.json"
-    return output_dir / candidate / "muse.json"
+    return preferred
 
 
 def _print_artifact(entry: Artifact, payload: Mapping[str, Any]) -> None:

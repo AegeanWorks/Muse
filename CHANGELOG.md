@@ -9,6 +9,14 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.13.1] - 2026-10-29
+
+### Fixed
+
+- Mock judging matches Unicode terms instead of dropping non-ASCII words.
+- Turkish and accented text is transliterated into readable artifact slugs.
+- `muse show` bare names resolve under `--out` before the working directory.
+
 ## [0.13.0] - 2026-10-29
 
 ### Added

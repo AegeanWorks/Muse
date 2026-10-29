@@ -53,4 +53,4 @@ class MockJudge:
 
 
 def _words(text: str) -> set[str]:
-    return {word for word in re.findall(r"[a-z0-9]{3,}", text.lower())}
+    return {word for word in re.findall(r"[^\W_]{3,}", text.casefold())}
