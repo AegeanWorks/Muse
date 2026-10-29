@@ -9,8 +9,8 @@
 - **Total Python Modules**: `33`
 - **Total Classes**: `61`
 - **Total Top-Level Functions**: `81`
-- **Total Class Methods**: `289`
-- **Total Source Lines**: `5475`
+- **Total Class Methods**: `290`
+- **Total Source Lines**: `5521`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `820` lines (`31759` bytes)
+**Size**: `834` lines (`32382` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -450,7 +450,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `316` lines (`13056` bytes)
+**Size**: `348` lines (`14252` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -480,6 +480,7 @@
   - Method `.test_show_accepts_a_folder_or_metadata_path()`
   - Method `.test_missing_explicit_paths_name_the_intended_metadata()`
   - Method `.test_bare_name_prefers_output_over_cwd()`
+  - Method `.test_show_prints_attempt_history()`
   - Method `.test_show_marks_missing_audio()`
   - Method `.test_show_missing_and_corrupt()`
 

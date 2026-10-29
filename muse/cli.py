@@ -622,7 +622,21 @@ def _print_artifact(entry: Artifact, payload: Mapping[str, Any]) -> None:
     error = payload.get("judge_error")
     if isinstance(error, str) and error:
         print(f"Judge error: {error}")
-    print(f"Attempts: {entry.attempts}")
+    attempts = payload.get("attempts")
+    selected = payload.get("selected_attempt")
+    if isinstance(attempts, list) and attempts:
+        print(f"Attempts: {len(attempts)}")
+        for attempt in attempts:
+            if not isinstance(attempt, Mapping):
+                continue
+            number = attempt.get("number", "?")
+            score = attempt.get("score")
+            verdict = attempt.get("verdict", "?")
+            audio = attempt.get("audio", "?")
+            marker = " <- selected" if selected == number else ""
+            print(f"  {number}. {score}/100 {verdict}  {audio}{marker}")
+    else:
+        print(f"Attempts: {entry.attempts}")
     if isinstance(settings, dict):
         print(
             "Settings: "

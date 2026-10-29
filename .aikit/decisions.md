@@ -166,6 +166,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Dispatch `doctor` before `_settings` and let it convert a `MuseError` into a `configuration` check. In explicit `show` paths, treat a `muse.json` filename as the metadata path, another suffix as a track file whose parent holds `muse.json`, and a suffixless path as a folder.
 - **Consequences**: JSON diagnostics never lose their shape on bad configuration, and missing-path errors name the file the user intended. The cost is a doctor-specific settings boundary and a small path-shape rule in `show`.
 
+### ADR-023: Show prints the full attempt trail for multi-take evidence
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Schema-2 selected metadata records every take in `attempts`, but `muse show` printed only the selected verdict and an attempt count, so understanding a retry still required opening JSON.
+- **Decision**: When selected metadata carries an `attempts` list, print each take's number, score, verdict and relative audio path, marking `selected_attempt` with `<- selected`. Single-take evidence keeps the existing `Attempts: 1` line; `--json` remains the raw object.
+- **Consequences**: The retry trail is reviewable in one human-readable command and the selected take is explicit. The cost is another human renderer that must track the metadata attempt shape.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

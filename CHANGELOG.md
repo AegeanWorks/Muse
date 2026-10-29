@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.13.3] - 2026-10-29
+
+### Added
+
+- `muse show` lists every take in multi-attempt evidence with score, verdict,
+  audio path and a selected marker.
+
 ## [0.13.2] - 2026-10-29
 
 ### Fixed

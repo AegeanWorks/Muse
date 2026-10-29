@@ -297,6 +297,38 @@ class ShowCliTests(unittest.TestCase):
         resolved = _resolve_artifact("cave", self.output)
         self.assertEqual(resolved, self.output / "cave" / "muse.json")
 
+    def test_show_prints_attempt_history(self):
+        path = write_artifact(self.output, "cave")
+        payload = json.loads((path / "muse.json").read_text(encoding="utf-8"))
+        payload["selected_attempt"] = 2
+        payload["attempts"] = [
+            {
+                "number": 1,
+                "prompt": "cave",
+                "audio": "cave/track.wav",
+                "metadata": "cave/muse.json",
+                "score": 45,
+                "verdict": "does_not_fit",
+                "accepted": False,
+            },
+            {
+                "number": 2,
+                "prompt": "cave refined",
+                "audio": "cave-2/track.wav",
+                "metadata": "cave-2/muse.json",
+                "score": 88,
+                "verdict": "fits",
+                "accepted": True,
+            },
+        ]
+        (path / "muse.json").write_text(json.dumps(payload), encoding="utf-8")
+        code, out, err = self.run_cli(["show", "cave"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("Attempts: 2", out)
+        self.assertIn("1. 45/100 does_not_fit", out)
+        self.assertIn("2. 88/100 fits", out)
+        self.assertIn("<- selected", out)
+
     def test_show_marks_missing_audio(self):
         write_artifact(self.output, "cave", audio=False)
         code, out, err = self.run_cli(["show", "cave"])
