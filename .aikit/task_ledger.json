@@ -2,116 +2,22 @@
   "version": 1,
   "active_task": {
     "task_id": "muse-rejudge-coverage",
-    "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
-    "updated_at": 1793298684.450193,
-    "owner": "opencode:main",
-    "started_by": "opencode:main",
-    "continuations": []
+    "last_phase": "resumed",
+    "active_phase": 5,
+    "status": "completed",
+    "updated_at": 1793298856.0701265,
+    "owner": "opencode",
+    "started_by": "opencode",
+    "continuations": [
+      {
+        "agent": "opencode:main",
+        "from": "opencode",
+        "at": 1793298856.391222
+      }
+    ],
+    "completed_at": 1793298856.391223
   },
   "checkpoints": [
-    {
-      "task_id": "muse-rejudge-timestamp",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/2] Plan rejudge history timestamp: record when the previous verdict was stored (rejudged_at or created_at), not when the new judgment runs",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297756.9478323,
-      "timestamp_str": "2026-10-29 21:15:56",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "History claims the old verdict was recorded at the new rejudge time, losing the actual audit timeline",
-        "benefits": "Schema-3 history keeps a truthful sequence of when each judgment entered evidence",
-        "risks": "contract: history.recorded_at only; dependency: none; concurrency: none; state: muse.json history",
-        "mitigation": "Use rejudged_at fallback created_at/now, add a regression test, run gates and push"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-timestamp",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[2/2] Rejudge history timestamp complete: 203 tests, 4/4 gates; previous judgment keeps its created/rejudged time; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297887.463617,
-      "timestamp_str": "2026-10-29 21:18:07",
-      "agent": "opencode:main",
-      "handoff": {
-        "next": "commit and push, then run reforge with step 5"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-timestamp",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-rejudge-timestamp' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793297896.3529716,
-      "timestamp_str": "2026-10-29 21:18:16",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-8",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=5, step=5, stop=5)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297938.3063467,
-      "timestamp_str": "2026-10-29 21:18:58",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-8",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 5, 5 commit(s), 9 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1793297944.2956297,
-      "timestamp_str": "2026-10-29 21:19:04",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-8",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/1] Plan reforge run-8 with step 5: audit the latest rejudge fixes and close the run",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297989.6491053,
-      "timestamp_str": "2026-10-29 21:19:49",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "The attribution, dedupe and timestamp fixes were pushed after run-7",
-        "benefits": "The latest evidence changes get a five-commit-window review and history is current",
-        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
-        "mitigation": "Review every packet hunk, keep packets ignored, sanitize paths and complete the task"
-      }
-    },
-    {
-      "task_id": "reforge:run-8",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-8 complete: start=5 step=5 stop=5, 36/36 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297990.0097473,
-      "timestamp_str": "2026-10-29 21:19:50",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "reforge:run-8",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'reforge:run-8' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793297990.3541827,
-      "timestamp_str": "2026-10-29 21:19:50",
-      "agent": "opencode:main"
-    },
     {
       "task_id": "muse-rejudge-canonical",
       "phase": "phase 2",
@@ -267,6 +173,98 @@
         "next": "commit and push the test coverage",
         "evidence": "205 tests OK"
       }
+    },
+    {
+      "task_id": "reforge:run-10",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=5, step=5, stop=5)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298759.4143457,
+      "timestamp_str": "2026-10-29 21:32:39",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-10",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 5, 5 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793298762.9538214,
+      "timestamp_str": "2026-10-29 21:32:42",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "muse-rejudge-coverage",
+      "phase": "superseded",
+      "phase_num": 4,
+      "description": "Superseded by 'reforge:run-10' without --complete or --reset",
+      "status": "superseded",
+      "timestamp": 1793298812.242681,
+      "timestamp_str": "2026-10-29 21:33:32",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-10",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge run-10: audit the latest dedupe/test commits and close the run",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298812.242681,
+      "timestamp_str": "2026-10-29 21:33:32",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The canonical dedupe fix and its test commit were pushed after run-9",
+        "benefits": "The latest evidence changes get a reviewed pass and history is current",
+        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
+        "mitigation": "Review every packet hunk, keep packets ignored, sanitize paths and complete the task"
+      }
+    },
+    {
+      "task_id": "reforge:run-10",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-10 complete: start=5 step=5 stop=5, 18/18 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298812.6892183,
+      "timestamp_str": "2026-10-29 21:33:32",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-10",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-10' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793298813.1478827,
+      "timestamp_str": "2026-10-29 21:33:33",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-rejudge-coverage",
+      "phase": "resumed",
+      "phase_num": 4,
+      "description": "Resumed 'muse-rejudge-coverage' after a pause",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793298856.0701265,
+      "timestamp_str": "2026-10-29 21:34:16",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "muse-rejudge-coverage",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-rejudge-coverage' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793298856.3912241,
+      "timestamp_str": "2026-10-29 21:34:16",
+      "agent": "opencode:main",
+      "continued_from": "opencode"
     }
   ]
 }
