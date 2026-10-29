@@ -49,7 +49,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 2. A **judge** listens to the rendered file with Gemini and returns a schema-checked verdict: a 0-100 fit score, a verdict, strengths, issues and concrete prompt suggestions. A required judge is built before the first render, so a missing judge key fails without spending a prediction.
 3. The pipeline writes the audio plus `muse.json` evidence (request, model, settings, verdict) into `output/<slug>/`, so any project can ship a track together with the reason it was accepted.
 4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
-5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider.
+5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider; `muse show` prints one artifact's full verdict, suggestions, attempts and settings.
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
@@ -82,6 +82,10 @@ python -m muse batch tracks.json --dry-run --json
 # review scored evidence, newest first
 python -m muse list --accepted-only --limit 10
 python -m muse list --json
+
+# inspect one artifact's full evidence, or print raw metadata
+python -m muse show cave-level
+python -m muse show cave-level --json
 
 # what is wired in?
 python -m muse providers
@@ -157,6 +161,10 @@ result (default 20), and `--json` prints the same fields as a machine-readable `
 (folder, name, prompt, theme, duration, score, verdict, accepted, attempts, paths and
 `audio_exists`). It is read-only and never calls a provider. Corrupt, oversized or unsupported
 metadata is reported on stderr and skipped instead of failing the whole listing.
+
+`muse show <folder|muse.json|track-file>` resolves one artifact under `--out` (or from a path) and
+prints its prompt, theme, track, score, summary, strengths, issues, suggestions, attempts and
+settings. `--json` prints the raw `muse.json` object instead; `show` writes nothing.
 
 ## Python library
 
@@ -273,7 +281,7 @@ muse/
 │   ├── batch.py              <- JSON manifest parsing and validation
 │   ├── batch_state.py        <- fingerprinted, crash-safe batch progress
 │   ├── catalog.py            <- read-only artifact evidence discovery
-│   ├── cli.py                <- generate / batch / judge / list / providers commands
+│   ├── cli.py                <- generate / batch / judge / list / show / providers commands
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
@@ -289,7 +297,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 158 offline unit tests, no network or keys
+├── tests/                    <- 163 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

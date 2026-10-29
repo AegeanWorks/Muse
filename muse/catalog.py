@@ -86,6 +86,16 @@ def load_artifacts(
     return entries, warnings
 
 
+def load_artifact(path: Path) -> tuple[Artifact, Mapping[str, Any]]:
+    """Read and validate one metadata file, returning the summary and raw payload."""
+    metadata = Path(path)
+    payload = _read_metadata(metadata)
+    entry, reason = _entry(metadata, payload)
+    if entry is None:
+        raise ValueError(reason)
+    return entry, payload
+
+
 def _read_metadata(path: Path) -> Mapping[str, Any]:
     # hygiene: allow binary read is capped at MAX_METADATA_BYTES + 1; UTF-8 is decoded below
     with path.open("rb") as handle:

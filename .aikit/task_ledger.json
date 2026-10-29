@@ -1,60 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-judge-preflight",
+    "task_id": "muse-show",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793290138.1617954,
+    "updated_at": 1793290436.5349283,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793290143.7897158
+    "completed_at": 1793290440.5460007
   },
   "checkpoints": [
-    {
-      "task_id": "muse-refine-loop",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-refine-loop' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793284995.3330443,
-      "timestamp_str": "2026-10-29 17:43:15",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-batch-mode",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan batch mode: schema-checked JSON manifest, per-track compose with attempts, progress and JSON summary, failing-first tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285037.7762928,
-      "timestamp_str": "2026-10-29 17:43:57",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "A project soundtrack is a set of themes, but muse renders one track per command; running the CLI by hand loses the set-level result and makes automation repeat flags and error handling",
-        "benefits": "One manifest renders and judges every track, reuses the refine loop per track, and returns a single exit code and machine-readable summary",
-        "risks": "contract: new batch command and manifest format; dependency: none added; concurrency: none, tracks render sequentially; state: one artifact folder per take per track",
-        "mitigation": "Reject unknown keys and cap the manifest at 50 tracks, default attempts=1, keep the existing per-track evidence and atomic writes, failing-first tests for parsing and exits"
-      }
-    },
-    {
-      "task_id": "muse-batch-mode",
-      "phase": "phase 3",
-      "phase_num": 3,
-      "description": "[3/4] Implemented batch mode: validated manifest, CLI batch command, JSON summary, tests, README and ADR-005; 97 offline tests pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285284.2965472,
-      "timestamp_str": "2026-10-29 17:48:04",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "uncommitted project changes",
-        "next": "run Phase 4 gates and batch dogfood",
-        "evidence": "97 tests OK, batch 3/3 accepted with attempts, strict 1, malformed manifest 1"
-      }
-    },
     {
       "task_id": "muse-batch-mode",
       "phase": "phase 4",
@@ -294,6 +251,49 @@
       "status": "completed",
       "timestamp": 1793290143.789717,
       "timestamp_str": "2026-10-29 19:09:03",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-show",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/4] Plan muse show: resolve an artifact folder/file, print full evidence or raw JSON, and preflight one batch judge before the track loop; failing-first tests",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290217.5172448,
+      "timestamp_str": "2026-10-29 19:10:17",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "muse list summarizes artifacts but cannot show the verdict reasoning, attempts or settings, and batch rebuilds the judge for every track even though the configuration is identical",
+        "benefits": "Operators can inspect one artifact without reading JSON by hand, and batch pays one judge construction and fails a missing key before any track or state write",
+        "risks": "contract: new show command; dependency: none added; concurrency: read-only; state: show writes nothing, batch preflight moves judge construction earlier",
+        "mitigation": "Reuse catalog validation, cap metadata reads, test folder/file/invalid paths, keep show read-only, add a batch missing-key test"
+      }
+    },
+    {
+      "task_id": "muse-show",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Show and batch preflight complete: 163 tests, 4/4 gates; show human/JSON/path/missing/corrupt dogfooded, batch missing-key leaves no state; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290436.5349283,
+      "timestamp_str": "2026-10-29 19:13:56",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "9 modified files",
+        "next": "commit and push the show release",
+        "evidence": "163 tests OK, show output verified, batch preflight test passes"
+      }
+    },
+    {
+      "task_id": "muse-show",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-show' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793290440.5460021,
+      "timestamp_str": "2026-10-29 19:14:00",
       "agent": "opencode:main"
     }
   ]

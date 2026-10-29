@@ -299,6 +299,19 @@ class BatchCliTests(unittest.TestCase):
         self.assertTrue(track["accepted"])
         self.assertEqual(len(track["attempts"]), 2)
 
+    def test_batch_preflights_the_judge_before_state(self):
+        path = self.manifest([{"prompt": "cave drones", "theme": "cave level", "duration": 1}])
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["batch", str(path)],
+                config=self.config.with_overrides(judge="gemini"),
+                provider=self.provider,
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("GEMINI_API_KEY", err.getvalue())
+        self.assertFalse(self.output.exists())
+
     def test_batch_without_a_judge_is_refused(self):
         path = self.manifest([{"prompt": "x", "theme": "cave", "duration": 1}])
         out, err = io.StringIO(), io.StringIO()

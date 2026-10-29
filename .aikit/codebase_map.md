@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `31`
-- **Total Classes**: `56`
-- **Total Top-Level Functions**: `69`
-- **Total Class Methods**: `242`
-- **Total Source Lines**: `4542`
+- **Total Classes**: `57`
+- **Total Top-Level Functions**: `73`
+- **Total Class Methods**: `249`
+- **Total Source Lines**: `4699`
 
 ---
 
@@ -83,7 +83,7 @@
 ### [`muse/catalog.py`](muse/catalog.py)
 > *Read-only discovery of scored artifacts under an output directory.*
 
-**Size**: `165` lines (`5799` bytes)
+**Size**: `175` lines (`6148` bytes)
 
 **Classes:**
 - `class Artifact`
@@ -91,6 +91,7 @@
 
 **Functions:**
 - `def load_artifacts(output_dir, accepted_only, limit)` - *Scan one output directory level and return scored artifacts plus warnings.*
+- `def load_artifact(path)` - *Read and validate one metadata file, returning the summary and raw payload.*
 - `def _read_metadata(path)`
 - `def _entry(metadata, payload)`
 - `def _text(value)`
@@ -100,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `573` lines (`21455` bytes)
+**Size**: `652` lines (`24907` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -115,6 +116,9 @@
 - `def _dry_run(args, settings, requests)`
 - `def _judge(args, settings, judge)`
 - `def _catalog(args, settings)`
+- `def _show(args, settings)`
+- `def _resolve_artifact(value, output_dir)`
+- `def _print_artifact(entry, payload)`
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
@@ -362,7 +366,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `468` lines (`20092` bytes)
+**Size**: `481` lines (`20675` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -399,6 +403,7 @@
   - Method `.test_batch_json_renders_every_track()`
   - Method `.test_batch_human_output_and_strict_exit()`
   - Method `.test_batch_applies_attempts_per_track()`
+  - Method `.test_batch_preflights_the_judge_before_state()`
   - Method `.test_batch_without_a_judge_is_refused()`
   - Method `.test_batch_missing_manifest_exits_one()`
   - Method `.test_batch_dry_run_json_makes_no_calls()`
@@ -414,7 +419,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `179` lines (`6810` bytes)
+**Size**: `234` lines (`9084` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -432,6 +437,13 @@
   - Method `.test_list_filters_and_limits()`
   - Method `.test_list_empty_and_corrupt()`
   - Method `.test_list_limit_zero_is_misuse()`
+- `class ShowCliTests`
+  - Method `.setUp()`
+  - Method `.run_cli(argv)`
+  - Method `.test_show_human_and_json()`
+  - Method `.test_show_accepts_a_folder_or_metadata_path()`
+  - Method `.test_show_marks_missing_audio()`
+  - Method `.test_show_missing_and_corrupt()`
 
 **Functions:**
 - `def write_artifact(root, folder, *, schema, accepted, score, verdict, created, audio)`

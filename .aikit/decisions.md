@@ -89,6 +89,20 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: When `require_judge` is true, build the judge before the first provider call and reuse it for every attempt. When `require_judge` is false, keep the lazy path but catch judge construction errors and return `(verdict=None, judge_error=...)` with the audio and metadata, so `--allow-unjudged` exits 0 as documented. An unknown judge under `--allow-unjudged` therefore also degrades to recorded evidence rather than a failed run.
 - **Consequences**: Required-judge misconfiguration costs no provider calls, and unjudged runs preserve both audio and the reason judging was skipped. The cost is that `--allow-unjudged` can hide a judge-name typo from the exit code; `--strict` and the printed `judge_error` still expose it.
 
+### ADR-012: One artifact can be inspected without reading JSON by hand
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `muse list` summarizes evidence, but understanding why a track was accepted or rejected still required opening `muse.json` and reconstructing the verdict, attempts and settings.
+- **Decision**: `muse show <folder|muse.json|track-file>` resolves one artifact under `--out` or from a path, validates it through the catalog reader, and prints the prompt, theme, track, verdict, summary, strengths, issues, suggestions, judge error, attempt count and settings. `--json` prints the raw metadata object, and the command writes nothing.
+- **Consequences**: A verdict is reviewable in one command and agents get the exact stored evidence with `--json`. The cost is a second human-facing renderer whose labels must stay aligned with the metadata schema.
+
+### ADR-013: Batch builds the judge once before the track loop
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Batch passed no judge into `compose`, so every track rebuilt the same adapter; a missing key also surfaced only after the first track had been attempted and the state file written.
+- **Decision**: Resolve the batch judge once after manifest validation and before loading or writing state, then pass that listener to every `compose` call. A missing key or unknown judge now fails before the first track, and a working judge is reused for the whole set.
+- **Consequences**: One configuration error aborts a batch before any artifact or state write, and adapter construction happens once. The cost is that a judge whose configuration changes mid-run is not rebuilt; the manifest run is treated as one configuration snapshot.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

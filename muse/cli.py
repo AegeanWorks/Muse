@@ -6,17 +6,17 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 from . import __version__
 from .audio import wav_duration
 from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
-from .catalog import load_artifacts
+from .catalog import Artifact, load_artifact, load_artifacts
 from .config import MuseConfig
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
-from .judges.registry import judges
+from .judges.registry import build_judge, judges
 from .pipeline import compose, judge_track
 from .providers.base import MusicProvider
 from .providers.registry import providers
@@ -45,6 +45,8 @@ def main(
             return _judge(args, settings, judge)
         if args.command == "list":
             return _catalog(args, settings)
+        if args.command == "show":
+            return _show(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -119,6 +121,11 @@ def build_parser() -> argparse.ArgumentParser:
     catalog.add_argument("--accepted-only", action="store_true", help="hide rejected artifacts")
     catalog.add_argument("--limit", type=_positive_count, default=20, metavar="N", help="maximum artifacts (default 20)")
     catalog.add_argument("--json", action="store_true", help="machine-readable output")
+
+    show = subparsers.add_parser("show", help="show the evidence for one artifact")
+    show.add_argument("artifact", help="artifact folder, muse.json, or track file")
+    show.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
+    show.add_argument("--json", action="store_true", help="print the raw muse.json object")
 
     listing = subparsers.add_parser("providers", help="list music providers and judges")
     listing.add_argument("--json", action="store_true", help="machine-readable output")
@@ -219,6 +226,9 @@ def _batch(
             "a batch only reports accepted tracks when a judge scores every take",
             "omit --judge none, or pass --judge gemini or --judge mock",
         )
+    listener = judge
+    if listener is None and settings.judge != "none":
+        listener = build_judge(settings.judge, settings)
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
@@ -245,7 +255,7 @@ def _batch(
                 request,
                 settings,
                 provider=provider,
-                judge=judge,
+                judge=listener,
                 max_attempts=args.attempts,
             )
         except MuseError as exc:
@@ -384,6 +394,75 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
         print(f"{state:<8} {score:<18} {entry.audio_path}{missing}  {entry.theme or entry.prompt}")
     print(f"Artifacts: {len(entries)}")
     return 0
+
+
+def _show(args: argparse.Namespace, settings: MuseConfig) -> int:
+    metadata = _resolve_artifact(args.artifact, settings.output_dir)
+    if not metadata.is_file():
+        raise MuseError(
+            f"artifact not found: {metadata}",
+            "no muse.json exists at the resolved path",
+            "run `muse list` to find a folder, or pass the artifact folder or muse.json path",
+        )
+    try:
+        entry, payload = load_artifact(metadata)
+    except (OSError, ValueError) as exc:
+        raise MuseError(
+            f"could not read artifact metadata: {metadata}",
+            str(exc),
+            "repair or remove the artifact folder, then retry",
+        ) from exc
+    if args.json:
+        print(json.dumps(payload, indent=2))
+        return 0
+    _print_artifact(entry, payload)
+    return 0
+
+
+def _resolve_artifact(value: str, output_dir: Path) -> Path:
+    candidate = Path(value)
+    if candidate.is_dir():
+        return candidate / "muse.json"
+    if candidate.is_file():
+        return candidate if candidate.name == "muse.json" else candidate.parent / "muse.json"
+    return output_dir / candidate / "muse.json"
+
+
+def _print_artifact(entry: Artifact, payload: Mapping[str, Any]) -> None:
+    verdict = payload.get("verdict")
+    settings = payload.get("settings")
+    print(f"Artifact: {entry.folder} [{'accepted' if entry.accepted else 'rejected'}]")
+    print(f"Metadata: {entry.metadata_path}")
+    print(f"Audio: {entry.audio_path}{'' if entry.audio_exists else ' [audio missing]'}")
+    print(f"Name: {entry.name}")
+    print(f"Prompt: {entry.prompt or '(none)'}")
+    print(f"Theme: {entry.theme or '(prompt only)'}")
+    print(f"Track: {entry.provider}/{entry.model} {entry.duration:g}s")
+    if isinstance(verdict, dict):
+        print(f"Verdict: {entry.score}/100 {entry.verdict} (threshold {verdict.get('threshold', '?')})")
+        summary = verdict.get("summary")
+        if isinstance(summary, str) and summary:
+            print(f"Summary: {summary}")
+        for label, key in (("Strengths", "strengths"), ("Issues", "issues"), ("Suggestions", "suggestions")):
+            values = verdict.get(key)
+            if isinstance(values, list) and values:
+                print(f"{label}:")
+                for item in values:
+                    print(f"  - {item}")
+    else:
+        print("Verdict: none")
+    error = payload.get("judge_error")
+    if isinstance(error, str) and error:
+        print(f"Judge error: {error}")
+    print(f"Attempts: {entry.attempts}")
+    if isinstance(settings, dict):
+        print(
+            "Settings: "
+            f"provider={settings.get('provider', '?')} "
+            f"music_model={settings.get('music_model', '?')} "
+            f"judge={settings.get('judge', '?')} "
+            f"judge_model={settings.get('judge_model', '?')}"
+        )
 
 
 def _providers(args: argparse.Namespace) -> int:

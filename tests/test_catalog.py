@@ -177,3 +177,58 @@ class ListCliTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("limit", err)
         self.assertNotIn("Traceback", err)
+
+
+class ShowCliTests(unittest.TestCase):
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+        self.output = self.root / "out"
+        self.config = MuseConfig(output_dir=self.output, provider="mock", judge="mock", env={})
+
+    def run_cli(self, argv):
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(argv, config=self.config)
+        return code, out.getvalue(), err.getvalue()
+
+    def test_show_human_and_json(self):
+        write_artifact(self.output, "cave")
+        code, out, err = self.run_cli(["show", "cave"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("Verdict: 88/100 fits", out)
+        self.assertIn("Prompt: cave prompt", out)
+        self.assertIn("accepted", out)
+
+        code, out, err = self.run_cli(["show", "cave", "--json"])
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["schema"], 2)
+        self.assertEqual(payload["request"]["prompt"], "cave prompt")
+        self.assertEqual(payload["verdict"]["score"], 88)
+
+    def test_show_accepts_a_folder_or_metadata_path(self):
+        path = write_artifact(self.output, "cave")
+        for argument in (str(path), str(path / "muse.json"), str(path / "track.wav")):
+            code, out, err = self.run_cli(["show", argument])
+            self.assertEqual(code, 0, err)
+            self.assertIn("cave prompt", out)
+
+    def test_show_marks_missing_audio(self):
+        write_artifact(self.output, "cave", audio=False)
+        code, out, err = self.run_cli(["show", "cave"])
+        self.assertEqual(code, 0, err)
+        self.assertIn("[audio missing]", out)
+
+    def test_show_missing_and_corrupt(self):
+        code, _, err = self.run_cli(["show", "nope"])
+        self.assertEqual(code, 1)
+        self.assertIn("artifact not found", err)
+        bad = self.output / "bad"
+        bad.mkdir(parents=True)
+        (bad / "muse.json").write_text("{not json", encoding="utf-8")
+        code, _, err = self.run_cli(["show", "bad"])
+        self.assertEqual(code, 1)
+        self.assertIn("could not read", err)
+        self.assertIn("Fix:", err)
