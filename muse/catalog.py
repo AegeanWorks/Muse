@@ -124,7 +124,13 @@ def _entry(metadata: Path, payload: Mapping[str, Any]) -> tuple[Artifact | None,
     if not isinstance(request, Mapping) or not isinstance(track, Mapping):
         return None, "request or track is missing"
     file_name = track.get("file")
-    if not isinstance(file_name, str) or not file_name or Path(file_name).name != file_name:
+    if (
+        not isinstance(file_name, str)
+        or not file_name
+        or "/" in file_name
+        or "\\" in file_name
+        or Path(file_name).name != file_name
+    ):
         return None, "track.file is not a plain file name"
     score: int | None = None
     verdict: str | None = None

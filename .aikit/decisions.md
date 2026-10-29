@@ -110,6 +110,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `muse batch --dry-run --resume` reads the fingerprinted state, checks accepted evidence with the same audio-and-metadata test as the real run, and marks every track `reuse` or `render` with a reason: new, previous rejection/failure, or missing evidence. The JSON plan includes `resume`, `action`, `reason`, `previous_status` and `previous_score`. The command writes nothing and calls neither provider nor judge; a missing state is refused exactly like a real resume.
 - **Consequences**: The next paid run can be reviewed track by track, and the preview shares the real resume decision logic. The cost is that the preview is tied to the same `--out` and working directory as resume, and it reports decisions rather than revalidating the entire state file beyond the normal loader.
 
+### ADR-015: Reforge run-1 hardened lazy judging, path separators and history errors
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: A 27-commit reforge audit reviewed nine stages and found three issues: batch built a judge before reading resume state, catalog accepted a Windows separator as a POSIX file name, and the multi-take history rewrite let read/parse errors escape as tracebacks.
+- **Decision**: Build a batch judge only when at least one track will render, so a fully accepted `--resume` works without a key or a listening judge; reject both `/` and `\` in `track.file` on every platform; and wrap the attempt-history read/parse in `MuseError` with What/Why/Fix.
+- **Consequences**: Resume no longer requires credentials when it reuses all evidence, catalog file names are platform-consistent, and a damaged evidence file produces a clean failure instead of a traceback. Reforge review packets are generated output and are ignored; `.aikit/reforge.json` keeps the completed run history.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

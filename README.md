@@ -128,7 +128,8 @@ with the same provider, judge and `--attempts` setting:
 
 `prompt` is required; `theme`, `duration` and `name` are optional and default to the same values
 as `generate`. Unknown keys, wrong types, an empty track list and more than 50 tracks are rejected
-with a `Why:` and `Fix:`. Batch needs a listening judge and runs sequentially.
+with a `Why:` and `Fix:`. Batch needs a listening judge when any track must render, and runs
+sequentially; a fully accepted `--resume` reuses evidence without one.
 
 `--dry-run` validates the same manifest and prints the track plan, provider, judge and output
 root without calling either service or writing artifacts or state. It also accepts `--judge none`,
@@ -302,7 +303,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 166 offline unit tests, no network or keys
+├── tests/                    <- 170 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

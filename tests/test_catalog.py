@@ -120,6 +120,15 @@ class CatalogTests(unittest.TestCase):
         entries, _ = load_artifacts(self.root)
         self.assertEqual(entries[0].attempts, 2)
 
+    def test_rejects_windows_separator_in_file_name(self):
+        path = write_artifact(self.root, "traversal")
+        payload = json.loads((path / "muse.json").read_text(encoding="utf-8"))
+        payload["track"]["file"] = "..\\track.wav"
+        (path / "muse.json").write_text(json.dumps(payload), encoding="utf-8")
+        entries, warnings = load_artifacts(self.root)
+        self.assertEqual(entries, [])
+        self.assertIn("plain file name", warnings[0])
+
     def test_limit_must_be_positive_when_given(self):
         for limit in (0, -1, True):
             with self.assertRaises(ValueError):

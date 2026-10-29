@@ -220,19 +220,23 @@ def _batch(
     requests = load_manifest(args.manifest)
     if args.dry_run:
         return _dry_run(args, settings, requests)
-    if settings.judge == "none" and judge is None:
+    fingerprint = manifest_fingerprint(requests)
+    progress = state_path(settings.output_dir, fingerprint)
+    previous = load_state(progress, fingerprint) if args.resume else {}
+    entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
+    render_required = any(
+        entry is None or entry["status"] != "accepted" or not _evidence_exists(entry)
+        for entry in entries
+    )
+    if render_required and settings.judge == "none" and judge is None:
         raise ConfigurationError(
             "batch needs a listening judge",
             "a batch only reports accepted tracks when a judge scores every take",
             "omit --judge none, or pass --judge gemini or --judge mock",
         )
     listener = judge
-    if listener is None and settings.judge != "none":
+    if listener is None and settings.judge != "none" and render_required:
         listener = build_judge(settings.judge, settings)
-    fingerprint = manifest_fingerprint(requests)
-    progress = state_path(settings.output_dir, fingerprint)
-    previous = load_state(progress, fingerprint) if args.resume else {}
-    entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
     if not args.resume:
         save_state(progress, fingerprint, [])
     for index, request in enumerate(requests, 1):

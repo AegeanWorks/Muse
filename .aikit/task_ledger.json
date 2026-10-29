@@ -1,216 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-resume-preview",
+    "task_id": "reforge-run-1",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793290642.5874681,
+    "updated_at": 1793291879.914988,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793290648.4482262
+    "completed_at": 1793291888.8962774
   },
   "checkpoints": [
-    {
-      "task_id": "muse-batch-resume",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-batch-resume' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793285885.1837869,
-      "timestamp_str": "2026-10-29 17:58:05",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-hardening-pass",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/5] Audit source, tests and packaging for correctness gaps; prioritize crash-safety, input validation, bounded reads and static findings",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285999.758781,
-      "timestamp_str": "2026-10-29 17:59:59",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "The feature work is complete but the project has not had a full defect audit; a push should ship verified code, not just passing happy-path tests",
-        "benefits": "Crash-safe artifact writes, clear validation for library callers, bounded manifest reads and a clean static check reduce silent corruption and traceback paths",
-        "risks": "contract: input validation may reject previously accepted library values; dependency: none added; concurrency: none; state: artifact writes become stricter",
-        "mitigation": "Failing-first tests for every behaviour change, keep valid inputs unchanged, run all 4 gates and dogfood before pushing"
-      }
-    },
-    {
-      "task_id": "muse-hardening-pass",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[5/5] Hardening pass: 137 tests, 4/4 gates; fixed final-poll timeout, malformed provider/state handling, temp-file leaks, bounded manifest/state/download IO, input validation and Windows reserved names; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793286823.3047922,
-      "timestamp_str": "2026-10-29 18:13:43",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "21 modified files",
-        "next": "commit the hardening pass and push all local commits",
-        "evidence": "137 tests OK, check 4/4, dogfood clean errors for NaN timeout, file output path and bad manifest"
-      }
-    },
-    {
-      "task_id": "muse-hardening-pass",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-hardening-pass' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793286827.7990024,
-      "timestamp_str": "2026-10-29 18:13:47",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-audit-round2",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan round two: clean OSError boundary, trimmed/expanded env values, normalized Verdict sequences, malformed Gemini replies, and batch --dry-run with tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793287271.6843657,
-      "timestamp_str": "2026-10-29 18:21:11",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "The first audit hardened storage and provider paths, but the CLI still tracebacks on raw OSError, env whitespace breaks names, Verdict accepts malformed sequences, Gemini assumes an object reply, and batch has no way to inspect a paid plan without spending",
-        "benefits": "Every filesystem failure is a clean 1 exit, environment values are forgiving, judge evidence is always well-typed, malformed replies fail with What/Why/Fix, and dry-run validates a manifest with zero provider calls",
-        "risks": "contract: new --dry-run flag and stricter Verdict/strip behaviour; dependency: none added; concurrency: none; state: dry-run writes no artifacts or state",
-        "mitigation": "Failing-first tests for every branch, keep valid inputs unchanged, no provider or filesystem writes in dry-run, full gates before commit"
-      }
-    },
-    {
-      "task_id": "muse-audit-round2",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Round two complete: 144 tests, 4/4 gates; clean OSError exit, trimmed/expanded env, normalized Verdict sequences, malformed Gemini replies, batch --dry-run dogfooded with zero calls; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793287474.932073,
-      "timestamp_str": "2026-10-29 18:24:34",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "13 modified files",
-        "next": "commit and push round-two hardening",
-        "evidence": "144 tests OK, dry-run human/JSON exit 0 with no output/state, check 4/4"
-      }
-    },
-    {
-      "task_id": "muse-audit-round2",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-audit-round2' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793287498.9278324,
-      "timestamp_str": "2026-10-29 18:24:58",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-catalog",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/5] Plan a read-only artifact catalog: scan muse.json evidence, filter/limit/JSON output, plus a monotonic Replicate poll deadline; failing-first tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793287593.3061924,
-      "timestamp_str": "2026-10-29 18:26:33",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Finished tracks are only discoverable by walking output folders, and Replicate's poll_timeout is an attempt count that ignores request latency, so both review and time budgets are weaker than documented",
-        "benefits": "One command lists scored evidence without provider calls, and a real deadline stops polling when the configured wall-clock budget is spent",
-        "risks": "contract: new list command and catalog fields; dependency: none added; concurrency: read-only scan; state: corrupt or oversized metadata is skipped with a warning",
-        "mitigation": "Read metadata with a size cap, validate schema fields, warn instead of traceback, keep list read-only, and inject a clock for deadline tests"
-      }
-    },
-    {
-      "task_id": "muse-catalog",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[5/5] Catalog and deadline round complete: 155 tests, 4/4 gates; muse list human/JSON/filter/limit dogfooded, corrupt metadata warned, Replicate slow-poll deadline tested; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793287895.4571567,
-      "timestamp_str": "2026-10-29 18:31:35",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "9 modified, 2 untracked",
-        "next": "commit and push the catalog release",
-        "evidence": "155 tests OK, list output verified, check 4/4"
-      }
-    },
-    {
-      "task_id": "muse-catalog",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-catalog' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793287913.7597826,
-      "timestamp_str": "2026-10-29 18:31:53",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-judge-preflight",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/3] Plan judge preflight: build the required judge before rendering, keep --allow-unjudged lazy, prove the provider is never called when the judge key is missing",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290004.7478774,
-      "timestamp_str": "2026-10-29 19:06:44",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "compose builds the judge only after the provider renders, so a missing GEMINI_API_KEY wastes a paid render and leaves an unjudged artifact before failing",
-        "benefits": "Configuration errors stop before any provider call, while --allow-unjudged still renders and records judge_error exactly as documented",
-        "risks": "contract: required judge construction moves earlier; dependency: none added; concurrency: none; state: failed preflight leaves no artifact folder",
-        "mitigation": "Failing-first provider-call counter test, explicit allow-unjudged regression test, full gates and CLI dogfood before push"
-      }
-    },
-    {
-      "task_id": "muse-judge-preflight",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[3/3] Judge preflight complete: 158 tests, 4/4 gates; required missing-key run makes zero provider calls, --allow-unjudged renders evidence and exits 0; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290138.1617954,
-      "timestamp_str": "2026-10-29 19:08:58",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "8 modified files",
-        "next": "commit and push the preflight fix",
-        "evidence": "158 tests OK, dogfood no output folder on required failure, optional run had audio+muse.json"
-      }
-    },
-    {
-      "task_id": "muse-judge-preflight",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-judge-preflight' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793290143.789717,
-      "timestamp_str": "2026-10-29 19:09:03",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-show",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan muse show: resolve an artifact folder/file, print full evidence or raw JSON, and preflight one batch judge before the track loop; failing-first tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290217.5172448,
-      "timestamp_str": "2026-10-29 19:10:17",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "muse list summarizes artifacts but cannot show the verdict reasoning, attempts or settings, and batch rebuilds the judge for every track even though the configuration is identical",
-        "benefits": "Operators can inspect one artifact without reading JSON by hand, and batch pays one judge construction and fails a missing key before any track or state write",
-        "risks": "contract: new show command; dependency: none added; concurrency: read-only; state: show writes nothing, batch preflight moves judge construction earlier",
-        "mitigation": "Reuse catalog validation, cap metadata reads, test folder/file/invalid paths, keep show read-only, add a batch missing-key test"
-      }
-    },
     {
       "task_id": "muse-show",
       "phase": "phase 4",
@@ -294,6 +95,185 @@
       "status": "completed",
       "timestamp": 1793290648.4482288,
       "timestamp_str": "2026-10-29 19:17:28",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=3, step=3, stop=27)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290741.8573146,
+      "timestamp_str": "2026-10-29 19:19:01",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 3, 3 commit(s), 12 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290764.7516773,
+      "timestamp_str": "2026-10-29 19:19:24",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 2",
+      "phase_num": 3,
+      "description": "Reforge stage 2: window 6, 3 commit(s), 25 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290947.1614208,
+      "timestamp_str": "2026-10-29 19:22:27",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 3",
+      "phase_num": 3,
+      "description": "Reforge stage 3: window 9, 3 commit(s), 16 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291047.39772,
+      "timestamp_str": "2026-10-29 19:24:07",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 4",
+      "phase_num": 3,
+      "description": "Reforge stage 4: window 12, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291173.4037824,
+      "timestamp_str": "2026-10-29 19:26:13",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 5",
+      "phase_num": 3,
+      "description": "Reforge stage 5: window 15, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
+      "files_affected": [
+        "assets/social-preview.png"
+      ],
+      "status": "in_progress",
+      "timestamp": 1793291241.7464495,
+      "timestamp_str": "2026-10-29 19:27:21",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 6",
+      "phase_num": 3,
+      "description": "Reforge stage 6: window 18, 3 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 5 binary not analysed",
+      "files_affected": [
+        "assets/artwork.jpg",
+        "assets/logo.jpg",
+        "assets/logo.png",
+        "assets/social-preview.jpg",
+        "assets/social-preview.png"
+      ],
+      "status": "in_progress",
+      "timestamp": 1793291293.554394,
+      "timestamp_str": "2026-10-29 19:28:13",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 7",
+      "phase_num": 3,
+      "description": "Reforge stage 7: window 21, 3 commit(s), 3 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
+      "files_affected": [
+        "assets/social-preview.png"
+      ],
+      "status": "in_progress",
+      "timestamp": 1793291345.7725666,
+      "timestamp_str": "2026-10-29 19:29:05",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 8",
+      "phase_num": 3,
+      "description": "Reforge stage 8: window 24, 3 commit(s), 11 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
+      "files_affected": [
+        "assets/social-preview.png"
+      ],
+      "status": "in_progress",
+      "timestamp": 1793291419.1969547,
+      "timestamp_str": "2026-10-29 19:30:19",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-1",
+      "phase": "reforge stage 9",
+      "phase_num": 3,
+      "description": "Reforge stage 9: window 27, 3 commit(s), 35 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793291472.1063106,
+      "timestamp_str": "2026-10-29 19:31:12",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge-run-1",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Reforge run-1 complete: 27 commits, 9 stages, 3 repairs accepted; closing edge: fully accepted resume no longer requires a judge",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291565.466138,
+      "timestamp_str": "2026-10-29 19:32:45",
+      "agent": "opencode:main",
+      "handoff": {
+        "next": "add the final resume/judge-none test, update docs/ignore, run gates, commit and push"
+      }
+    },
+    {
+      "task_id": "reforge-run-1",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge follow-up: close the three accepted findings, add regression tests, keep review packets out of history and record run state",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291849.131122,
+      "timestamp_str": "2026-10-29 19:37:29",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Reforge run-1 found three concrete defects and the final review exposed a resume edge case; the fixes need a tested, documented close-out before commit",
+        "benefits": "A fully accepted resume works without credentials, evidence paths are platform-consistent, and history errors are clean MuseErrors",
+        "risks": "contract: batch judge construction and resume behavior; dependency: none added; concurrency: none; state: reforge.json is retained, review packets ignored",
+        "mitigation": "Regression tests for every fix, full gates, sanitized reforge state and a clean review status before commit"
+      }
+    },
+    {
+      "task_id": "reforge-run-1",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge follow-up complete: 170 tests, 4/4 gates; 3 reforge repairs plus fully-accepted resume without a judge; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793291879.914988,
+      "timestamp_str": "2026-10-29 19:37:59",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "12 modified, reforge.json untracked",
+        "next": "commit and push the reforge close-out",
+        "evidence": "170 tests OK, 39/39 stage-9 hunks reviewed, run-1 complete"
+      }
+    },
+    {
+      "task_id": "reforge-run-1",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge-run-1' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793291888.8962798,
+      "timestamp_str": "2026-10-29 19:38:08",
       "agent": "opencode:main"
     }
   ]

@@ -228,7 +228,14 @@ def _metadata(
 
 
 def _record_history(best: Attempt, attempts: list[Attempt], settings: MuseConfig) -> None:
-    payload = json.loads(best.metadata_path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(best.metadata_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise MuseError(
+            "could not update the attempt history",
+            str(exc),
+            "check that the output folder is readable, then retry",
+        ) from exc
     payload["selected_attempt"] = best.number
     payload["attempts"] = [_attempt_summary(item, settings) for item in attempts]
     write_json_atomic(best.metadata_path, payload)

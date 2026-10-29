@@ -438,6 +438,44 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual([track["status"] for track in state["tracks"]], ["accepted", "accepted"])
         self.assertTrue(state["tracks"][0]["payload"]["accepted"])
 
+    def test_resume_of_all_accepted_tracks_needs_no_judge_key(self):
+        path = self.manifest(
+            [
+                {"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village dawn pads", "theme": "village at dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)])
+        self.assertEqual(code, 0, err)
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["batch", str(path), "--resume"],
+                config=self.config.with_overrides(judge="gemini"),
+                provider=self.provider,
+            )
+        self.assertEqual(code, 0, err.getvalue())
+        self.assertIn("Reused: 2", out.getvalue())
+
+    def test_resume_of_all_accepted_tracks_allows_judge_none(self):
+        path = self.manifest(
+            [
+                {"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village dawn pads", "theme": "village at dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        code, _, err = self.run_cli(["batch", str(path)])
+        self.assertEqual(code, 0, err)
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = main(
+                ["batch", str(path), "--resume", "--judge", "none"],
+                config=self.config,
+                provider=self.provider,
+            )
+        self.assertEqual(code, 0, err.getvalue())
+        self.assertIn("Reused: 2", out.getvalue())
+
     def test_resume_reuses_accepted_tracks(self):
         provider = CountingProvider(self.provider)
         path = self.manifest(

@@ -2,9 +2,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from muse.config import MuseConfig
-from muse.errors import ConfigurationError, GenerationError, JudgeError
+from muse.errors import ConfigurationError, GenerationError, JudgeError, MuseError
 from muse.judges.mock import MockJudge
 from muse.pipeline import PROMPT_LIMIT, compose, judge_track, revise_prompt
 from muse.providers.mock import MockMusicProvider
@@ -227,6 +228,24 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(first["attempt"]["number"], 1)
         self.assertEqual(first["attempt"]["planned"], 3)
         self.assertNotEqual(result.attempts[0].metadata_path, result.metadata_path)
+
+    def test_history_read_failure_is_a_muse_error(self):
+        judge = ScriptedJudge(
+            [
+                verdict(40, suggestions=("include cave",)),
+                verdict(90, VERDICT_FITS),
+            ]
+        )
+        with patch("muse.pipeline.Path.read_text", side_effect=OSError("denied")):
+            with self.assertRaises(MuseError) as caught:
+                compose(
+                    MusicRequest("sunny beach", theme="cave level", duration=1),
+                    self.config,
+                    provider=self.provider,
+                    judge=judge,
+                    max_attempts=2,
+                )
+        self.assertIn("could not update", caught.exception.what)
 
     def test_best_attempt_wins_when_none_are_accepted(self):
         judge = ScriptedJudge(

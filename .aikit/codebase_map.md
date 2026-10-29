@@ -9,8 +9,8 @@
 - **Total Python Modules**: `31`
 - **Total Classes**: `57`
 - **Total Top-Level Functions**: `73`
-- **Total Class Methods**: `252`
-- **Total Source Lines**: `4788`
+- **Total Class Methods**: `256`
+- **Total Source Lines**: `4871`
 
 ---
 
@@ -83,7 +83,7 @@
 ### [`muse/catalog.py`](muse/catalog.py)
 > *Read-only discovery of scored artifacts under an output directory.*
 
-**Size**: `175` lines (`6148` bytes)
+**Size**: `181` lines (`6237` bytes)
 
 **Classes:**
 - `class Artifact`
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `687` lines (`26392` bytes)
+**Size**: `691` lines (`26580` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -249,7 +249,7 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `256` lines (`8482` bytes)
+**Size**: `263` lines (`8722` bytes)
 
 **Functions:**
 - `def compose(request, config, provider, judge, require_judge, max_attempts)`
@@ -366,7 +366,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `535` lines (`23253` bytes)
+**Size**: `573` lines (`24942` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -413,6 +413,8 @@
   - Method `.test_dry_run_resume_marks_missing_evidence()`
   - Method `.state_file()`
   - Method `.test_batch_writes_state_after_each_track()`
+  - Method `.test_resume_of_all_accepted_tracks_needs_no_judge_key()`
+  - Method `.test_resume_of_all_accepted_tracks_allows_judge_none()`
   - Method `.test_resume_reuses_accepted_tracks()`
   - Method `.test_resume_rerenders_rejected_tracks()`
   - Method `.test_resume_without_state_is_refused()`
@@ -422,7 +424,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `234` lines (`9084` bytes)
+**Size**: `243` lines (`9553` bytes)
 
 **Classes:**
 - `class CatalogTests`
@@ -432,6 +434,7 @@
   - Method `.test_skips_corrupt_oversized_and_unknown_schema()`
   - Method `.test_schema_one_and_missing_audio()`
   - Method `.test_counts_attempt_history()`
+  - Method `.test_rejects_windows_separator_in_file_name()`
   - Method `.test_limit_must_be_positive_when_given()`
 - `class ListCliTests`
   - Method `.setUp()`
@@ -562,7 +565,7 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `314` lines (`12674` bytes)
+**Size**: `333` lines (`13422` bytes)
 
 **Classes:**
 - `class FailingJudge`
@@ -589,6 +592,7 @@
   - Method `.test_judge_track_uses_injected_judge()`
   - Method `.test_attempts_stop_after_acceptance()`
   - Method `.test_rejected_track_is_retried_with_judge_suggestions()`
+  - Method `.test_history_read_failure_is_a_muse_error()`
   - Method `.test_best_attempt_wins_when_none_are_accepted()`
   - Method `.test_attempts_stop_when_the_judge_offers_no_suggestions()`
   - Method `.test_attempts_without_a_judge_are_refused()`

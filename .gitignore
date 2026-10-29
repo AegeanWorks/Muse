@@ -9,3 +9,6 @@ node_modules/
 output/
 .venv/
 .env
+
+# Reforge review packets are generated audit output; reforge.json keeps the run history.
+.aikit/reforge.reviews/
