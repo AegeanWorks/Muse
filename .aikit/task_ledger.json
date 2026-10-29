@@ -1,87 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-rejudge-timestamp",
+    "task_id": "reforge:run-8",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793297887.463617,
+    "updated_at": 1793297990.0097473,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793297896.35297
+    "completed_at": 1793297990.3541813
   },
   "checkpoints": [
-    {
-      "task_id": "muse-rejudge",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-rejudge' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793296653.8489368,
-      "timestamp_str": "2026-10-29 20:57:33",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-rejudge-settings",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/2] Plan rejudge settings fix: record verdict.judge/model in new evidence instead of configured settings, with a named-judge regression test",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296759.5384874,
-      "timestamp_str": "2026-10-29 20:59:19",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "An injected or aliased judge can produce a verdict under a different name/model than MuseConfig, so rejudged settings would misattribute the evidence",
-        "benefits": "History and current settings identify the actual judge/model that scored the audio",
-        "risks": "contract: rejudge metadata settings only; dependency: none; concurrency: none; state: muse.json settings/history",
-        "mitigation": "Use verdict fields, add a named-judge test, run the full suite and push"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-settings",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[2/2] Rejudge settings fix complete: 202 tests, 4/4 gates; actual judge/model recorded while history keeps prior settings; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793296909.0924206,
-      "timestamp_str": "2026-10-29 21:01:49",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "8 modified files",
-        "next": "commit and push the attribution fix",
-        "evidence": "202 tests OK, named-judge test passes"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-settings",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-rejudge-settings' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793296919.4960709,
-      "timestamp_str": "2026-10-29 21:01:59",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-rejudge-dedupe",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/2] Plan rejudge path dedupe: resolve each artifact once, preserve first-seen order, and avoid duplicate judge calls/history entries",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793297021.0187137,
-      "timestamp_str": "2026-10-29 21:03:41",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "A repeated folder or the same artifact passed as folder and track file is judged and appended twice in one command",
-        "benefits": "One resolved metadata path is judged once and one history entry is written per artifact",
-        "risks": "contract: rejudge input handling only; dependency: none; concurrency: none; state: no duplicate history",
-        "mitigation": "Deduplicate resolved Paths before the module call, add a regression test, run gates and push"
-      }
-    },
     {
       "task_id": "muse-rejudge-dedupe",
       "phase": "phase 4",
@@ -265,6 +195,66 @@
       "status": "completed",
       "timestamp": 1793297896.3529716,
       "timestamp_str": "2026-10-29 21:18:16",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-8",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=5, step=5, stop=5)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297938.3063467,
+      "timestamp_str": "2026-10-29 21:18:58",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-8",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 5, 5 commit(s), 9 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1793297944.2956297,
+      "timestamp_str": "2026-10-29 21:19:04",
+      "agent": "opencode"
+    },
+    {
+      "task_id": "reforge:run-8",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/1] Plan reforge run-8 with step 5: audit the latest rejudge fixes and close the run",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297989.6491053,
+      "timestamp_str": "2026-10-29 21:19:49",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The attribution, dedupe and timestamp fixes were pushed after run-7",
+        "benefits": "The latest evidence changes get a five-commit-window review and history is current",
+        "risks": "contract: none expected; dependency: none; concurrency: one project run; state: reforge.json and ledger",
+        "mitigation": "Review every packet hunk, keep packets ignored, sanitize paths and complete the task"
+      }
+    },
+    {
+      "task_id": "reforge:run-8",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-8 complete: start=5 step=5 stop=5, 36/36 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793297990.0097473,
+      "timestamp_str": "2026-10-29 21:19:50",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "reforge:run-8",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-8' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793297990.3541827,
+      "timestamp_str": "2026-10-29 21:19:50",
       "agent": "opencode:main"
     }
   ]
