@@ -292,17 +292,49 @@ def _dry_run(
     settings: MuseConfig,
     requests: tuple[MusicRequest, ...],
 ) -> int:
-    tracks = [
-        {
-            "name": request.label,
-            "prompt": request.prompt,
-            "theme": request.theme,
-            "duration": request.duration,
-        }
-        for request in requests
-    ]
+    previous: dict[int, dict[str, Any]] = {}
+    if args.resume:
+        fingerprint = manifest_fingerprint(requests)
+        previous = load_state(state_path(settings.output_dir, fingerprint), fingerprint)
+    tracks = []
+    for index, request in enumerate(requests, 1):
+        prior = previous.get(index)
+        action = "render"
+        reason = "new track"
+        previous_status = None
+        previous_score = None
+        if prior is not None:
+            previous_status = prior["status"]
+            prior_payload = prior.get("payload")
+            if isinstance(prior_payload, dict):
+                score = prior_payload.get("score")
+                if isinstance(score, int) and not isinstance(score, bool):
+                    previous_score = score
+            if previous_status == "accepted":
+                if _evidence_exists(prior):
+                    action = "reuse"
+                    reason = "accepted evidence exists"
+                else:
+                    reason = "accepted evidence is missing"
+            elif previous_status == "rejected":
+                reason = "previous take was rejected"
+            else:
+                reason = "previous take failed"
+        tracks.append(
+            {
+                "name": request.label,
+                "prompt": request.prompt,
+                "theme": request.theme,
+                "duration": request.duration,
+                "action": action,
+                "reason": reason,
+                "previous_status": previous_status,
+                "previous_score": previous_score,
+            }
+        )
     payload = {
         "dry_run": True,
+        "resume": bool(args.resume),
         "tracks": tracks,
         "total": len(tracks),
         "attempts": args.attempts,
@@ -317,9 +349,12 @@ def _dry_run(
         f"Dry run: {len(tracks)} track(s), up to {args.attempts} take(s) each "
         f"-> {settings.output_dir}"
     )
-    for index, request in enumerate(requests, 1):
-        intent = request.theme or "(prompt only)"
-        print(f"[{index}/{len(requests)}] {request.label}: {request.duration:g}s, theme {intent}")
+    for index, track in enumerate(tracks, 1):
+        intent = track["theme"] or "(prompt only)"
+        print(
+            f"[{index}/{len(tracks)}] {track['name']}: {track['action']} - {track['reason']} "
+            f"({track['duration']:g}s, theme {intent})"
+        )
     print("No provider or judge was called.")
     return 0
 

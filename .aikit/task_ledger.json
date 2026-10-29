@@ -1,76 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-show",
+    "task_id": "muse-resume-preview",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793290436.5349283,
+    "updated_at": 1793290642.5874681,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793290440.5460007
+    "completed_at": 1793290648.4482262
   },
   "checkpoints": [
-    {
-      "task_id": "muse-batch-mode",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Phase 4 gates 4/4; 98 offline tests; batch dogfood 3/3 accepted with attempts, strict 1, malformed JSON 1, judge-none 1; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285383.6397934,
-      "timestamp_str": "2026-10-29 17:49:43",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "6 modified, 2 untracked",
-        "next": "stage and commit the batch feature",
-        "evidence": "check 4/4, manifest cap/BOM/overflow tests, JSON total/accepted verified"
-      }
-    },
-    {
-      "task_id": "muse-batch-mode",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-batch-mode' completed successfully.",
-      "status": "completed",
-      "timestamp": 1793285392.5851805,
-      "timestamp_str": "2026-10-29 17:49:52",
-      "agent": "opencode:main"
-    },
-    {
-      "task_id": "muse-batch-resume",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/4] Plan resumable batch: per-track state written after every take, --resume reuses accepted tracks, --keep-going isolates failures, failing-first tests",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285500.8034883,
-      "timestamp_str": "2026-10-29 17:51:40",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Batch mode stops on the first provider or judge failure, and rerunning the manifest re-renders and re-bills tracks that already succeeded",
-        "benefits": "A failed soundtrack run resumes at the first unfinished track, accepted evidence is reused, and one bad track no longer hides the rest of the set",
-        "risks": "contract: new --resume/--keep-going flags and a hidden batch state file; dependency: none added; concurrency: one sequential writer; state: output/.muse-batch-<hash>.json updated atomically per track",
-        "mitigation": "Hash the validated manifest so a changed manifest refuses resume, skip only accepted tracks, write state after each track, keep default stop-on-failure behavior without --keep-going, failing-first tests"
-      }
-    },
-    {
-      "task_id": "muse-batch-resume",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Phase 4 gates 4/4; 109 offline tests; dogfood: state written, resume reused 3/3, missing evidence rerendered, keep-going recorded 0/3 failures then resumed to 3/3; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793285874.0517645,
-      "timestamp_str": "2026-10-29 17:57:54",
-      "agent": "opencode:main",
-      "handoff": {
-        "state": "7 modified, 1 untracked",
-        "next": "stage and commit the resumable batch feature",
-        "evidence": "check 4/4, get batch state schema 1, reused/failed JSON verified"
-      }
-    },
     {
       "task_id": "muse-batch-resume",
       "phase": "completed",
@@ -294,6 +235,65 @@
       "status": "completed",
       "timestamp": 1793290440.5460021,
       "timestamp_str": "2026-10-29 19:14:00",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-resume-preview",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Resume preview complete: 166 tests, 4/4 gates; dry-run+resume reused accepted, retried rejected, flagged missing evidence, wrote no state; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290620.1630177,
+      "timestamp_str": "2026-10-29 19:17:00",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "7 modified files",
+        "next": "commit and push the resume-preview release",
+        "evidence": "166 tests OK, preview human/JSON verified, state content unchanged"
+      }
+    },
+    {
+      "task_id": "muse-resume-preview",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/4] Plan resume preview: dry-run reads fingerprinted state, marks reuse or render with reasons, and writes nothing; failing-first tests",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290636.9559188,
+      "timestamp_str": "2026-10-29 19:17:16",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "Resume and dry-run were separate, so planning a resumed batch required a real run or reading the hidden state by hand",
+        "benefits": "The next paid run is reviewable track by track, with reuse/retry decisions and missing-evidence reasons, at zero provider cost",
+        "risks": "contract: new dry-run JSON fields resume/action/reason/previous_status/previous_score; dependency: none added; concurrency: read-only preview; state: no writes",
+        "mitigation": "Reuse the real state loader and evidence check, compare state bytes before and after, test missing state, rejected tracks and missing evidence"
+      }
+    },
+    {
+      "task_id": "muse-resume-preview",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/4] Resume preview complete: 166 tests, 4/4 gates; dry-run+resume reused accepted, retried rejected, flagged missing evidence, wrote no state; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793290642.5874681,
+      "timestamp_str": "2026-10-29 19:17:22",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "7 modified files",
+        "next": "commit and push the resume-preview release",
+        "evidence": "166 tests OK, preview human/JSON verified, state content unchanged"
+      }
+    },
+    {
+      "task_id": "muse-resume-preview",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-resume-preview' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793290648.4482288,
+      "timestamp_str": "2026-10-29 19:17:28",
       "agent": "opencode:main"
     }
   ]

@@ -9,8 +9,8 @@
 - **Total Python Modules**: `31`
 - **Total Classes**: `57`
 - **Total Top-Level Functions**: `73`
-- **Total Class Methods**: `249`
-- **Total Source Lines**: `4699`
+- **Total Class Methods**: `252`
+- **Total Source Lines**: `4788`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `652` lines (`24907` bytes)
+**Size**: `687` lines (`26392` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -366,7 +366,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `481` lines (`20675` bytes)
+**Size**: `535` lines (`23253` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -408,6 +408,9 @@
   - Method `.test_batch_missing_manifest_exits_one()`
   - Method `.test_batch_dry_run_json_makes_no_calls()`
   - Method `.test_batch_dry_run_human_output_without_a_judge()`
+  - Method `.test_dry_run_resume_previews_reuse_and_retry()`
+  - Method `.test_dry_run_resume_without_state_is_refused()`
+  - Method `.test_dry_run_resume_marks_missing_evidence()`
   - Method `.state_file()`
   - Method `.test_batch_writes_state_after_each_track()`
   - Method `.test_resume_reuses_accepted_tracks()`

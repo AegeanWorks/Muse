@@ -103,6 +103,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Resolve the batch judge once after manifest validation and before loading or writing state, then pass that listener to every `compose` call. A missing key or unknown judge now fails before the first track, and a working judge is reused for the whole set.
 - **Consequences**: One configuration error aborts a batch before any artifact or state write, and adapter construction happens once. The cost is that a judge whose configuration changes mid-run is not rebuilt; the manifest run is treated as one configuration snapshot.
 
+### ADR-014: Dry-run can preview resume decisions from saved state
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `--resume` and `--dry-run` existed separately, so planning a resumed batch required either a real run or manually reading the hidden state file; a preview also had to prove it would not change that state.
+- **Decision**: `muse batch --dry-run --resume` reads the fingerprinted state, checks accepted evidence with the same audio-and-metadata test as the real run, and marks every track `reuse` or `render` with a reason: new, previous rejection/failure, or missing evidence. The JSON plan includes `resume`, `action`, `reason`, `previous_status` and `previous_score`. The command writes nothing and calls neither provider nor judge; a missing state is refused exactly like a real resume.
+- **Consequences**: The next paid run can be reviewed track by track, and the preview shares the real resume decision logic. The cost is that the preview is tied to the same `--out` and working directory as resume, and it reports decisions rather than revalidating the entire state file beyond the normal loader.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

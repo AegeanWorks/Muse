@@ -348,6 +348,7 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(payload["total"], 2)
         self.assertEqual(payload["attempts"], 3)
         self.assertEqual([track["name"] for track in payload["tracks"]], ["cave", "village"])
+        self.assertEqual([track["action"] for track in payload["tracks"]], ["render", "render"])
         self.assertEqual(provider.calls, [])
         self.assertFalse(self.output.exists())
 
@@ -364,6 +365,59 @@ class BatchCliTests(unittest.TestCase):
         self.assertIn("Dry run", out.getvalue())
         self.assertIn("No provider or judge was called", out.getvalue())
         self.assertFalse(self.output.exists())
+
+    def test_dry_run_resume_previews_reuse_and_retry(self):
+        path = self.manifest(
+            [
+                {"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "sunny beach", "theme": "cave level", "duration": 1, "name": "sunny"},
+            ]
+        )
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        before = self.state_file().read_text(encoding="utf-8")
+
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--dry-run", "--resume", "--json"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertTrue(payload["resume"])
+        self.assertEqual([track["action"] for track in payload["tracks"]], ["reuse", "render"])
+        self.assertEqual(payload["tracks"][1]["previous_status"], "rejected")
+        self.assertEqual(provider.calls, ["cave level drones", "sunny beach"])
+        self.assertEqual(self.state_file().read_text(encoding="utf-8"), before)
+
+    def test_dry_run_resume_without_state_is_refused(self):
+        path = self.manifest([{"prompt": "cave level drones", "theme": "cave level", "duration": 1}])
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(
+            ["batch", str(path), "--dry-run", "--resume"],
+            provider=provider,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("no batch state", err)
+        self.assertEqual(provider.calls, [])
+        self.assertFalse(self.output.exists())
+
+    def test_dry_run_resume_marks_missing_evidence(self):
+        path = self.manifest([{"prompt": "cave level drones", "theme": "cave level", "duration": 1}])
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        state = json.loads(self.state_file().read_text(encoding="utf-8"))
+        Path(state["tracks"][0]["payload"]["audio"]).unlink()
+
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--dry-run", "--resume", "--json"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        track = json.loads(out)["tracks"][0]
+        self.assertEqual(track["action"], "render")
+        self.assertIn("missing", track["reason"])
 
     def state_file(self):
         matches = list(self.output.glob(".muse-batch-*.json"))

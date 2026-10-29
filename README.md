@@ -79,6 +79,9 @@ python -m muse batch tracks.json --resume --keep-going
 # inspect the plan without calling a provider or judge
 python -m muse batch tracks.json --dry-run --json
 
+# preview which tracks --resume would reuse or retry
+python -m muse batch tracks.json --dry-run --resume
+
 # review scored evidence, newest first
 python -m muse list --accepted-only --limit 10
 python -m muse list --json
@@ -129,7 +132,9 @@ with a `Why:` and `Fix:`. Batch needs a listening judge and runs sequentially.
 
 `--dry-run` validates the same manifest and prints the track plan, provider, judge and output
 root without calling either service or writing artifacts or state. It also accepts `--judge none`,
-because no listening happens.
+because no listening happens. With `--resume` it reads the saved state and marks each track
+`reuse` or `render`, with the reason (new, previous rejection/failure, or missing evidence); the
+JSON plan adds `resume`, `action`, `reason`, `previous_status` and `previous_score` per track.
 
 Each run writes a hidden `<out>/.muse-batch-<hash>.json` state file after every track. The hash
 covers the validated manifest, so changing a prompt, theme, duration or name starts a different
@@ -145,7 +150,7 @@ failure is recorded and the command stops. A failed track always exits `1`; `--s
 
 | Batch flag | Meaning |
 |---|---|
-| `--dry-run` | Validate and print the plan; no provider, judge, artifact or state write |
+| `--dry-run` | Validate and print the plan; with `--resume`, preview reuse/retry; no writes or calls |
 | `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
 | `--keep-going` | Record a failed track and continue with the rest |
 | `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
@@ -297,7 +302,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 163 offline unit tests, no network or keys
+├── tests/                    <- 166 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 
