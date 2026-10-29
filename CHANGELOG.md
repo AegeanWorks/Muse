@@ -7,8 +7,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 ### Added
 
-- GitHub Actions test matrix for Python 3.10 through 3.14.
-- This changelog and a CI badge.
+- This changelog covering the 0.1.0 through 0.10.0 release line.
 
 ## [0.10.0] - 2026-10-29
 

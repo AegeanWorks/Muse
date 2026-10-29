@@ -1,50 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-ci-release",
+    "task_id": "muse-ci-rollback",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793292401.9748006,
+    "updated_at": 1793292661.128595,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793292414.932693
+    "completed_at": 1793292668.1323023
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=3, step=3, stop=27)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290741.8573146,
-      "timestamp_str": "2026-10-29 19:19:01",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 3, 3 commit(s), 12 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290764.7516773,
-      "timestamp_str": "2026-10-29 19:19:24",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 2",
-      "phase_num": 3,
-      "description": "Reforge stage 2: window 6, 3 commit(s), 25 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793290947.1614208,
-      "timestamp_str": "2026-10-29 19:22:27",
-      "agent": "opencode"
-    },
     {
       "task_id": "reforge:run-1",
       "phase": "reforge stage 3",
@@ -275,6 +242,49 @@
       "status": "completed",
       "timestamp": 1793292414.9326952,
       "timestamp_str": "2026-10-29 19:46:54",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-ci-rollback",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/2] Plan CI rollback: remove the GitHub Actions matrix and badge because hosted runners cannot start on this account; keep CHANGELOG and local test command",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292598.589407,
+      "timestamp_str": "2026-10-29 19:49:58",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "The workflow is valid but every job is refused before startup by an account billing lock, leaving a red badge and failed checks on every push",
+        "benefits": "Repository checks stay meaningful and the release history remains; no misleading CI signal",
+        "risks": "contract: none; dependency: removes GitHub Actions only; concurrency: none; state: README/changelog/tree",
+        "mitigation": "Delete the workflow and badge, update the tree and Unreleased notes, run all gates"
+      }
+    },
+    {
+      "task_id": "muse-ci-rollback",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] CI rollback complete: unavailable workflow and badge removed, changelog kept; 174 tests, 4/4 gates; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793292661.128595,
+      "timestamp_str": "2026-10-29 19:51:01",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "3 modified, 1 deleted",
+        "next": "commit and push the rollback",
+        "evidence": "174 tests OK, README tree passes guidelines"
+      }
+    },
+    {
+      "task_id": "muse-ci-rollback",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-ci-rollback' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793292668.1323075,
+      "timestamp_str": "2026-10-29 19:51:08",
       "agent": "opencode:main"
     }
   ]
