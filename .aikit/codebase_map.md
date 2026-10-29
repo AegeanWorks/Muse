@@ -6,11 +6,11 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `31`
-- **Total Classes**: `57`
-- **Total Top-Level Functions**: `73`
-- **Total Class Methods**: `264`
-- **Total Source Lines**: `5043`
+- **Total Python Modules**: `33`
+- **Total Classes**: `60`
+- **Total Top-Level Functions**: `80`
+- **Total Class Methods**: `279`
+- **Total Source Lines**: `5303`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `735` lines (`28155` bytes)
+**Size**: `760` lines (`29562` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -115,6 +115,7 @@
 - `def _batch(args, settings, provider, judge)`
 - `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
+- `def _doctor(args, settings)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
 - `def _resolve_artifact(value, output_dir)`
@@ -152,6 +153,25 @@
 - `def _text(source, key, default)`
 - `def _int(raw, default, name)`
 - `def _float(raw, default, name)`
+
+---
+
+### [`muse/doctor.py`](muse/doctor.py)
+> *Read-only local configuration checks for the doctor command.*
+
+**Size**: `112` lines (`3133` bytes)
+
+**Classes:**
+- `class Check`
+  - Method `.as_dict()`
+
+**Functions:**
+- `def run_checks(config)`
+- `def _python_check()`
+- `def _output_check(output_dir)`
+- `def _provider_check(settings)`
+- `def _judge_check(settings)`
+- `def _key_checks(settings)`
 
 ---
 
@@ -496,6 +516,29 @@
 
 **Functions:**
 - `def verdict(score, kind, suggestions)`
+
+---
+
+### [`tests/test_doctor.py`](tests/test_doctor.py)
+**Size**: `123` lines (`5073` bytes)
+
+**Classes:**
+- `class DoctorTests`
+  - Method `.setUp()`
+  - Method `.config(**changes)`
+  - Method `.checks(config)`
+  - Method `.test_mock_configuration_is_healthy()`
+  - Method `.test_required_keys_are_reported()`
+  - Method `.test_output_file_is_reported()`
+  - Method `.test_unknown_adapter_names_are_reported()`
+  - Method `.test_invalid_configuration_is_a_single_finding()`
+- `class DoctorCliTests`
+  - Method `.setUp()`
+  - Method `.run_cli(argv, config)`
+  - Method `.test_doctor_json_healthy()`
+  - Method `.test_doctor_cli_overrides_the_environment()`
+  - Method `.test_doctor_reports_missing_keys()`
+  - Method `.test_doctor_reports_output_file()`
 
 ---
 

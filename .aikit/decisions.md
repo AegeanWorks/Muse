@@ -131,6 +131,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Add repeatable `--force NAME` to `muse batch`, matched case-insensitively against manifest labels and valid only with `--resume`. Forced accepted tracks are counted as requiring a render, their new take gets a fresh artifact folder, and every other accepted entry is reused unchanged. Unknown names are rejected before state or artifact writes; `--dry-run --resume --force` reports `render - forced rerender`.
 - **Consequences**: One track can be regenerated without paying for the rest or changing the manifest fingerprint. The cost is a second selection axis in batch state (forced vs reusable), and duplicate labels force every matching track.
 
+### ADR-018: Doctor reports local configuration without touching the network or output
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: Misconfigured Python paths, output folders, adapter names and keys surfaced only when a render or batch command failed; there was no single read-only diagnostic and no way to test an alternate provider/judge without changing the environment.
+- **Decision**: Add `muse doctor` with checks for Python 3.10+, output writability, provider and judge names, and required keys. It accepts `--provider`, `--judge`, `--model`, `--judge-model`, `--out` and `--json`, never calls a service, never prints key values and never creates the output directory (it checks the nearest existing ancestor). Failures carry a `Fix:` line and exit `1`.
+- **Consequences**: A setup can be validated before any paid call and alternate adapter choices can be checked in one command. The cost is a second place that knows which adapters need which keys, kept aligned with the registries by tests.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

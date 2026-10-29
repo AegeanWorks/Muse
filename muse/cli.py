@@ -14,6 +14,7 @@ from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
 from .catalog import Artifact, load_artifact, load_artifacts
 from .config import MuseConfig
+from .doctor import run_checks
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
 from .judges.registry import build_judge, judges
@@ -47,6 +48,8 @@ def main(
             return _catalog(args, settings)
         if args.command == "show":
             return _show(args, settings)
+        if args.command == "doctor":
+            return _doctor(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -122,6 +125,14 @@ def build_parser() -> argparse.ArgumentParser:
     judge.add_argument("--prompt", default="", help="the prompt that produced the track")
     _common(judge)
     judge.add_argument("--strict", action="store_true", help="exit 1 when the score is below threshold")
+
+    doctor = subparsers.add_parser("doctor", help="check local configuration without network calls")
+    doctor.add_argument("--out", type=Path, default=None, help="artifact directory to check (default: output)")
+    doctor.add_argument("--provider", default=None, help="check this provider name instead of the environment")
+    doctor.add_argument("--judge", default=None, help="check this judge name instead of the environment")
+    doctor.add_argument("--model", default=None, help="check this music model slug")
+    doctor.add_argument("--judge-model", default=None, help="check this judge model name")
+    doctor.add_argument("--json", action="store_true", help="machine-readable output")
 
     catalog = subparsers.add_parser("list", help="list scored artifacts under an output directory")
     catalog.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
@@ -438,6 +449,20 @@ def _judge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge | N
     else:
         _print_verdict(verdict)
     return 1 if args.strict and not verdict.accepted else 0
+
+
+def _doctor(args: argparse.Namespace, settings: MuseConfig) -> int:
+    checks = run_checks(settings)
+    ok = all(check.ok for check in checks)
+    if args.json:
+        print(json.dumps({"ok": ok, "checks": [check.as_dict() for check in checks]}, indent=2))
+        return 0 if ok else 1
+    for check in checks:
+        print(f"{'OK' if check.ok else 'FAIL':<4} {check.name:<22} {check.detail}")
+        if not check.ok and check.fix:
+            print(f"     Fix: {check.fix}")
+    print(f"Doctor: {sum(1 for check in checks if check.ok)}/{len(checks)} checks passed")
+    return 0 if ok else 1
 
 
 def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:

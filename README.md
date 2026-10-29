@@ -50,6 +50,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 3. The pipeline writes the audio plus `muse.json` evidence (request, model, settings, verdict) into `output/<slug>/`, so any project can ship a track together with the reason it was accepted.
 4. With `--attempts N`, a take below the threshold is retried: the judge's suggestions are appended to the prompt, another take is rendered and judged, and the loop stops on acceptance, when the judge offers nothing actionable, or after `N` takes. The best-scoring take is returned.
 5. `muse list` reads that evidence back and reports scores, verdicts and missing audio without calling any provider; `muse show` prints one artifact's full verdict, suggestions, attempts and settings.
+6. `muse doctor` checks Python, the output path, adapter names and required keys without network calls or writes.
 
 If the score is below the threshold the track is still kept, but `accepted` is `false`. Use `--strict` in automation to fail the command instead. With several attempts, `--strict` judges the best take.
 
@@ -84,6 +85,10 @@ python -m muse batch tracks.json --dry-run --json
 
 # preview which tracks --resume would reuse or retry
 python -m muse batch tracks.json --dry-run --resume
+
+# diagnose the local setup without network calls
+python -m muse doctor
+python -m muse doctor --provider mock --judge mock --json
 
 # review scored evidence, newest first
 python -m muse list --accepted-only --limit 10
@@ -165,6 +170,14 @@ flag on every track.
 
 To start a batch over from scratch, run without `--resume`; that replaces the state file but keeps
 the old artifact folders as evidence.
+
+### Doctor
+
+`muse doctor` checks the local Python version (3.10+), whether the output path is writable, the
+selected provider/judge names, and the keys those adapters require. It never calls a provider or
+judge and never creates the output directory. `--provider`, `--judge`, `--model`, `--judge-model`
+and `--out` check an alternate configuration; `--json` returns the same checks as a machine-readable
+array. The command exits `1` when any check fails, with a `Fix:` line for each failure.
 
 ### Catalog
 
@@ -298,6 +311,7 @@ muse/
 │   ├── catalog.py            <- read-only artifact evidence discovery
 │   ├── cli.py                <- generate / batch / judge / list / show / providers commands
 │   ├── config.py             <- environment, defaults, secret access
+│   ├── doctor.py             <- read-only local configuration checks
 │   ├── errors.py             <- What / Why / Fix failures
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
 │   ├── pipeline.py           <- render, listen, refine, persist evidence
@@ -312,7 +326,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 178 offline unit tests, no network or keys
+├── tests/                    <- 187 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

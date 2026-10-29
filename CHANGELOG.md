@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.12.0] - 2026-10-29
+
+### Added
+
+- `muse doctor` checks Python, output writability, provider/judge names and
+  required keys without network calls or writes; supports JSON and overrides.
+
 ## [0.11.0] - 2026-10-29
 
 ### Added
