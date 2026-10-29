@@ -124,6 +124,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Add `--match TEXT` (case-insensitive over name, prompt and theme) and `--sort date|score|name` to the read-only catalog. Filtering and sorting happen before `--limit`; date is newest first, score puts unjudged entries last, and name is case-insensitive. The JSON payload includes the active `match` and `sort`.
 - **Consequences**: A large output directory can be queried and ranked in one command without changing evidence. The cost is a slightly larger catalog API and the rule that `--limit` applies to the filtered, sorted result rather than the raw scan.
 
+### ADR-017: Named forced reruns preserve the rest of a resumed batch
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `--resume` reused every accepted track, so replacing one unsatisfactory take required deleting state or rerunning the whole manifest; both discard valid work.
+- **Decision**: Add repeatable `--force NAME` to `muse batch`, matched case-insensitively against manifest labels and valid only with `--resume`. Forced accepted tracks are counted as requiring a render, their new take gets a fresh artifact folder, and every other accepted entry is reused unchanged. Unknown names are rejected before state or artifact writes; `--dry-run --resume --force` reports `render - forced rerender`.
+- **Consequences**: One track can be regenerated without paying for the rest or changing the manifest fingerprint. The cost is a second selection axis in batch state (forced vs reusable), and duplicate labels force every matching track.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

@@ -76,6 +76,9 @@ python -m muse batch tracks.json --attempts 2 --strict --json
 # after a failure, reuse accepted tracks and retry the rest
 python -m muse batch tracks.json --resume --keep-going
 
+# rerender one accepted track and reuse the others
+python -m muse batch tracks.json --resume --force cave
+
 # inspect the plan without calling a provider or judge
 python -m muse batch tracks.json --dry-run --json
 
@@ -144,16 +147,19 @@ state; provider and judge flags are not part of the hash, so run without `--resu
 with a different model. Resume expects the same `--out` and working directory, because evidence
 paths are stored as rendered. `--resume` requires that state, reuses accepted tracks whose audio
 and `muse.json` still exist, and rerenders rejected or failed tracks; missing evidence is reported
-and rerendered.
-`--keep-going` records a failure and continues with the rest of the manifest; without it the first
-failure is recorded and the command stops. A failed track always exits `1`; `--strict` also exits
-`1` when any track is rejected. `--json` prints a `tracks` array plus `total`, `accepted`,
-`rejected`, `failed` and `reused` counts, with a `reused` flag on every track.
+and rerendered. `--force NAME` (repeatable, case-insensitive) rerenders selected accepted tracks
+while reusing the rest; each forced take gets a new artifact folder. It requires `--resume` and
+rejects names that are not in the manifest. `--keep-going` records a failure and continues with the
+rest of the manifest; without it the first failure is recorded and the command stops. A failed
+track always exits `1`; `--strict` also exits `1` when any track is rejected. `--json` prints a
+`tracks` array plus `total`, `accepted`, `rejected`, `failed` and `reused` counts, with a `reused`
+flag on every track.
 
 | Batch flag | Meaning |
 |---|---|
 | `--dry-run` | Validate and print the plan; with `--resume`, preview reuse/retry; no writes or calls |
 | `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
+| `--force NAME` | With `--resume`, rerender these accepted track names (repeatable) |
 | `--keep-going` | Record a failed track and continue with the rest |
 | `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
 
@@ -306,7 +312,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 174 offline unit tests, no network or keys
+├── tests/                    <- 178 offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

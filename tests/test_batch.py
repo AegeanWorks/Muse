@@ -476,6 +476,61 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(code, 0, err.getvalue())
         self.assertIn("Reused: 2", out.getvalue())
 
+    def test_force_rerenders_an_accepted_track(self):
+        path = self.manifest(
+            [
+                {"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village dawn pads", "theme": "village at dawn", "duration": 1, "name": "village"},
+            ]
+        )
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        self.assertEqual(provider.calls, ["cave level drones", "village dawn pads"])
+
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--force", "CAVE"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertEqual(provider.calls, ["cave level drones", "village dawn pads", "cave level drones"])
+        self.assertIn("Reused: 1", out)
+
+    def test_force_requires_resume(self):
+        path = self.manifest([{"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"}])
+        code, _, err = self.run_cli(["batch", str(path), "--force", "cave"])
+        self.assertEqual(code, 1)
+        self.assertIn("--resume", err)
+        self.assertFalse(self.output.exists())
+
+    def test_force_rejects_an_unknown_name(self):
+        path = self.manifest([{"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"}])
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        code, _, err = self.run_cli(
+            ["batch", str(path), "--resume", "--force", "nope"],
+            provider=provider,
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("unknown track", err)
+        self.assertEqual(provider.calls, ["cave level drones"])
+
+    def test_dry_run_resume_force_marks_render(self):
+        path = self.manifest([{"prompt": "cave level drones", "theme": "cave level", "duration": 1, "name": "cave"}])
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(["batch", str(path)], provider=provider)
+        self.assertEqual(code, 0, err)
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--dry-run", "--resume", "--force", "cave", "--json"],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        track = json.loads(out)["tracks"][0]
+        self.assertEqual(track["action"], "render")
+        self.assertIn("forced", track["reason"])
+        self.assertEqual(provider.calls, ["cave level drones"])
+
     def test_resume_reuses_accepted_tracks(self):
         provider = CountingProvider(self.provider)
         path = self.manifest(

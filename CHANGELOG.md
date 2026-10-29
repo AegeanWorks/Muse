@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.11.0] - 2026-10-29
+
+### Added
+
+- `muse batch --resume --force NAME` rerenders selected accepted tracks while
+  reusing the rest; unknown names and use without `--resume` are rejected.
+
 ## [0.10.0] - 2026-10-29
 
 ### Added

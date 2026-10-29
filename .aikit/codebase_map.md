@@ -9,8 +9,8 @@
 - **Total Python Modules**: `31`
 - **Total Classes**: `57`
 - **Total Top-Level Functions**: `73`
-- **Total Class Methods**: `260`
-- **Total Source Lines**: `4955`
+- **Total Class Methods**: `264`
+- **Total Source Lines**: `5043`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `702` lines (`27004` bytes)
+**Size**: `735` lines (`28155` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -113,7 +113,7 @@
 - `def _settings(args, config)`
 - `def _generate(args, settings, provider, judge)`
 - `def _batch(args, settings, provider, judge)`
-- `def _dry_run(args, settings, requests)`
+- `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
@@ -366,7 +366,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `573` lines (`24942` bytes)
+**Size**: `628` lines (`27598` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -415,6 +415,10 @@
   - Method `.test_batch_writes_state_after_each_track()`
   - Method `.test_resume_of_all_accepted_tracks_needs_no_judge_key()`
   - Method `.test_resume_of_all_accepted_tracks_allows_judge_none()`
+  - Method `.test_force_rerenders_an_accepted_track()`
+  - Method `.test_force_requires_resume()`
+  - Method `.test_force_rejects_an_unknown_name()`
+  - Method `.test_dry_run_resume_force_marks_render()`
   - Method `.test_resume_reuses_accepted_tracks()`
   - Method `.test_resume_rerenders_rejected_tracks()`
   - Method `.test_resume_without_state_is_refused()`

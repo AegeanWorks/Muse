@@ -99,6 +99,13 @@ def build_parser() -> argparse.ArgumentParser:
     batch.add_argument("--strict", action="store_true", help="exit 1 when any track is rejected")
     batch.add_argument("--resume", action="store_true", help="reuse accepted tracks from the saved batch state")
     batch.add_argument(
+        "--force",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="with --resume, rerender these accepted track names",
+    )
+    batch.add_argument(
         "--keep-going",
         action="store_true",
         help="record a failed track and continue with the rest of the manifest",
@@ -225,15 +232,33 @@ def _batch(
     judge: MusicJudge | None,
 ) -> int:
     requests = load_manifest(args.manifest)
+    forced = {name.casefold() for name in args.force}
+    labels = {request.label.casefold() for request in requests}
+    if forced and not args.resume:
+        raise ConfigurationError(
+            "--force needs --resume",
+            "forced tracks are selected from saved batch state",
+            "add --resume, or omit --force for a fresh batch",
+        )
+    unknown = sorted(forced - labels)
+    if unknown:
+        raise ConfigurationError(
+            f"unknown track name(s): {', '.join(unknown)}",
+            f"the manifest has: {', '.join(sorted(labels))}",
+            "use a name from the manifest or omit --force",
+        )
     if args.dry_run:
-        return _dry_run(args, settings, requests)
+        return _dry_run(args, settings, requests, forced)
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
     entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
     render_required = any(
-        entry is None or entry["status"] != "accepted" or not _evidence_exists(entry)
-        for entry in entries
+        entry is None
+        or entry["status"] != "accepted"
+        or not _evidence_exists(entry)
+        or request.label.casefold() in forced
+        for request, entry in zip(requests, entries)
     )
     if render_required and settings.judge == "none" and judge is None:
         raise ConfigurationError(
@@ -248,7 +273,12 @@ def _batch(
         save_state(progress, fingerprint, [])
     for index, request in enumerate(requests, 1):
         prior = previous.get(index)
-        if args.resume and prior is not None and prior["status"] == "accepted":
+        if (
+            args.resume
+            and prior is not None
+            and prior["status"] == "accepted"
+            and request.label.casefold() not in forced
+        ):
             if _evidence_exists(prior):
                 entry = dict(prior)
                 entry["reused"] = True
@@ -302,6 +332,7 @@ def _dry_run(
     args: argparse.Namespace,
     settings: MuseConfig,
     requests: tuple[MusicRequest, ...],
+    forced: set[str],
 ) -> int:
     previous: dict[int, dict[str, Any]] = {}
     if args.resume:
@@ -322,7 +353,9 @@ def _dry_run(
                 if isinstance(score, int) and not isinstance(score, bool):
                     previous_score = score
             if previous_status == "accepted":
-                if _evidence_exists(prior):
+                if request.label.casefold() in forced:
+                    reason = "forced rerender"
+                elif _evidence_exists(prior):
                     action = "reuse"
                     reason = "accepted evidence exists"
                 else:

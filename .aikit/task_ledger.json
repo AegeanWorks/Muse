@@ -1,55 +1,17 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-2",
+    "task_id": "muse-batch-force",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1793292868.6042817,
+    "updated_at": 1793293218.5693042,
     "owner": "opencode:main",
     "started_by": "opencode:main",
     "continuations": [],
-    "completed_at": 1793292869.059741
+    "completed_at": 1793293225.1896205
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 8",
-      "phase_num": 3,
-      "description": "Reforge stage 8: window 24, 3 commit(s), 11 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, 1 binary not analysed",
-      "files_affected": [
-        "assets/social-preview.png"
-      ],
-      "status": "in_progress",
-      "timestamp": 1793291419.1969547,
-      "timestamp_str": "2026-10-29 19:30:19",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge:run-1",
-      "phase": "reforge stage 9",
-      "phase_num": 3,
-      "description": "Reforge stage 9: window 27, 3 commit(s), 35 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1793291472.1063106,
-      "timestamp_str": "2026-10-29 19:31:12",
-      "agent": "opencode"
-    },
-    {
-      "task_id": "reforge-run-1",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[4/4] Reforge run-1 complete: 27 commits, 9 stages, 3 repairs accepted; closing edge: fully accepted resume no longer requires a judge",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793291565.466138,
-      "timestamp_str": "2026-10-29 19:32:45",
-      "agent": "opencode:main",
-      "handoff": {
-        "next": "add the final resume/judge-none test, update docs/ignore, run gates, commit and push"
-      }
-    },
     {
       "task_id": "reforge-run-1",
       "phase": "phase 2",
@@ -280,6 +242,49 @@
       "status": "completed",
       "timestamp": 1793292869.0597427,
       "timestamp_str": "2026-10-29 19:54:29",
+      "agent": "opencode:main"
+    },
+    {
+      "task_id": "muse-batch-force",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/3] Plan selective reruns: --force NAME with --resume rerenders chosen accepted tracks, preserves other state, and previews 'forced' in dry-run",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793293012.5473657,
+      "timestamp_str": "2026-10-29 19:56:52",
+      "agent": "opencode:main",
+      "impact_assessment": {
+        "why": "A track can be accepted but still unsatisfactory, or need a new take after a model change; currently the only way to rerender it is to delete state or rerun the whole manifest",
+        "benefits": "One named track can be regenerated while every other accepted track stays reused, with a dry-run preview and unchanged manifest fingerprint",
+        "risks": "contract: new --force flag; dependency: none added; concurrency: sequential batch; state: only forced entries are replaced",
+        "mitigation": "Case-insensitive exact labels, reject unknown names and --force without --resume before any write, include forced tracks in render_required, test state preservation and dry-run"
+      }
+    },
+    {
+      "task_id": "muse-batch-force",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[3/3] Forced reruns complete: 178 tests, 4/4 gates; force rerendered one accepted track, unknown/without-resume rejected, dry-run marked forced; checklists: passed",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1793293218.5693042,
+      "timestamp_str": "2026-10-29 20:00:18",
+      "agent": "opencode:main",
+      "handoff": {
+        "state": "10 modified files",
+        "next": "commit and push the force-rerun release",
+        "evidence": "178 tests OK, force human/dry-run verified"
+      }
+    },
+    {
+      "task_id": "muse-batch-force",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-batch-force' completed successfully.",
+      "status": "completed",
+      "timestamp": 1793293225.1896234,
+      "timestamp_str": "2026-10-29 20:00:25",
       "agent": "opencode:main"
     }
   ]
