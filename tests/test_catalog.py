@@ -180,6 +180,7 @@ class ListCliTests(unittest.TestCase):
         self.assertEqual(code, 0, err)
         payload = json.loads(out)
         self.assertEqual(payload["total"], 2)
+        self.assertEqual(payload["shown"], 2)
         self.assertEqual({artifact["folder"] for artifact in payload["artifacts"]}, {"cave", "sunny"})
         self.assertTrue(payload["artifacts"][0]["audio_exists"])
 
@@ -191,7 +192,10 @@ class ListCliTests(unittest.TestCase):
         self.assertEqual(json.loads(out)["total"], 1)
         code, out, err = self.run_cli(["list", "--limit", "1", "--json"])
         self.assertEqual(code, 0, err)
-        self.assertEqual(json.loads(out)["total"], 1)
+        payload = json.loads(out)
+        self.assertEqual(payload["total"], 2)
+        self.assertEqual(payload["shown"], 1)
+        self.assertEqual(len(payload["artifacts"]), 1)
 
     def test_list_match_and_sort(self):
         write_artifact(self.output, "cave", score=70)

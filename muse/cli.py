@@ -469,18 +469,20 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
     entries, warnings = load_artifacts(
         settings.output_dir,
         accepted_only=args.accepted_only,
-        limit=args.limit,
         match=args.match,
         sort=args.sort,
     )
+    total = len(entries)
+    shown = entries[: args.limit]
     for warning in warnings:
         print(f"Warning: {warning}", file=sys.stderr)
     if args.json:
         print(
             json.dumps(
                 {
-                    "artifacts": [entry.as_dict() for entry in entries],
-                    "total": len(entries),
+                    "artifacts": [entry.as_dict() for entry in shown],
+                    "total": total,
+                    "shown": len(shown),
                     "output": str(settings.output_dir),
                     "match": args.match,
                     "sort": args.sort,
@@ -489,10 +491,10 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
             )
         )
         return 0
-    if not entries:
+    if not shown:
         print(f"No artifacts found under {settings.output_dir}.")
         return 0
-    for entry in entries:
+    for entry in shown:
         if entry.score is None:
             score = "none"
         else:
@@ -500,7 +502,10 @@ def _catalog(args: argparse.Namespace, settings: MuseConfig) -> int:
         state = "accepted" if entry.accepted else "rejected"
         missing = "" if entry.audio_exists else " [audio missing]"
         print(f"{state:<8} {score:<18} {entry.audio_path}{missing}  {entry.theme or entry.prompt}")
-    print(f"Artifacts: {len(entries)}")
+    if total > len(shown):
+        print(f"Artifacts: {len(shown)} shown of {total}")
+    else:
+        print(f"Artifacts: {total}")
     return 0
 
 

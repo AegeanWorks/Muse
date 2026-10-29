@@ -184,10 +184,11 @@ array. The command exits `1` when any check fails, with a `Fix:` line for each f
 `muse list` scans one level of `<out>` for `muse.json`, shows the newest evidence first, and marks
 tracks whose audio file is missing. `--accepted-only` hides rejected tracks, `--match TEXT` filters
 name, prompt and theme case-insensitively, `--sort date|score|name` orders the result (date is
-newest first), `--limit N` caps it (default 20), and `--json` prints the same fields as a
-machine-readable `artifacts` array (folder, name, prompt, theme, duration, score, verdict, accepted,
-attempts, paths and `audio_exists`). It is read-only and never calls a provider. Corrupt, oversized
-or unsupported metadata is reported on stderr and skipped instead of failing the whole listing.
+newest first), and `--limit N` caps the shown rows (default 20). `--json` prints the same fields as
+a machine-readable `artifacts` array (folder, name, prompt, theme, duration, score, verdict,
+accepted, attempts, paths and `audio_exists`); `total` counts every match while `shown` is the
+limited count. It is read-only and never calls a provider. Corrupt, oversized or unsupported
+metadata is reported on stderr and skipped instead of failing the whole listing.
 
 `muse show <folder|muse.json|track-file>` resolves one artifact under `--out` (or from a path) and
 prints its prompt, theme, track, score, summary, strengths, issues, suggestions, attempts and

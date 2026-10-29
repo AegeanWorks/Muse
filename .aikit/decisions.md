@@ -138,6 +138,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Add `muse doctor` with checks for Python 3.10+, output writability, provider and judge names, and required keys. It accepts `--provider`, `--judge`, `--model`, `--judge-model`, `--out` and `--json`, never calls a service, never prints key values and never creates the output directory (it checks the nearest existing ancestor). Failures carry a `Fix:` line and exit `1`.
 - **Consequences**: A setup can be validated before any paid call and alternate adapter choices can be checked in one command. The cost is a second place that knows which adapters need which keys, kept aligned with the registries by tests.
 
+### ADR-019: Catalog totals count matches before the display limit
+- **Date**: 2026-10-29
+- **Status**: Accepted
+- **Context**: `muse list --limit N` loaded and returned only N entries, so `total` was N even when many more artifacts matched; JSON consumers could not tell whether a result set was truncated.
+- **Decision**: The CLI loads and filters all matches, reports `total` as that full count, slices to `--limit` for display, and reports `shown` as the returned count. Human output says `X shown of Y` when truncated. The library `load_artifacts` keeps its own `limit` parameter for callers that want server-side slicing.
+- **Consequences**: Paging metadata is correct and the human summary is honest. The cost is that the CLI parses every matching `muse.json` even when the default limit is small; for local catalogs this is cheaper than incorrect counts.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

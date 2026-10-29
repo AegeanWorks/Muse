@@ -10,7 +10,7 @@
 - **Total Classes**: `60`
 - **Total Top-Level Functions**: `80`
 - **Total Class Methods**: `279`
-- **Total Source Lines**: `5303`
+- **Total Source Lines**: `5312`
 
 ---
 
@@ -101,7 +101,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `760` lines (`29562` bytes)
+**Size**: `765` lines (`29716` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -448,7 +448,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `292` lines (`12116` bytes)
+**Size**: `296` lines (`12289` bytes)
 
 **Classes:**
 - `class CatalogTests`

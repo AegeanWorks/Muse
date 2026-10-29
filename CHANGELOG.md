@@ -9,6 +9,13 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.12.1] - 2026-10-29
+
+### Fixed
+
+- `muse list` now reports `total` matches and `shown` rows separately, so
+  `--limit` no longer hides the true result count.
+
 ## [0.12.0] - 2026-10-29
 
 ### Added
