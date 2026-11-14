@@ -208,6 +208,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: Validate the resolved metadata path, then deduplicate on `Path.resolve()` and pass canonical absolute paths to the rejudge module.
 - **Consequences**: Relative/absolute spellings of one artifact are judged once. The cost is that rejudge reports and writes use absolute metadata paths.
 
+### ADR-029: Requirement analysis combines a WAV profile with judge evidence
+- **Date**: 2026-11-14
+- **Status**: Accepted
+- **Context**: The judge answers theme fit, but a consuming project (a game, a video, an agent pipeline) also needs hard conformance: a duration window, a minimum sample rate, a channel layout, no clipping, a loudness floor and a score floor. Those checks were manual and unstated.
+- **Decision**: `muse analyze ARTIFACT... --requirements FILE` reads one validated JSON object (all keys optional, unknown keys rejected) and evaluates it against two sources: a standard-library WAV profile (duration, rate, channels, peak/RMS dBFS, clipping percent, size) and the artifact's `muse.json` evidence for `require_accepted` and `min_score`. A failed check exits `1`, an invalid requirements file exits `2`, and checks that cannot run (non-WAV audio, no evidence) are `skipped` with a reason instead of failing.
+- **Consequences**: A consuming project states its limits once and gates generated tracks on one machine-readable report that carries both technical and semantic fit. The cost is that non-WAV audio gets only judge-evidence checks until a decoder exists, analysis is one more schema to keep stable, and the requirements document is deliberately strict about unknown keys.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

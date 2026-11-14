@@ -44,11 +44,33 @@ human tour. If they disagree, the CLI and tests are right and this file is a bug
 | `list [--accepted-only] [--json]` | Read the artifact catalog | `artifacts[]`, `total`, `shown`, `output`, `match`, `sort` |
 | `show ARTIFACT [--json]` | Print one artifact's raw evidence | the `muse.json` object (`schema` 1-3: request, track, verdict, attempts, history) |
 | `rejudge ARTIFACT... [--json]` | Re-score without rendering | `artifacts[]` (`old_score`, `score`, `verdict`, `accepted`, `history`), `total`, `accepted` |
+| `analyze ARTIFACT... --requirements FILE [--json]` | Check audio against a consuming project's limits | `requirements` (`path`, `limits`), `artifacts[]` (`ok`, `checks[]`, `failed[]`, `skipped[]`, `profile`, `evidence`), `total`, `passed`, `failed` |
 | `doctor [--json]` | Check the local setup; read-only | `ok`, `checks[]` (`name`, `ok`, `detail`) |
 | `providers [--json]` | Names wired in | `providers`, `judges` |
 
 `verdict` objects carry `score` (0-100), `verdict`, `summary`, `strengths`, `issues`,
 `suggestions`, `judge`, `model` and `threshold`.
+
+## Requirement analysis
+
+`muse analyze` answers the consuming project's question directly: does this track meet the stated
+limits? The requirements file is one JSON object; every key is optional, at least one is required,
+and unknown keys are rejected:
+
+```json
+{"min_duration": 28, "max_duration": 32, "min_sample_rate": 22050,
+ "channels": [1, 2], "max_peak_dbfs": -1.0, "min_rms_dbfs": -30.0,
+ "max_size_mb": 25, "require_accepted": true, "min_score": 60}
+```
+
+- Technical checks read the WAV header and PCM samples: duration, sample rate, channels, peak and
+  RMS loudness in dBFS, clipping percent and file size. Non-WAV audio is not decoded; its
+  technical checks are `skipped`, not failed, and the reason is in `detail`.
+- Judge checks (`require_accepted`, `min_score`) read `muse.json` evidence from the artifact
+  folder; an audio file outside an artifact folder has none, so those checks are `skipped` with a
+  hint to run `muse judge`.
+- One failed check makes the artifact `ok: false` and the command exits `1`; skips never fail.
+  A missing artifact or missing audio exits `1`; an invalid requirements file exits `2`.
 
 ## Cost and safety rules
 

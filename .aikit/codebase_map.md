@@ -6,14 +6,14 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `37`
-- **Total Classes**: `67`
-- **Total Top-Level Functions**: `90`
-- **Total Class Methods**: `312`
-- **Total Source Lines**: `6021`
+- **Total Python Modules**: `39`
+- **Total Classes**: `74`
+- **Total Top-Level Functions**: `102`
+- **Total Class Methods**: `340`
+- **Total Source Lines**: `6825`
 
 ## 🧭 Map Coverage
-- **Indexed**: python (`37` module(s))
+- **Indexed**: python (`39` module(s))
 - **Not indexed by this map**: none (no non-Python source files were found)
 
 ---
@@ -31,6 +31,32 @@
 > *Entry point for ``python -m muse``.*
 
 **Size**: `7` lines (`127` bytes)
+
+---
+
+### [`muse/analysis.py`](muse/analysis.py)
+> *Requirement-based analysis: does a rendered track serve the consuming project?*
+
+**Size**: `445` lines (`15955` bytes)
+
+**Classes:**
+- `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
+  - Method `.as_dict()`
+  - Property `.empty`
+- `class AudioProfile`
+  - Method `.as_dict()`
+
+**Functions:**
+- `def load_requirements(path)`
+- `def requirements_from_mapping(payload)`
+- `def analyze_audio(path)` - *Measure a WAV file; return the profile and an empty reason, or None and why not.*
+- `def evaluate(profile, requirements, evidence, reason)` - *Return one artifact's checks: passed when no check fails.*
+- `def _pcm_values(data, width)`
+- `def _dbfs(ratio)`
+- `def _number(payload, key, *, positive, low, high)`
+- `def _whole(payload, key, *, low, high)`
+- `def _channels(payload)`
+- `def _flag(payload, key)`
 
 ---
 
@@ -105,7 +131,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `904` lines (`35715` bytes)
+**Size**: `992` lines (`39524` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -121,6 +147,7 @@
 - `def _dry_run(args, settings, requests, forced)`
 - `def _judge(args, settings, judge)`
 - `def _rejudge(args, settings, judge)`
+- `def _analyze(args, settings)`
 - `def _doctor(args, config)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
@@ -401,6 +428,48 @@
 **Functions:**
 - `def agents_text()`
 - `def readme_text()`
+
+---
+
+### [`tests/test_analysis.py`](tests/test_analysis.py)
+> *Requirement analysis: profiles, validated limits and the analyze command.*
+
+**Size**: `271` lines (`10432` bytes)
+
+**Classes:**
+- `class Workspace`
+  - Method `.setUp()`
+  - Method `.tone(name, seconds, rate)`
+  - Method `.requirements(payload, name)`
+- `class ProfileTests`
+  - Method `.test_profile_measures_a_mock_tone()`
+  - Method `.test_a_non_wav_file_is_reported_not_crashed()`
+  - Method `.test_a_missing_file_is_reported()`
+- `class RequirementParsingTests`
+  - Method `.test_a_full_document_round_trips()`
+  - Method `.test_a_single_channel_count_is_accepted()`
+  - Method `.test_an_empty_or_unknown_document_is_rejected()`
+  - Method `.test_bad_values_are_rejected()`
+  - Method `.test_a_requirements_file_is_read_with_utf8_bom()`
+- `class EvaluateTests`
+  - Method `.setUp()`
+  - Method `.test_every_limit_passes_on_a_matching_track()`
+  - Method `.test_a_failed_limit_says_which_one()`
+  - Method `.test_missing_audio_skips_but_does_not_fail()`
+  - Method `.test_judge_limits_use_available_evidence()`
+  - Method `.test_judge_limits_are_skipped_without_evidence()`
+- `class AnalyzeCommandTests`
+  - Method `.setUp()`
+  - Method `.test_matching_requirements_pass_and_exit_zero()`
+  - Method `.test_a_failed_limit_exits_one_and_names_it()`
+  - Method `.test_a_bare_audio_file_runs_technical_checks_without_evidence()`
+  - Method `.test_an_audio_file_inside_an_artifact_folder_uses_its_evidence()`
+  - Method `.test_an_invalid_requirements_file_is_usage_misuse()`
+  - Method `.test_a_missing_artifact_is_an_operational_error()`
+  - Method `.test_human_output_reports_failures()`
+
+**Functions:**
+- `def run_cli(arguments)`
 
 ---
 

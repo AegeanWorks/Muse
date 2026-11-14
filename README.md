@@ -118,6 +118,9 @@ python -m muse show cave-level --json
 # re-score existing audio without rendering it again
 python -m muse rejudge cave-level --judge gemini --strict --json
 
+# check finished tracks against the limits a consuming project states
+python -m muse analyze cave-level boss-phase-two --requirements requirements.json --json
+
 # what is wired in?
 python -m muse providers
 ```
@@ -229,6 +232,35 @@ prints its prompt, theme, track, score, summary, strengths, issues, suggestions,
 settings. Multi-take evidence lists every attempt with its score, verdict, audio path and a
 `<- selected` marker. A bare name prefers `--out`; pass an explicit path to inspect a folder
 elsewhere. `--json` prints the raw `muse.json` object instead; `show` writes nothing.
+
+### Requirement analysis
+
+`muse analyze ARTIFACT... --requirements FILE` answers the consuming project's question: does the
+rendered track meet the limits an agent or game states? The requirements file is one JSON object;
+every key is optional, at least one is required, and unknown keys are rejected:
+
+```json
+{
+  "min_duration": 28,
+  "max_duration": 32,
+  "min_sample_rate": 22050,
+  "channels": [1, 2],
+  "max_peak_dbfs": -1.0,
+  "min_rms_dbfs": -30.0,
+  "max_size_mb": 25,
+  "require_accepted": true,
+  "min_score": 60
+}
+```
+
+Technical checks measure the WAV header and PCM samples with the standard library: duration,
+sample rate, channels, peak and RMS loudness in dBFS, clipping percent and file size. Judge checks
+read the artifact's `muse.json` evidence, so `require_accepted` and `min_score` tie theme alignment
+to the same report. Non-WAV audio and bare files without evidence report `skipped` checks with a
+reason; skips never fail. One failed check exits `1`; an invalid requirements file exits `2`;
+`--json` prints `requirements`, `artifacts` (with `checks`, `failed`, `skipped`, `profile` and
+`evidence`), `total`, `passed` and `failed`. Analysis is read-only and never calls a provider or
+judge.
 
 ## Python library
 
@@ -343,6 +375,7 @@ muse/
 ├── muse/
 │   ├── __init__.py           <- public API: compose, judge_track, types, config
 │   ├── __main__.py           <- `python -m muse`
+│   ├── analysis.py           <- requirement checks over WAV profiles and evidence
 │   ├── artifacts.py          <- unique run folders, atomic JSON
 │   ├── audio.py              <- WAV duration, MIME sniffing, offline tone
 │   ├── batch.py              <- JSON manifest parsing and validation

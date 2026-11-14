@@ -12,6 +12,16 @@ All notable changes to Muse are recorded here. Versions follow the project's
   rules, and an offline smoke test. The README links it, and a regression test keeps every
   subcommand and the documented output rules in place.
 
+## [0.15.0] - 2026-11-14
+
+### Added
+
+- `muse analyze ARTIFACT... --requirements FILE` checks finished tracks against a consuming
+  project's limits: duration, sample rate, channels, peak and RMS loudness, clipping, file size,
+  and the judge evidence (`require_accepted`, `min_score`). It is read-only, exits `1` on a failed
+  check and `2` on an invalid requirements file, and reports skipped checks with a reason when the
+  audio is not a WAV or has no evidence.
+
 ## [0.14.5] - 2026-11-14
 
 ### Fixed

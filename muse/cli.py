@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from . import __version__
+from .analysis import analyze_audio, evaluate, load_requirements
 from .audio import wav_duration
 from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
@@ -53,6 +54,8 @@ def main(
             return _show(args, settings)
         if args.command == "rejudge":
             return _rejudge(args, settings, judge)
+        if args.command == "analyze":
+            return _analyze(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -68,8 +71,8 @@ def main(
     except ValueError as exc:
         print(
             f"Error: invalid request: {exc}\n"
-            "Why: the prompt or duration is outside what a music model accepts.\n"
-            f"Fix: pass a non-empty prompt and a duration between 0 and {MAX_DURATION:g} seconds.",
+            "Why: a value, manifest or requirements document is outside what Muse accepts.\n"
+            "Fix: correct the value named above using the README limits, then retry.",
             file=sys.stderr,
         )
         return 2
@@ -138,6 +141,16 @@ def build_parser() -> argparse.ArgumentParser:
     rejudge.add_argument("--min-score", type=int, default=None, help="acceptance threshold 0-100")
     rejudge.add_argument("--strict", action="store_true", help="exit 1 when any new verdict is rejected")
     rejudge.add_argument("--json", action="store_true", help="machine-readable output")
+
+    analyze = subparsers.add_parser(
+        "analyze", help="check existing audio against a consuming project's requirements"
+    )
+    analyze.add_argument("artifacts", nargs="+", help="artifact folders, muse.json or audio files")
+    analyze.add_argument(
+        "--requirements", type=Path, required=True, help="JSON file with the requirement limits"
+    )
+    analyze.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
+    analyze.add_argument("--json", action="store_true", help="machine-readable output")
 
     doctor = subparsers.add_parser("doctor", help="check local configuration without network calls")
     doctor.add_argument("--out", type=Path, default=None, help="artifact directory to check (default: output)")
@@ -553,6 +566,81 @@ def _rejudge(args: argparse.Namespace, settings: MuseConfig, judge: MusicJudge |
         print(f"  {result.entry.metadata_path}")
     print(f"Rejudged: {accepted}/{len(results)} accepted")
     return 1 if args.strict and accepted < len(results) else 0
+
+
+def _analyze(args: argparse.Namespace, settings: MuseConfig) -> int:
+    requirements = load_requirements(args.requirements)
+    limits = requirements.as_dict()
+    results: list[dict[str, Any]] = []
+    for value in args.artifacts:
+        candidate = Path(value)
+        metadata = _resolve_artifact(value, settings.output_dir)
+        evidence: dict[str, Any] | None = None
+        if metadata.is_file():
+            try:
+                entry, _ = load_artifact(metadata)
+            except (OSError, ValueError) as exc:
+                raise MuseError(
+                    f"could not read artifact metadata: {metadata}",
+                    str(exc),
+                    "repair or remove the artifact folder, then retry",
+                ) from exc
+            audio = entry.audio_path
+            name = entry.folder
+            evidence = {
+                "accepted": entry.accepted,
+                "score": entry.score,
+                "verdict": entry.verdict,
+            }
+            if not entry.audio_exists:
+                raise MuseError(
+                    f"audio file not found: {audio}",
+                    "the evidence points at a track that is no longer on disk",
+                    "rerender the track, or analyze another artifact folder",
+                )
+        elif candidate.is_file():
+            audio = candidate
+            metadata = None
+            name = candidate.parent.name or candidate.stem
+        else:
+            raise MuseError(
+                f"artifact not found: {candidate}",
+                "no audio file or muse.json exists at the resolved path",
+                "run `muse list` to find a folder, or pass the audio file directly",
+            )
+        profile, reason = analyze_audio(audio)
+        result = evaluate(profile, requirements, evidence, reason)
+        result.update(
+            {
+                "name": name,
+                "audio": str(audio),
+                "metadata": None if metadata is None else str(metadata),
+                "evidence": evidence,
+            }
+        )
+        results.append(result)
+    passed = sum(1 for result in results if result["ok"])
+    payload = {
+        "requirements": {"path": str(args.requirements), "limits": limits},
+        "artifacts": results,
+        "total": len(results),
+        "passed": passed,
+        "failed": len(results) - passed,
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2))
+    else:
+        print(f"Requirements: {args.requirements} ({len(limits)} limit(s))")
+        for result in results:
+            state = "PASS" if result["ok"] else "FAIL"
+            print(f"[{state}] {result['name']}  {result['audio']}")
+            for check in result["checks"]:
+                if check["status"] == "fail":
+                    print(f"  fail {check['check']}: {check['detail']} (expected {check['expected']})")
+            if result["skipped"]:
+                print(f"  skipped: {', '.join(result['skipped'])}")
+        print(f"Summary: {passed}/{len(results)} artifact(s) meet the requirements")
+    return 0 if passed == len(results) else 1
 
 
 def _doctor(args: argparse.Namespace, config: MuseConfig | None) -> int:
