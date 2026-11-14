@@ -1,122 +1,16 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-export-wav",
+    "task_id": "muse-export-hardening",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1794689912.3193748,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1794691906.6643205,
     "owner": "kiro",
     "started_by": "kiro",
-    "continuations": [],
-    "completed_at": 1794689914.115967,
-    "completed_head": "eb1bd014ff5e5a7be97b252594bfe2c5493fc895"
+    "continuations": []
   },
   "checkpoints": [
-    {
-      "task_id": "muse-batch-requirements",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-batch-requirements' completed successfully.",
-      "status": "completed",
-      "timestamp": 1794687484.363688,
-      "timestamp_str": "2026-11-14 23:18:04",
-      "agent": "kiro",
-      "delivery": {
-        "roots": [
-          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
-        ],
-        "forced": false
-      }
-    },
-    {
-      "task_id": "muse-requirements-fixes",
-      "phase": "planning",
-      "phase_num": 2,
-      "description": "[1/2] Plan: re-evaluate reused batch tracks against the current requirements only; [2/2] derive WAV duration from frames actually read",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794687797.2084413,
-      "timestamp_str": "2026-11-14 23:23:17",
-      "agent": "kiro",
-      "impact_assessment": {
-        "why": "Review found a stale requirements result leaking through batch --resume and truncated WAVs passing min_duration",
-        "benefits": "Batch exit codes and analyze duration checks reflect the real files and the current limits",
-        "risks": "contract: analyze duration and batch unfit counts change only for the buggy cases; dependency: none; concurrency: none; state: stored requirements keys in existing batch state files are ignored or overwritten, no schema change",
-        "mitigation": "Failing-first tests for both bugs; full suite and four gates before each commit"
-      },
-      "plan_digest": "80885d4dc6ce488c65b86883807762e0f3643fbd95e9cf918e935ed921314d90"
-    },
-    {
-      "task_id": "muse-requirements-fixes",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/2] Reused batch tracks judged by current limits only; 247 tests, 4/4 gates pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794687870.7739077,
-      "timestamp_str": "2026-11-14 23:24:30",
-      "agent": "kiro",
-      "checklists": "passed"
-    },
-    {
-      "task_id": "muse-requirements-fixes",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[2/2] WAV duration measured from frames read; 250 tests, 4/4 gates pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794687956.3256326,
-      "timestamp_str": "2026-11-14 23:25:56",
-      "agent": "kiro",
-      "checklists": "passed"
-    },
-    {
-      "task_id": "muse-requirements-fixes",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-requirements-fixes' completed successfully.",
-      "status": "completed",
-      "timestamp": 1794687957.565726,
-      "timestamp_str": "2026-11-14 23:25:57",
-      "agent": "kiro",
-      "delivery": {
-        "roots": [
-          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
-        ],
-        "forced": false
-      }
-    },
-    {
-      "task_id": "muse-requirements-visibility",
-      "phase": "planning",
-      "phase_num": 2,
-      "description": "[1/2] Document max_size_mb as 1,000,000 bytes; [2/2] name skipped requirement checks in the batch summary",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794688004.1250808,
-      "timestamp_str": "2026-11-14 23:26:44",
-      "agent": "kiro",
-      "impact_assessment": {
-        "why": "Review found an undocumented size unit and skipped judge checks that a batch exit 0 hides",
-        "benefits": "Users know the size unit and see when a limit was not actually checked",
-        "risks": "contract: one added human-output line only when checks were skipped, JSON unchanged; dependency: none; concurrency: none; state: none",
-        "mitigation": "Failing-first test for the summary line; suite and gates before each commit"
-      },
-      "plan_digest": "38417482e6fbc181afd2433071c6d3ab0ab4d71887ee3ecc7dfa90acebc67dd8"
-    },
-    {
-      "task_id": "muse-requirements-visibility",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/2] max_size_mb unit documented; 250 tests, 4/4 gates pass",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794688027.1103687,
-      "timestamp_str": "2026-11-14 23:27:07",
-      "agent": "kiro",
-      "checklists": "passed"
-    },
     {
       "task_id": "muse-requirements-visibility",
       "phase": "phase 4",
@@ -306,6 +200,102 @@
         ],
         "forced": false
       }
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "planning",
+      "phase_num": 2,
+      "description": "[1/4] Export reports write failures as write failures, creates the output folder and validates chunk size; [2/4] README analyze example checks the exported file; [3/4] sample_rates requirement key and Keystone preset pin 22050 Hz; [4/4] low-pass filter before downsampling, gated by a measured speed and rejection spike",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794690501.3641815,
+      "timestamp_str": "2026-11-15 00:08:21",
+      "agent": "kiro",
+      "impact_assessment": {
+        "why": "The export review found write errors reported as read errors, a README example that checks the original file, a preset that cannot see the sample rate, and a resampler that aliases tones above the target Nyquist at full level",
+        "benefits": "Accurate error messages, a documented workflow that verifies the exported file, a preset check that matches what Keystone can mix, and exported music without false tones",
+        "risks": "contract: new optional requirement key and a stricter Keystone preset, so raw tracks at other rates now fail it by design; dependency: stdlib only, older Muse versions reject the new key; concurrency: none; state: no schema change, export stays atomic; quality: a pure Python FIR filter may be slow, so it ships only if it meets the measured budget",
+        "mitigation": "Four independent milestones each passing the gates alone; failing-first tests; the filter milestone starts with a spike and a go or no-go measurement; changelog and README state the preset change"
+      },
+      "plan_digest": "b85a4ad8d1030e98cb90fd9189a8151bb67116dac70e32731cd5b8a5509401ba"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "planning",
+      "phase_num": 2,
+      "description": "[1/5] Export reports write failures as write failures, opens the source before creating the output folder, validates chunk size; [2/5] README analyze example checks the exported file; [3/5] retry-unfit skips tracks whose only misses are format limits a rerender cannot change; [4/5] sample_rates key and a separate keystone-mix preset, leaving keystone-audio unchanged; [5/5] low-pass filter before downsampling, 65 taps measured feasible, gated by a go or no-go on the full pipeline",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794690621.6139443,
+      "timestamp_str": "2026-11-15 00:10:21",
+      "agent": "kiro",
+      "impact_assessment": {
+        "why": "Review of the plan found that pinning the rate in the existing preset would make every raw batch track unfit, and that retry-unfit already rerenders format misses forever, one billed take per run; the filter budget was also unmeasured",
+        "benefits": "Accurate export errors, a verifiable workflow, no futile billed rerenders, a preset that matches what Keystone can mix, and exported music without false tones",
+        "risks": "contract: retry-unfit stops rerendering format-only misses and says so, new optional requirement key, a new preset file, existing preset unchanged; dependency: stdlib only, older Muse rejects the new key; concurrency: none; state: no schema change, export stays atomic; quality: pure Python polyphase FIR is about 8 s for 3 minutes of filter work plus 3 s baseline, so the budget is 20 s",
+        "mitigation": "Five independent milestones each passing the gates alone; failing-first tests; the retry-unfit fix lands before the rate key; the filter milestone ends with a full pipeline timing and a stop if it misses 20 s"
+      },
+      "plan_digest": "b4c9c5b3c8b083af76128261d4152dd7108b2862a88f7cfec72520e67e87d714"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/5] export write errors reported as write errors, output folders created lazily, chunk size validated; 307 tests, 4/4 gates pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794690774.7820554,
+      "timestamp_str": "2026-11-15 00:12:54",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/5] README export example analyzes the exported file, pinned by a test and run end to end; 308 tests, 4/4 gates pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794690909.8483756,
+      "timestamp_str": "2026-11-15 00:15:09",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[3/5] retries skip tracks that miss a format limit; 318 tests, 4/4 gates pass, reprobe shows no extra takes",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794691098.7341306,
+      "timestamp_str": "2026-11-15 00:18:18",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[4/5] sample_rates key and keystone-mix preset; 328 tests, 4/4 gates pass, raw and exported files checked against both presets",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794691315.863577,
+      "timestamp_str": "2026-11-15 00:21:55",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-export-hardening",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[5/5] anti-alias low-pass before downsampling: 55 dB worst-case rejection, 3 min stereo 44.1k exports in 9.9 s; 342 tests, 4/4 gates pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794691906.6643205,
+      "timestamp_str": "2026-11-15 00:31:46",
+      "agent": "kiro",
+      "checklists": "passed"
     }
   ]
 }
