@@ -3,8 +3,8 @@
   "active_task": {
     "task_id": "muse-keystone-bridge",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1794683243.1693892,
     "owner": "kilo:goal",
     "started_by": "kilo:goal",
@@ -14,25 +14,10 @@
         "name": "muse",
         "path": "projects/muse"
       }
-    ]
+    ],
+    "completed_at": 1794683267.020329
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-16",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'reforge:run-16' completed successfully.",
-      "status": "completed",
-      "timestamp": 1794679493.1050982,
-      "timestamp_str": "2026-11-14 21:04:53",
-      "agent": "kilo:goal",
-      "delivery": {
-        "roots": [
-          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
-        ],
-        "forced": false
-      }
-    },
     {
       "task_id": "reforge:run-17",
       "phase": "reforge run",
@@ -407,6 +392,22 @@
           "path": "projects/muse"
         }
       ]
+    },
+    {
+      "task_id": "muse-keystone-bridge",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-keystone-bridge' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794683267.0203316,
+      "timestamp_str": "2026-11-14 22:07:47",
+      "agent": "kilo:goal",
+      "delivery": {
+        "roots": [
+          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
+        ],
+        "forced": false
+      }
     }
   ]
 }
