@@ -43,6 +43,18 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 | Repair memory and map, then check | `python aikit.py fix muse` |
 | Resume an interrupted task | `python aikit.py resume muse` |
 
+## ğŸ¤– For AI Agents
+
+- Start with [AGENTS.md](AGENTS.md): the command-to-JSON map, exit codes, cost rules and an
+  offline smoke test in one short file.
+- Drive every command with `--json`; stdout is one JSON object and failures go to stderr with
+  `Why:` and `Fix:`. Exit codes: `0` success, `1` operational failure or `--strict` rejection,
+  `2` misuse.
+- Test free and offline with `--provider mock --judge mock`; plan paid work with `--dry-run`.
+  Keys come only from `REPLICATE_API_TOKEN` and `GEMINI_API_KEY`; never print or commit them.
+- Evidence is `<out>/<slug>/muse.json` beside the audio; read it with `muse list` and
+  `muse show` instead of parsing the folder by hand.
+
 ## What it does
 
 1. A **provider** renders your prompt into audio (default: `stability-ai/stable-audio-2.5` on Replicate).
@@ -320,6 +332,7 @@ empty run folder.
 muse/
 ├── pyproject.toml            <- zero-dependency packaging, `muse` console script
 ├── .gitignore                <- generated output and transient state excluded
+├── AGENTS.md                 <- agent contract: JSON fields, exit codes, cost rules
 ├── LICENSE                   <- Aegean License 1.1 (AL-1.1): free personal use
 ├── LICENSES/                 <- REUSE license texts
 ├── REUSE.toml                <- Machine-readable SPDX metadata
@@ -353,7 +366,7 @@ muse/
 │       ├── mock.py           <- offline sine tone
 │       ├── replicate.py      <- hosted model adapter
 │       └── registry.py       <- name-to-provider lookup
-├── tests/                    <- 205 offline unit tests, no network or keys
+├── tests/                    <- offline unit tests, no network or keys
 └── .aikit/                   <- this project's memory: ledger, decisions
 ```
 

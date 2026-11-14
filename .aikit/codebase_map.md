@@ -6,14 +6,14 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `36`
-- **Total Classes**: `66`
-- **Total Top-Level Functions**: `88`
-- **Total Class Methods**: `307`
-- **Total Source Lines**: `5966`
+- **Total Python Modules**: `37`
+- **Total Classes**: `67`
+- **Total Top-Level Functions**: `90`
+- **Total Class Methods**: `312`
+- **Total Source Lines**: `6020`
 
 ## 🧭 Map Coverage
-- **Indexed**: python (`36` module(s))
+- **Indexed**: python (`37` module(s))
 - **Not indexed by this map**: none (no non-Python source files were found)
 
 ---
@@ -382,6 +382,25 @@
 > *Regression shield for Muse.*
 
 **Size**: `1` lines (`34` bytes)
+
+---
+
+### [`tests/test_agent_docs.py`](tests/test_agent_docs.py)
+> *Agent documentation: the contract names every command and stays short.*
+
+**Size**: `54` lines (`1782` bytes)
+
+**Classes:**
+- `class AgentContractTests`
+  - Method `.test_contract_names_every_subcommand()`
+  - Method `.test_contract_states_the_output_and_exit_codes()`
+  - Method `.test_contract_names_the_offline_adapters_and_keys()`
+  - Method `.test_readme_links_the_contract()`
+  - Method `.test_contract_stays_a_single_screen()`
+
+**Functions:**
+- `def agents_text()`
+- `def readme_text()`
 
 ---
 

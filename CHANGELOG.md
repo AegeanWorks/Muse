@@ -8,6 +8,9 @@ All notable changes to Muse are recorded here. Versions follow the project's
 ### Added
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
+- `AGENTS.md` is the agent contract: the command-to-JSON map, exit codes, cost and safety
+  rules, and an offline smoke test. The README links it, and a regression test keeps every
+  subcommand and the documented output rules in place.
 
 ## [0.14.5] - 2026-11-14
 
