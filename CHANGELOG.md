@@ -6,6 +6,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 ## [Unreleased]
 
 ### Added
+- `muse batch --resume --retry-unfit --requirements FILE` rerenders only the accepted tracks that miss the limits and reuses the rest. It needs both other options, and `--dry-run` previews the plan with the reason `unfit rerender`. Each rerender is a billed take.
 - `muse batch --requirements FILE` checks every rendered or reused track against the same limits file `analyze` accepts, adds an `unfit` count and a per-track `requirements` result to the JSON, names unfit tracks in the summary and exits `1` when any track misses a limit.
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.

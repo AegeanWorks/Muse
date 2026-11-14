@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
-- **Total Top-Level Functions**: `104`
-- **Total Class Methods**: `359`
-- **Total Source Lines**: `7129`
+- **Total Top-Level Functions**: `105`
+- **Total Class Methods**: `364`
+- **Total Source Lines**: `7239`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -131,7 +131,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1067` lines (`42917` bytes)
+**Size**: `1114` lines (`44854` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -144,7 +144,7 @@
 - `def _generate(args, settings, provider, judge)`
 - `def _dry_run_generate(args, settings, request)`
 - `def _batch(args, settings, provider, judge)`
-- `def _dry_run(args, settings, requests, forced)`
+- `def _dry_run(args, settings, requests, forced, unfit)`
 - `def _judge(args, settings, judge)`
 - `def _rejudge(args, settings, judge)`
 - `def _analyze(args, settings)`
@@ -156,6 +156,7 @@
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
+- `def _unfit_labels(requests, previous, requirements)` - *Return the folded names of accepted, still-present tracks that miss the requirements.*
 - `def _attach_requirements(entry, requirements)` - *Evaluate the track against the batch requirements and store the checks on the entry.*
 - `def _batch_payload(entries)`
 - `def _filled(entries)`
@@ -506,7 +507,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `734` lines (`32383` bytes)
+**Size**: `797` lines (`35348` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -561,6 +562,11 @@
   - Method `.test_batch_requirements_apply_to_reused_tracks()`
   - Method `.test_resume_without_requirements_drops_the_stored_result()`
   - Method `.test_resume_judges_reused_tracks_by_the_current_limits()`
+  - Method `.two_tracks()`
+  - Method `.test_retry_unfit_rerenders_only_the_tracks_that_miss_the_limits()`
+  - Method `.test_retry_unfit_reuses_everything_when_every_track_fits()`
+  - Method `.test_retry_unfit_needs_resume_and_requirements()`
+  - Method `.test_dry_run_previews_the_unfit_rerender()`
   - Method `.test_batch_summary_names_skipped_requirement_checks()`
   - Method `.test_batch_summary_is_quiet_when_every_check_ran()`
   - Method `.test_batch_requirements_invalid_file_exits_two()`

@@ -511,6 +511,69 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(payload["unfit"], 0)
         self.assertTrue(payload["tracks"][0]["requirements"]["ok"])
 
+    def two_tracks(self):
+        return self.manifest(
+            [
+                {"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"},
+                {"prompt": "village pads", "theme": "village dawn", "duration": 3, "name": "village"},
+            ]
+        )
+
+    def test_retry_unfit_rerenders_only_the_tracks_that_miss_the_limits(self):
+        path = self.two_tracks()
+        limits = self.requirements_file({"min_duration": 2})
+        provider = CountingProvider(self.provider)
+        code, _, _ = self.run_cli(
+            ["batch", str(path), "--requirements", str(limits)], provider=provider
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(provider.calls, ["cave drones", "village pads"])
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--retry-unfit", "--requirements", str(limits)],
+            provider=provider,
+        )
+        self.assertEqual(provider.calls, ["cave drones", "village pads", "cave drones"])
+        self.assertIn("Reused: 1", out)
+
+    def test_retry_unfit_reuses_everything_when_every_track_fits(self):
+        path = self.two_tracks()
+        limits = self.requirements_file({"min_duration": 0.5})
+        provider = CountingProvider(self.provider)
+        self.run_cli(["batch", str(path), "--requirements", str(limits)], provider=provider)
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--retry-unfit", "--requirements", str(limits)],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertEqual(len(provider.calls), 2)
+        self.assertIn("Reused: 2", out)
+
+    def test_retry_unfit_needs_resume_and_requirements(self):
+        path = self.one_track()
+        limits = self.requirements_file({"min_duration": 0.5})
+        code, _, err = self.run_cli(["batch", str(path), "--retry-unfit", "--requirements", str(limits)])
+        self.assertEqual(code, 1)
+        self.assertIn("--retry-unfit needs --resume", err)
+        code, _, err = self.run_cli(["batch", str(path), "--resume", "--retry-unfit"])
+        self.assertEqual(code, 1)
+        self.assertIn("--retry-unfit needs --requirements", err)
+
+    def test_dry_run_previews_the_unfit_rerender(self):
+        path = self.two_tracks()
+        limits = self.requirements_file({"min_duration": 2})
+        self.run_cli(["batch", str(path), "--requirements", str(limits)])
+        code, out, err = self.run_cli(
+            [
+                "batch", str(path), "--resume", "--retry-unfit", "--dry-run",
+                "--requirements", str(limits), "--json",
+            ]
+        )
+        self.assertEqual(code, 0, err)
+        tracks = {track["name"]: track for track in json.loads(out)["tracks"]}
+        self.assertEqual(tracks["cave"]["action"], "render")
+        self.assertEqual(tracks["cave"]["reason"], "unfit rerender")
+        self.assertEqual(tracks["village"]["action"], "reuse")
+
     def test_batch_summary_names_skipped_requirement_checks(self):
         limits = self.requirements_file({"min_duration": 0.5, "min_score": 50})
         with patch("muse.cli.analyze_audio", return_value=(None, "the audio is not a WAV")):

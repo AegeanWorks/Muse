@@ -95,6 +95,8 @@ python -m muse batch tracks.json --resume --keep-going
 
 # rerender one accepted track and reuse the others
 python -m muse batch tracks.json --resume --force cave
+# rerender only the accepted tracks that miss requirements.json
+python -m muse batch tracks.json --resume --retry-unfit --requirements requirements.json
 
 # inspect the plan without calling a provider or judge
 python -m muse batch tracks.json --dry-run --json
@@ -190,6 +192,7 @@ flag on every track.
 | `--dry-run` | Validate and print the plan; with `--resume`, preview reuse/retry; no writes or calls |
 | `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
 | `--force NAME` | With `--resume`, rerender these accepted track names (repeatable) |
+| `--retry-unfit` | With `--resume` and `--requirements`, rerender accepted tracks that miss the limits; each rerender is a billed take |
 | `--keep-going` | Record a failed track and continue with the rest |
 | `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
 

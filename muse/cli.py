@@ -6,7 +6,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import AbstractSet, Any, Mapping, Sequence
 
 from . import __version__
 from .analysis import TrackRequirements, analyze_audio, evaluate, load_requirements
@@ -114,6 +114,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=[],
         metavar="NAME",
         help="with --resume, rerender these accepted track names",
+    )
+    batch.add_argument(
+        "--retry-unfit",
+        action="store_true",
+        help="with --resume and --requirements, rerender accepted tracks that miss the limits",
     )
     batch.add_argument(
         "--keep-going",
@@ -327,11 +332,25 @@ def _batch(
             f"the manifest has: {', '.join(sorted(labels))}",
             "use a name from the manifest or omit --force",
         )
-    if args.dry_run:
-        return _dry_run(args, settings, requests, forced)
+    if args.retry_unfit and not args.resume:
+        raise ConfigurationError(
+            "--retry-unfit needs --resume",
+            "unfit tracks are found in the saved batch state",
+            "add --resume, or omit --retry-unfit for a fresh batch",
+        )
+    if args.retry_unfit and requirements is None:
+        raise ConfigurationError(
+            "--retry-unfit needs --requirements",
+            "a track is unfit only against a requirements file",
+            "add --requirements FILE, or omit --retry-unfit",
+        )
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
+    unfit = _unfit_labels(requests, previous, requirements) - forced if args.retry_unfit else set()
+    forced = forced | unfit
+    if args.dry_run:
+        return _dry_run(args, settings, requests, forced, unfit)
     entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
     render_required = any(
         entry is None
@@ -438,6 +457,7 @@ def _dry_run(
     settings: MuseConfig,
     requests: tuple[MusicRequest, ...],
     forced: set[str],
+    unfit: AbstractSet[str] = frozenset(),
 ) -> int:
     previous: dict[int, dict[str, Any]] = {}
     if args.resume:
@@ -458,7 +478,9 @@ def _dry_run(
                 if isinstance(score, int) and not isinstance(score, bool):
                     previous_score = score
             if previous_status == "accepted":
-                if request.label.casefold() in forced:
+                if request.label.casefold() in unfit:
+                    reason = "unfit rerender"
+                elif request.label.casefold() in forced:
                     reason = "forced rerender"
                 elif _evidence_exists(prior):
                     action = "reuse"
@@ -887,6 +909,31 @@ def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
         "verdict": None if attempt.verdict is None else attempt.verdict.verdict,
         "accepted": attempt.accepted,
     }
+
+
+def _unfit_labels(
+    requests: Sequence[MusicRequest],
+    previous: Mapping[int, dict[str, Any]],
+    requirements: TrackRequirements | None,
+) -> set[str]:
+    """Return the folded names of accepted, still-present tracks that miss the requirements."""
+    labels: set[str] = set()
+    for index, request in enumerate(requests, 1):
+        prior = previous.get(index)
+        if prior is None or prior["status"] != "accepted" or not _evidence_exists(prior):
+            continue
+        probe = {
+            "payload": {
+                key: value
+                for key, value in (prior.get("payload") or {}).items()
+                if key != "requirements"
+            }
+        }
+        _attach_requirements(probe, requirements)
+        result = probe["payload"].get("requirements")
+        if isinstance(result, dict) and result.get("ok") is False:
+            labels.add(request.label.casefold())
+    return labels
 
 
 def _attach_requirements(entry: dict[str, Any], requirements: TrackRequirements | None) -> None:
