@@ -59,13 +59,16 @@ and unknown keys are rejected:
 
 ```json
 {"min_duration": 28, "max_duration": 32, "min_sample_rate": 22050,
- "channels": [1, 2], "max_peak_dbfs": -1.0, "min_rms_dbfs": -30.0,
- "max_size_mb": 25, "require_accepted": true, "min_score": 60}
+ "channels": [1, 2], "sample_width_bits": [16], "max_peak_dbfs": -1.0,
+ "min_rms_dbfs": -30.0, "max_size_mb": 25, "require_accepted": true,
+ "min_score": 60}
 ```
 
-- Technical checks read the WAV header and PCM samples: duration, sample rate, channels, peak and
-  RMS loudness in dBFS, clipping percent and file size. Non-WAV audio is not decoded; its
-  technical checks are `skipped`, not failed, and the reason is in `detail`.
+- Technical checks read the WAV header and PCM samples: duration, sample rate, channels, bit
+  depth, peak and RMS loudness in dBFS, clipping percent and file size. Non-WAV audio is not
+  decoded; its technical checks are `skipped`, not failed, and the reason is in `detail`.
+- `presets/keystone-audio.json` (`channels: [1]`, `sample_width_bits: [16]`) states Keystone's
+  `read_wav` contract; a track that passes it loads through `keystone.audio.read_wav` unchanged.
 - Judge checks (`require_accepted`, `min_score`) read `muse.json` evidence from the artifact
   folder; an audio file outside an artifact folder has none, so those checks are `skipped` with a
   hint to run `muse judge`.

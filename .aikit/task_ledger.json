@@ -1,11 +1,11 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "reforge:run-18",
+    "task_id": "muse-keystone-bridge",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1794682236.5140162,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1794683243.1693892,
     "owner": "kilo:goal",
     "started_by": "kilo:goal",
     "continuations": [],
@@ -14,52 +14,9 @@
         "name": "muse",
         "path": "projects/muse"
       }
-    ],
-    "completed_at": 1794682254.2682166
+    ]
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-16",
-      "phase": "resumed",
-      "phase_num": 3,
-      "description": "Resumed 'reforge:run-16' after a pause",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794679465.8751357,
-      "timestamp_str": "2026-11-14 21:04:25",
-      "agent": "kilo:goal"
-    },
-    {
-      "task_id": "reforge:run-16",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-16 complete: start=2 step=2 stop=2, 3/3 hunks reviewed, 0 findings; the analyze JSON clarification attested; checklists: passed",
-      "files_affected": [
-        ".aikit/task_ledger.json",
-        ".aikit/task_ledger_archive.jsonl"
-      ],
-      "status": "in_progress",
-      "timestamp": 1794679491.4166186,
-      "timestamp_str": "2026-11-14 21:04:51",
-      "agent": "kilo:goal",
-      "measurements": [
-        {
-          "candidate": 3.0,
-          "metric": "hunks_reviewed",
-          "baseline": 0.0,
-          "artifact": ".aikit/reforge.reviews/stage-run-16-1-cf8031571012.md",
-          "command": "python aikit.py reforge review muse --stage 1 --run run-16 --findings <file>",
-          "unit": "hunks"
-        }
-      ],
-      "checklists": "passed",
-      "workspaces": [
-        {
-          "name": "muse",
-          "path": "projects/muse"
-        }
-      ]
-    },
     {
       "task_id": "reforge:run-16",
       "phase": "completed",
@@ -372,6 +329,84 @@
         ],
         "forced": false
       }
+    },
+    {
+      "task_id": "muse-keystone-bridge",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/4] Plan the Keystone integration groundwork: add a sample_width_bits requirement so 'muse analyze' can express Keystone's mono-16-bit read_wav contract, ship a presets/keystone-audio.json, document the bridge, and prove a Muse-rendered track loads through keystone.audio.read_wav",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794682663.0201948,
+      "timestamp_str": "2026-11-14 21:57:43",
+      "agent": "kilo:goal",
+      "impact_assessment": {
+        "why": "Hard integration is the stated direction; Keystone's audio core only reads mono 16-bit WAV, and Muse's analyzer can check channels but not bit depth, so the contract cannot be expressed or gated today",
+        "benefits": "The Keystone audio contract becomes a one-line requirements gate, and end-to-end compatibility is measured rather than assumed",
+        "risks": "contract: one new requirement key and a data preset; dependency: none (verification imports keystone locally only, never vendors it); concurrency: none; state: CHANGELOG, version, ADR, ledger",
+        "mitigation": "Mirror the existing channels parser, cover int/list/invalid forms, verify with a real keystone.audio.read_wav call, then run the suite and gates"
+      },
+      "plan_digest": "7f1b7ae789dc02c3b1b0b6aadf0da721b8857ee35491431058628c89c4a6f6ad",
+      "workspaces": [
+        {
+          "name": "muse",
+          "path": "projects/muse"
+        }
+      ]
+    },
+    {
+      "task_id": "muse-keystone-bridge",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/4] Keystone groundwork complete: sample_width_bits requirement key (8/16/24/32, list or single) with 3 new tests, presets/keystone-audio.json, README bridge example, AGENTS contract row, ADR-030, 0.16.0; verified a mock render passes the preset and loads through keystone.audio.read_wav (2.0s, 8000 Hz); 239 tests and 4/4 gates; checklists: passed",
+      "files_affected": [
+        ".aikit/codebase_map.md",
+        ".aikit/decisions.md",
+        ".aikit/task_ledger.json",
+        ".aikit/task_ledger_archive.jsonl",
+        "AGENTS.md",
+        "CHANGELOG.md",
+        "README.md",
+        "muse/__init__.py",
+        "muse/analysis.py",
+        "pyproject.toml",
+        "tests/test_analysis.py",
+        "presets/keystone-audio.json"
+      ],
+      "status": "in_progress",
+      "timestamp": 1794683243.1693892,
+      "timestamp_str": "2026-11-14 22:07:23",
+      "agent": "kilo:goal",
+      "measurements": [
+        {
+          "unit": "tests",
+          "metric": "analysis_tests",
+          "artifact": "tests/test_analysis.py",
+          "baseline": 22.0,
+          "command": "python -m unittest tests.test_analysis",
+          "candidate": 25.0
+        },
+        {
+          "unit": "tests",
+          "metric": "test_suite",
+          "artifact": "presets/keystone-audio.json",
+          "baseline": 236.0,
+          "command": "python -m unittest discover -s tests -t .",
+          "candidate": 239.0
+        }
+      ],
+      "checklists": "passed",
+      "handoff": {
+        "state": "version 0.16.0",
+        "next": "commit, close, audit with reforge",
+        "evidence": "verify_keystone_bridge gate exit 0 with channels+sample_width_bits pass, read_wav returned 2.0s/8000Hz, 239 tests OK"
+      },
+      "workspaces": [
+        {
+          "name": "muse",
+          "path": "projects/muse"
+        }
+      ]
     }
   ]
 }

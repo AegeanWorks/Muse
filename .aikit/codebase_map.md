@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
-- **Total Top-Level Functions**: `102`
-- **Total Class Methods**: `341`
-- **Total Source Lines**: `6879`
+- **Total Top-Level Functions**: `103`
+- **Total Class Methods**: `344`
+- **Total Source Lines**: `6936`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `446` lines (`16065` bytes)
+**Size**: `481` lines (`17503` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -55,6 +55,7 @@
 - `def _number(payload, key, *, positive, low, high)`
 - `def _whole(payload, key, *, low, high)`
 - `def _channels(payload)`
+- `def _widths(payload)`
 - `def _flag(payload, key)`
 
 ---
@@ -433,7 +434,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `311` lines (`12192` bytes)
+**Size**: `333` lines (`13333` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -447,6 +448,8 @@
 - `class RequirementParsingTests`
   - Method `.test_a_full_document_round_trips()`
   - Method `.test_a_single_channel_count_is_accepted()`
+  - Method `.test_a_single_bit_depth_is_accepted()`
+  - Method `.test_an_unsupported_bit_depth_is_rejected()`
   - Method `.test_an_empty_or_unknown_document_is_rejected()`
   - Method `.test_bad_values_are_rejected()`
   - Method `.test_a_requirements_file_is_read_with_utf8_bom()`
@@ -454,6 +457,7 @@
   - Method `.setUp()`
   - Method `.test_every_limit_passes_on_a_matching_track()`
   - Method `.test_a_failed_limit_says_which_one()`
+  - Method `.test_a_bit_depth_limit_fails_with_the_measured_width()`
   - Method `.test_missing_audio_skips_but_does_not_fail()`
   - Method `.test_judge_limits_use_available_evidence()`
   - Method `.test_judge_limits_are_skipped_without_evidence()`

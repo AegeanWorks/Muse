@@ -245,6 +245,7 @@ every key is optional, at least one is required, and unknown keys are rejected:
   "max_duration": 32,
   "min_sample_rate": 22050,
   "channels": [1, 2],
+  "sample_width_bits": [16],
   "max_peak_dbfs": -1.0,
   "min_rms_dbfs": -30.0,
   "max_size_mb": 25,
@@ -254,15 +255,27 @@ every key is optional, at least one is required, and unknown keys are rejected:
 ```
 
 Technical checks measure the WAV header and PCM samples with the standard library: duration,
-sample rate, channels, peak and RMS loudness in dBFS, clipping percent and file size. Judge checks
-read the artifact's `muse.json` evidence, so `require_accepted` and `min_score` tie theme alignment
-to the same report. Non-WAV audio and bare files without evidence report `skipped` checks with a
-reason; skips never fail. One failed check exits `1`; an invalid requirements file exits `2`;
-`--json` prints `requirements`, `artifacts` (with `checks`, `failed`, `skipped`, `profile` and
-`evidence`), `total`, `passed` and `failed`. `require_accepted` accepts only `true`; omit it to
-skip the acceptance check. Naming an audio file analyzes that file, even when a sibling
-`muse.json` describes a different track. Analysis is read-only and never calls a provider or
-judge.
+sample rate, channels, bit depth, peak and RMS loudness in dBFS, clipping percent and file size.
+Judge checks read the artifact's `muse.json` evidence, so `require_accepted` and `min_score` tie
+theme alignment to the same report. Non-WAV audio and bare files without evidence report
+`skipped` checks with a reason; skips never fail. One failed check exits `1`; an invalid
+requirements file exits `2`; `--json` prints `requirements`, `artifacts` (with `checks`,
+`failed`, `skipped`, `profile` and `evidence`), `total`, `passed` and `failed`.
+`require_accepted` accepts only `true`; omit it to skip the acceptance check. Naming an audio
+file analyzes that file, even when a sibling `muse.json` describes a different track. Analysis is
+read-only and never calls a provider or judge.
+
+A consuming project's contract can live beside the project as a preset. Muse ships
+`presets/keystone-audio.json` for Keystone, whose `read_wav` accepts only mono 16-bit PCM:
+
+```bash
+python -m muse generate "cave drones" --theme "cave level" --provider mock --judge mock
+python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
+```
+
+A track that passes both checks loads through `keystone.audio.read_wav` unchanged; the engine
+keeps ownership of mixing and playback, and the `muse.json` beside the audio stays the evidence
+that the track was judged.
 
 ## Python library
 
@@ -374,6 +387,7 @@ muse/
 ├── CHANGELOG.md              <- Release history
 ├── README.md
 ├── assets/
+├── presets/                  <- consumer requirement documents (keystone-audio.json)
 ├── muse/
 │   ├── __init__.py           <- public API: compose, judge_track, types, config
 │   ├── __main__.py           <- `python -m muse`

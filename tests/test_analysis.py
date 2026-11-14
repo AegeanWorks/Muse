@@ -77,6 +77,7 @@ class RequirementParsingTests(Workspace):
             "max_duration": 32,
             "min_sample_rate": 22050,
             "channels": [1, 2],
+            "sample_width_bits": [16, 24],
             "min_rms_dbfs": -30,
             "max_peak_dbfs": -1,
             "max_size_mb": 25,
@@ -86,10 +87,22 @@ class RequirementParsingTests(Workspace):
         requirements = requirements_from_mapping(payload)
         self.assertEqual(requirements.as_dict()["min_duration"], 28.0)
         self.assertEqual(requirements.channels, (1, 2))
+        self.assertEqual(requirements.sample_width_bits, (16, 24))
         self.assertTrue(requirements.require_accepted)
 
     def test_a_single_channel_count_is_accepted(self):
         self.assertEqual(requirements_from_mapping({"channels": 2}).channels, (2,))
+
+    def test_a_single_bit_depth_is_accepted(self):
+        self.assertEqual(
+            requirements_from_mapping({"sample_width_bits": 16}).sample_width_bits, (16,)
+        )
+
+    def test_an_unsupported_bit_depth_is_rejected(self):
+        for payload in ({"sample_width_bits": 12}, {"sample_width_bits": [16, 20]},
+                        {"sample_width_bits": []}, {"sample_width_bits": True}):
+            with self.subTest(payload=payload), self.assertRaises(ValueError):
+                requirements_from_mapping(payload)
 
     def test_an_empty_or_unknown_document_is_rejected(self):
         with self.assertRaises(ValueError):
@@ -134,6 +147,7 @@ class EvaluateTests(Workspace):
                 "max_duration": 5,
                 "min_sample_rate": 8000,
                 "channels": [1, 2],
+                "sample_width_bits": [16],
                 "min_rms_dbfs": -60,
                 "max_peak_dbfs": -0.1,
                 "max_size_mb": 1,
@@ -149,6 +163,14 @@ class EvaluateTests(Workspace):
         result = evaluate(self.profile, requirements, None)
         self.assertFalse(result["ok"])
         self.assertEqual(result["failed"], ["min_duration"])
+
+    def test_a_bit_depth_limit_fails_with_the_measured_width(self):
+        requirements = requirements_from_mapping({"sample_width_bits": [8, 24]})
+        result = evaluate(self.profile, requirements, None)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["failed"], ["sample_width_bits"])
+        check = next(item for item in result["checks"] if item["check"] == "sample_width_bits")
+        self.assertEqual(check["actual"], 16)
 
     def test_missing_audio_skips_but_does_not_fail(self):
         requirements = requirements_from_mapping({"min_duration": 1, "max_peak_dbfs": -1})

@@ -215,6 +215,13 @@ contract, a dependency, a data format or the architecture; IDs are consecutive a
 - **Decision**: `muse analyze ARTIFACT... --requirements FILE` reads one validated JSON object (all keys optional, unknown keys rejected) and evaluates it against two sources: a standard-library WAV profile (duration, rate, channels, peak/RMS dBFS, clipping percent, size) and the artifact's `muse.json` evidence for `require_accepted` and `min_score`. A failed check exits `1`, an invalid requirements file exits `2`, and checks that cannot run (non-WAV audio, no evidence) are `skipped` with a reason instead of failing.
 - **Consequences**: A consuming project states its limits once and gates generated tracks on one machine-readable report that carries both technical and semantic fit. The cost is that non-WAV audio gets only judge-evidence checks until a decoder exists, analysis is one more schema to keep stable, and the requirements document is deliberately strict about unknown keys.
 
+### ADR-030: Requirements gate bit depth, and Keystone ships as a preset
+- **Date**: 2026-11-14
+- **Status**: Accepted
+- **Context**: Hard integration with Keystone is planned. `keystone.audio.read_wav` accepts only mono 16-bit PCM, but the analyzer exposed the measured `sample_width_bits` in its profile without a way to require it, so the engine's audio contract could not be gated.
+- **Decision**: Add `sample_width_bits` as a requirement key (8, 16, 24, 32, or a list, mirroring `channels`). Keep consumer contracts as plain JSON data presets; `presets/keystone-audio.json` holds `{"channels": [1], "sample_width_bits": [16]}`.
+- **Consequences**: A Muse render is gated against the engine's real contract before it is copied into a game, and the verification loads the passing WAV through `keystone.audio.read_wav` instead of assuming compatibility. The cost is one more key to keep stable and a preset that must be updated if Keystone's reader ever accepts more formats.
+
 ## Licensing migration (v0.1.0-al-1.0)
 
 - New versions use the Aegean License 1.1 (AL-1.1); versions up to and including `v0.1.0-al-1.0` remain under the Aegean License 1.0 (AL-1.0).

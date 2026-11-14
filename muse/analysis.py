@@ -17,6 +17,7 @@ REQUIREMENT_KEYS = (
     "max_duration",
     "min_sample_rate",
     "channels",
+    "sample_width_bits",
     "min_rms_dbfs",
     "max_peak_dbfs",
     "max_size_mb",
@@ -34,6 +35,7 @@ class TrackRequirements:
     max_duration: float | None = None
     min_sample_rate: int | None = None
     channels: tuple[int, ...] | None = None
+    sample_width_bits: tuple[int, ...] | None = None
     min_rms_dbfs: float | None = None
     max_peak_dbfs: float | None = None
     max_size_mb: float | None = None
@@ -50,6 +52,8 @@ class TrackRequirements:
             payload["min_sample_rate"] = self.min_sample_rate
         if self.channels is not None:
             payload["channels"] = list(self.channels)
+        if self.sample_width_bits is not None:
+            payload["sample_width_bits"] = list(self.sample_width_bits)
         if self.min_rms_dbfs is not None:
             payload["min_rms_dbfs"] = self.min_rms_dbfs
         if self.max_peak_dbfs is not None:
@@ -135,6 +139,7 @@ def requirements_from_mapping(payload: object) -> TrackRequirements:
         max_duration=max_duration,
         min_sample_rate=_whole(payload, "min_sample_rate", low=1, high=384_000),
         channels=channels,
+        sample_width_bits=_widths(payload),
         min_rms_dbfs=_number(payload, "min_rms_dbfs", low=-120.0, high=0.0),
         max_peak_dbfs=_number(payload, "max_peak_dbfs", low=-120.0, high=0.0),
         max_size_mb=_number(payload, "max_size_mb", positive=True),
@@ -276,6 +281,18 @@ def evaluate(
                 profile.channels,
                 profile.channels in requirements.channels,
                 f"the track has {profile.channels} channel(s)",
+            )
+    if requirements.sample_width_bits is not None:
+        if profile is None:
+            skip("sample_width_bits", list(requirements.sample_width_bits))
+        else:
+            bits = profile.sample_width * 8
+            measure(
+                "sample_width_bits",
+                list(requirements.sample_width_bits),
+                bits,
+                bits in requirements.sample_width_bits,
+                f"the track is {bits}-bit PCM",
             )
     if requirements.min_rms_dbfs is not None:
         if profile is None:
@@ -433,6 +450,24 @@ def _channels(payload: Mapping[str, Any]) -> tuple[int, ...] | None:
         if item not in counts:
             counts.append(item)
     return tuple(counts)
+
+
+def _widths(payload: Mapping[str, Any]) -> tuple[int, ...] | None:
+    value = payload.get("sample_width_bits")
+    if value is None:
+        return None
+    values = [value] if isinstance(value, int) and not isinstance(value, bool) else value
+    if not isinstance(values, list) or not values:
+        raise ValueError(
+            "sample_width_bits must be a bit depth or a non-empty list of bit depths"
+        )
+    widths: list[int] = []
+    for item in values:
+        if isinstance(item, bool) or not isinstance(item, int) or item not in (8, 16, 24, 32):
+            raise ValueError("each sample width must be 8, 16, 24 or 32 bits")
+        if item not in widths:
+            widths.append(item)
+    return tuple(widths)
 
 
 def _flag(payload: Mapping[str, Any], key: str) -> bool | None:

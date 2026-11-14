@@ -12,6 +12,15 @@ All notable changes to Muse are recorded here. Versions follow the project's
   rules, and an offline smoke test. The README links it, and a regression test keeps every
   subcommand and the documented output rules in place.
 
+## [0.16.0] - 2026-11-14
+
+### Added
+
+- `sample_width_bits` is a requirement key: it accepts `8`, `16`, `24` or `32` (or a list) and
+  makes the analyzer gate bit depth, which Keystone's `read_wav` requires to be 16-bit mono.
+- `presets/keystone-audio.json` states Keystone's audio contract (`channels: [1]`,
+  `sample_width_bits: [16]`), with a README example that renders, gates and loads a track.
+
 ## [0.15.0] - 2026-11-14
 
 ### Added
