@@ -10,7 +10,7 @@
 - **Total Classes**: `67`
 - **Total Top-Level Functions**: `90`
 - **Total Class Methods**: `312`
-- **Total Source Lines**: `6020`
+- **Total Source Lines**: `6021`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`37` module(s))
@@ -388,7 +388,7 @@
 ### [`tests/test_agent_docs.py`](tests/test_agent_docs.py)
 > *Agent documentation: the contract names every command and stays short.*
 
-**Size**: `54` lines (`1782` bytes)
+**Size**: `55` lines (`1858` bytes)
 
 **Classes:**
 - `class AgentContractTests`

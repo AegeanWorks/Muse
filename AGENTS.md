@@ -20,8 +20,12 @@ human tour. If they disagree, the CLI and tests are right and this file is a bug
 
 - Every data command accepts `--json` and prints exactly one JSON object on stdout. Parse stdout;
   never scrape the human report.
-- On failure the JSON-producing command prints nothing on stdout; the diagnostic goes to stderr as
-  `Error: ...` with `Why:` and `Fix:` lines. Read the exit code, not the message text.
+- A command that fails before it can produce a result prints nothing on stdout; the diagnostic
+  goes to stderr as `Error: ...` with `Why:` and `Fix:` lines. A command that finished prints its
+  one JSON object and reports the problem through the exit code instead: `doctor` with a failing
+  check, a `--strict` rejection from `generate`, `judge`, `rejudge` or `batch`, and a
+  `--keep-going` batch with a failed track all print JSON and exit `1`. Read both stdout and the
+  exit code.
 - Exit codes: `0` success; `1` operational failure, a `--strict` rejection, or a failed `doctor`;
   `2` argument misuse or an invalid request value. A non-strict generation whose score is below
   the threshold still exits `0` with `"accepted": false`.

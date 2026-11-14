@@ -35,6 +35,7 @@ class AgentContractTests(unittest.TestCase):
         self.assertIn("--json", text)
         for code in ("`0`", "`1`", "`2`"):
             self.assertIn(code, text)
+        self.assertIn("prints its one JSON object", " ".join(text.split()))
 
     def test_contract_names_the_offline_adapters_and_keys(self):
         text = agents_text()
