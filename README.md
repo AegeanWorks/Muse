@@ -293,8 +293,9 @@ provider's rate. `muse export` closes that gap.
 PCM at `--rate` (default 22050, range 8000 to 96000) and never changes the source or `muse.json`:
 ```bash
 python -m muse export cave-level
-python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
+python -m muse analyze output/cave-level/track-22050hz.wav --requirements presets/keystone-audio.json --json
 ```
+`analyze` on the artifact folder would check the original render, so name the exported file.
 ARTIFACT is a folder, a `muse.json` or a WAV file. The default output is `NAME-22050hz.wav`
 beside the audio; `--to` names another file and its missing folders are created. Input may be 8, 16, 24 or 32-bit PCM with any
 channel count: channels are averaged to mono and the audio is resampled by linear interpolation,

@@ -46,6 +46,13 @@ class AgentContractTests(unittest.TestCase):
     def test_readme_links_the_contract(self):
         self.assertIn("[AGENTS.md](AGENTS.md)", readme_text())
 
+    def test_readme_export_example_analyzes_the_exported_file(self):
+        section = readme_text().split("### Exporting for an engine", 1)[1].split("\n## ", 1)[0]
+        commands = [line for line in section.splitlines() if line.startswith("python -m muse analyze")]
+        self.assertTrue(commands, "the export section shows how to check the exported file")
+        for command in commands:
+            self.assertIn("-22050hz.wav", command, "analyze the exported file, not the artifact folder")
+
     def test_contract_stays_a_single_screen(self):
         lines = agents_text().splitlines()
         self.assertLessEqual(len(lines), 120, "the agent contract must stay short enough to load whole")

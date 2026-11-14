@@ -9,8 +9,8 @@
 - **Total Python Modules**: `41`
 - **Total Classes**: `84`
 - **Total Top-Level Functions**: `122`
-- **Total Class Methods**: `426`
-- **Total Source Lines**: `8136`
+- **Total Class Methods**: `427`
+- **Total Source Lines**: `8143`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`41` module(s))
@@ -446,7 +446,7 @@
 ### [`tests/test_agent_docs.py`](tests/test_agent_docs.py)
 > *Agent documentation: the contract names every command and stays short.*
 
-**Size**: `55` lines (`1858` bytes)
+**Size**: `62` lines (`2359` bytes)
 
 **Classes:**
 - `class AgentContractTests`
@@ -454,6 +454,7 @@
   - Method `.test_contract_states_the_output_and_exit_codes()`
   - Method `.test_contract_names_the_offline_adapters_and_keys()`
   - Method `.test_readme_links_the_contract()`
+  - Method `.test_readme_export_example_analyzes_the_exported_file()`
   - Method `.test_contract_stays_a_single_screen()`
 
 **Functions:**
