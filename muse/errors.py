@@ -24,3 +24,7 @@ class GenerationError(MuseError):
 
 class JudgeError(MuseError):
     pass
+
+
+class ExportError(MuseError):
+    pass

@@ -179,7 +179,7 @@ def analyze_audio(path: Path) -> tuple[AudioProfile | None, str]:
                 if not data:
                     break
                 # A file cut mid-sample leaves a partial sample at the end; drop it.
-                values = _pcm_values(data[: len(data) - len(data) % width], width)
+                values = pcm_values(data[: len(data) - len(data) % width], width)
                 if not values:
                     break
                 chunk_peak = max(map(abs, values))
@@ -402,7 +402,7 @@ def requirement_fit(result: Mapping[str, Any]) -> Fit:
     return Fit(ok=not failed, failed=failed, hints=tuple(hints))
 
 
-def _pcm_values(data: bytes, width: int) -> list[int]:
+def pcm_values(data: bytes, width: int) -> list[int]:
     if width == 1:
         return [value - 128 for value in data]
     if width == 2:

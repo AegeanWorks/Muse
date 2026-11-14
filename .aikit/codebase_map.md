@@ -6,14 +6,14 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `39`
-- **Total Classes**: `77`
-- **Total Top-Level Functions**: `108`
-- **Total Class Methods**: `384`
-- **Total Source Lines**: `7498`
+- **Total Python Modules**: `41`
+- **Total Classes**: `82`
+- **Total Top-Level Functions**: `118`
+- **Total Class Methods**: `404`
+- **Total Source Lines**: `7861`
 
 ## 🧭 Map Coverage
-- **Indexed**: python (`39` module(s))
+- **Indexed**: python (`41` module(s))
 - **Not indexed by this map**: none (no non-Python source files were found)
 
 ---
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `504` lines (`18856` bytes)
+**Size**: `504` lines (`18854` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -51,7 +51,7 @@
 - `def analyze_audio(path)` - *Measure a WAV file; return the profile and an empty reason, or None and why not.*
 - `def evaluate(profile, requirements, evidence, reason)` - *Return one artifact's checks: passed when no check fails.*
 - `def requirement_fit(result)` - *Summarise an `evaluate` result as a Fit, with prompt hints for the misses a prompt can fix.*
-- `def _pcm_values(data, width)`
+- `def pcm_values(data, width)`
 - `def _dbfs(ratio)`
 - `def _number(payload, key, *, positive, low, high)`
 - `def _whole(payload, key, *, low, high)`
@@ -215,7 +215,7 @@
 ### [`muse/errors.py`](muse/errors.py)
 > *User-facing failures with what, why and how to fix them.*
 
-**Size**: `26` lines (`528` bytes)
+**Size**: `30` lines (`569` bytes)
 
 **Classes:**
 - `class MuseError`
@@ -224,6 +224,28 @@
 - `class ConfigurationError`
 - `class GenerationError`
 - `class JudgeError`
+- `class ExportError`
+
+---
+
+### [`muse/export.py`](muse/export.py)
+> *Export a rendered WAV as the mono 16-bit PCM file an engine loader expects.*
+
+**Size**: `180` lines (`6545` bytes)
+
+**Classes:**
+- `class ExportResult`
+  - Property `.duration`
+
+**Functions:**
+- `def export_wav(source, destination, rate, chunk_frames)` - *Mix `source` down to mono, resample it to `rate` Hz and write 16-bit PCM atomically.*
+- `def _check_rate(rate)`
+- `def _same_file(first, second)`
+- `def _convert(source, temporary, rate, chunk_frames)`
+- `def _stream(reader, source, temporary, rate, chunk_frames)`
+- `def _mono_chunks(reader, channels, width, chunk_frames)`
+- `def _resample(chunks, source_rate, target_rate)` - *Linear interpolation with integer positions, so the output ignores chunk boundaries.*
+- `def _quantize(block)`
 
 ---
 
@@ -703,6 +725,41 @@
   - Method `.test_doctor_reports_missing_keys()`
   - Method `.test_doctor_reports_invalid_config_as_json()`
   - Method `.test_doctor_reports_output_file()`
+
+---
+
+### [`tests/test_export.py`](tests/test_export.py)
+> *Export: stream any PCM WAV to the mono 16-bit file an engine loader accepts.*
+
+**Size**: `179` lines (`8466` bytes)
+
+**Classes:**
+- `class ExportCase`
+  - Method `.setUp()`
+  - Method `.wav(name, frames, rate, channels, width)`
+  - Method `.samples(path)`
+- `class ExportFormatTests`
+  - Method `.test_stereo_44k_becomes_mono_16_bit_at_the_chosen_rate()`
+  - Method `.test_every_pcm_width_is_accepted()`
+  - Method `.test_the_same_rate_keeps_the_samples()`
+  - Method `.test_resampling_keeps_pitch_and_level()`
+  - Method `.test_opposite_channels_cancel_and_one_channel_halves()`
+  - Method `.test_the_result_does_not_depend_on_the_chunk_size()`
+  - Method `.test_the_result_reports_the_output()`
+  - Method `.test_loud_input_is_clamped_not_wrapped()`
+- `class ExportSafetyTests`
+  - Method `.test_a_replaced_destination_leaves_no_temporary_file()`
+  - Method `.test_the_source_cannot_be_the_destination()`
+  - Method `.test_a_failed_export_leaves_no_partial_file()`
+  - Method `.test_a_missing_file_is_an_export_error()`
+  - Method `.test_an_empty_wav_is_an_export_error()`
+  - Method `.test_a_float_wav_is_an_export_error_naming_the_format()`
+  - Method `.test_the_rate_must_be_in_range()`
+  - Method `.test_a_truncated_file_exports_the_audio_it_holds()`
+
+**Functions:**
+- `def sine(count, rate, hertz, amplitude)`
+- `def pack(frames, width)` - *Pack channel-interleaved floats in [-1, 1] as PCM of `width` bytes.*
 
 ---
 
