@@ -9,6 +9,16 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 
+## [0.14.5] - 2026-11-14
+
+### Fixed
+
+- `LICENSE` and `LICENSES/LicenseRef-AL-1.1.txt` carry the current AL-1.1 text:
+  the contributor and commercial licenses are referenced by canonical URL, so a
+  copy no longer points at files it does not ship, and the compatibility clause
+  uses the general copyleft wording. A regression test pins the URLs, the
+  `LICENSE`/mirror identity and the package metadata.
+
 ## [0.14.4] - 2026-10-29
 
 ### Fixed

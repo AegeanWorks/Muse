@@ -12,3 +12,5 @@ output/
 
 # Reforge review packets are generated audit output; reforge.json keeps the run history.
 .aikit/reforge.reviews/
+# AIKit transient state
+.aikit/*.log

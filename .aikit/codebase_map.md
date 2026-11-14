@@ -1,16 +1,20 @@
 # Codebase Map & Symbol Catalog 🗺️
 
 > **AUTO-GENERATED & VERIFIED BY `scripts/update_knowledge_base.py`**
-> This document provides an automated, up-to-date registry of all modules, classes, and exported functions across this repository.
+> This document catalogues Python modules, classes, and exported functions. See Map Coverage for any stack it does not index.
 
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `35`
-- **Total Classes**: `65`
-- **Total Top-Level Functions**: `87`
-- **Total Class Methods**: `303`
-- **Total Source Lines**: `5923`
+- **Total Python Modules**: `36`
+- **Total Classes**: `66`
+- **Total Top-Level Functions**: `88`
+- **Total Class Methods**: `307`
+- **Total Source Lines**: `5966`
+
+## 🧭 Map Coverage
+- **Indexed**: python (`36` module(s))
+- **Not indexed by this map**: none (no non-Python source files were found)
 
 ---
 
@@ -605,6 +609,23 @@
 
 **Functions:**
 - `def reply(**changes)`
+
+---
+
+### [`tests/test_license.py`](tests/test_license.py)
+> *License documents: resolvable pointers, current operative text and mirror identity.*
+
+**Size**: `43` lines (`1660` bytes)
+
+**Classes:**
+- `class LicenseDocumentTests`
+  - Method `.test_sibling_documents_are_referenced_by_url()`
+  - Method `.test_mirror_matches_the_license()`
+  - Method `.test_operative_text_carries_the_current_compatibility_wording()`
+  - Method `.test_reuse_and_package_metadata_agree_on_the_license()`
+
+**Functions:**
+- `def document_text(path)`
 
 ---
 

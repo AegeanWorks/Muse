@@ -1,54 +1,22 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-rejudge-coverage",
-    "last_phase": "resumed",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1793298856.0701265,
-    "owner": "opencode",
-    "started_by": "opencode",
-    "continuations": [
+    "task_id": "muse-license-current",
+    "last_phase": "phase 4",
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1794670041.1961446,
+    "owner": "kilo:goal",
+    "started_by": "kilo:goal",
+    "continuations": [],
+    "workspaces": [
       {
-        "agent": "opencode:main",
-        "from": "opencode",
-        "at": 1793298856.391222
+        "name": "muse",
+        "path": "projects/muse"
       }
-    ],
-    "completed_at": 1793298856.391223
+    ]
   },
   "checkpoints": [
-    {
-      "task_id": "muse-rejudge-canonical",
-      "phase": "phase 2",
-      "phase_num": 2,
-      "description": "[1/2] Plan canonical rejudge dedupe: resolve each metadata path before the seen-set so relative and absolute forms of one artifact judge once",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793298104.7642555,
-      "timestamp_str": "2026-10-29 21:21:44",
-      "agent": "opencode:main",
-      "impact_assessment": {
-        "why": "Path equality treats out/cave/muse.json and its absolute form as different, so the same evidence can be judged and appended twice",
-        "benefits": "One artifact is judged once regardless of how its path is written",
-        "risks": "contract: rejudge resolved paths become absolute; dependency: none; concurrency: none; state: no duplicate history",
-        "mitigation": "Dedupe on Path.resolve(), keep first-seen order, add a relative/absolute regression test and run gates"
-      }
-    },
-    {
-      "task_id": "muse-rejudge-canonical",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[2/2] Canonical rejudge dedupe complete: 204 tests, 4/4 gates; relative and absolute forms judge once; checklists: passed",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1793298247.6590571,
-      "timestamp_str": "2026-10-29 21:24:07",
-      "agent": "opencode:main",
-      "handoff": {
-        "next": "commit and push, then audit the latest commit with reforge"
-      }
-    },
     {
       "task_id": "reforge:run-9",
       "phase": "reforge run",
@@ -265,6 +233,83 @@
       "timestamp_str": "2026-10-29 21:34:16",
       "agent": "opencode:main",
       "continued_from": "opencode"
+    },
+    {
+      "task_id": "muse-license-current",
+      "phase": "phase 2",
+      "phase_num": 2,
+      "description": "[1/3] Plan: bring muse's vendored AL-1.1 in line with the canonical license (ADR-044 URL pointers plus the 2026-11-01 compatibility wording) and add a license-document regression test",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794669620.5264568,
+      "timestamp_str": "2026-11-14 18:20:20",
+      "agent": "kilo:goal",
+      "impact_assessment": {
+        "why": "The uncommitted sweep added canonical URLs but left muse's license body at the pre-2026-11-01 AL-1.1 wording, so the repo names LicenseRef-AL-1.1 while shipping outdated operative text and has no test guarding the pointers or the LICENSE/mirror identity",
+        "benefits": "Muse ships the current AL-1.1 verbatim; resolvable pointer URLs cannot regress; LICENSE and LICENSES/LicenseRef-AL-1.1.txt stay identical",
+        "risks": "contract: license text changes; dependency: none; concurrency: same uncommitted sweep files are modified, preserved and extended; state: CHANGELOG and ledger",
+        "mitigation": "Take the canonical text from AIKit's pinned licenses/AL-1.1.md (sync_licenses --check is green), keep the sweep's URL edits, add the test failing-first where possible, run the muse suite and aikit check muse before committing"
+      },
+      "plan_digest": "b1e34883cd1e69d36712e16512711694f64faad8ed716a2fca7daae58e35e470",
+      "workspaces": [
+        {
+          "name": "muse",
+          "path": "projects/muse"
+        }
+      ]
+    },
+    {
+      "task_id": "muse-license-current",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/3] License sync and regression coverage complete: LICENSE and the REUSE mirror match the canonical AL-1.1 text (URL pointers + current compatibility wording); 4 new license tests; 209 tests and 4/4 gates pass; checklists: passed",
+      "files_affected": [
+        ".aikit/codebase_map.md",
+        ".aikit/project.json",
+        ".aikit/task_ledger.json",
+        ".gitignore",
+        "CHANGELOG.md",
+        "LICENSE",
+        "LICENSES/LicenseRef-AL-1.1.txt",
+        "muse/__init__.py",
+        "pyproject.toml",
+        ".aikit/task_ledger_archive.jsonl",
+        "tests/test_license.py"
+      ],
+      "status": "in_progress",
+      "timestamp": 1794670041.1961446,
+      "timestamp_str": "2026-11-14 18:27:21",
+      "agent": "kilo:goal",
+      "measurements": [
+        {
+          "command": "python -m unittest tests.test_license -v",
+          "candidate": 4.0,
+          "artifact": "tests/test_license.py",
+          "metric": "license_tests",
+          "baseline": 0.0,
+          "unit": "tests"
+        },
+        {
+          "command": "python -m unittest discover -s tests -t .",
+          "candidate": 209.0,
+          "artifact": ".aikit/codebase_map.md",
+          "metric": "test_suite",
+          "baseline": 205.0,
+          "unit": "tests"
+        }
+      ],
+      "checklists": "passed",
+      "handoff": {
+        "state": "version 0.14.5, license copies identical",
+        "next": "commit implementation then close the task",
+        "evidence": "python -m unittest discover -s tests -t . (209 OK), aikit fix muse (4/4 gates)"
+      },
+      "workspaces": [
+        {
+          "name": "muse",
+          "path": "projects/muse"
+        }
+      ]
     }
   ]
 }
