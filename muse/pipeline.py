@@ -65,12 +65,13 @@ def compose(
         fitting = result is None or result.ok
         if fitting:
             satisfied.add(number)
-        if (attempt.accepted and fitting) or verdict is None or number == max_attempts:
+        blocked = result is not None and bool(result.blocked)
+        if (attempt.accepted and (fitting or blocked)) or verdict is None or number == max_attempts:
             break
         revised = current.prompt
         if not attempt.accepted or (result is not None and "min_score" in result.failed):
             revised = revise_prompt(revised, verdict)
-        if result is not None:
+        if result is not None and not blocked:
             revised = append_hints(revised, result.hints)
         if revised == current.prompt:
             break

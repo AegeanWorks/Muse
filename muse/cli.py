@@ -391,10 +391,14 @@ def _batch(
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
-    unfit = _unfit_labels(requests, previous, requirements) - forced if args.retry_unfit else set()
+    unfit: set[str] = set()
+    held: dict[str, tuple[str, ...]] = {}
+    if args.retry_unfit:
+        unfit, held = _unfit_labels(requests, previous, requirements)
+        unfit -= forced
     forced = forced | unfit
     if args.dry_run:
-        return _dry_run(args, settings, requests, forced, unfit)
+        return _dry_run(args, settings, requests, forced, unfit, held)
     entries: list[dict[str, Any] | None] = [previous.get(index) for index in range(1, len(requests) + 1)]
     render_required = any(
         entry is None
@@ -492,6 +496,14 @@ def _batch(
         ]
         if skipped:
             print(f"Skipped requirement checks: {', '.join(skipped)}")
+        if held:
+            names = [
+                f"{request.label} ({', '.join(held[request.label.casefold()])})"
+                for request in requests
+                if request.label.casefold() in held and request.label.casefold() not in forced
+            ]
+            if names:
+                print(f"Not rerendered: {', '.join(names)}; a rerender cannot change these limits")
         if payload["reused"]:
             print(f"Reused: {payload['reused']}")
     return 1 if payload["failed"] or payload["unfit"] or (args.strict and payload["rejected"]) else 0
@@ -503,7 +515,9 @@ def _dry_run(
     requests: tuple[MusicRequest, ...],
     forced: set[str],
     unfit: AbstractSet[str] = frozenset(),
+    held: Mapping[str, tuple[str, ...]] | None = None,
 ) -> int:
+    held_by_label: Mapping[str, tuple[str, ...]] = held or {}
     previous: dict[int, dict[str, Any]] = {}
     if args.resume:
         fingerprint = manifest_fingerprint(requests)
@@ -527,6 +541,11 @@ def _dry_run(
                     reason = "unfit rerender"
                 elif request.label.casefold() in forced:
                     reason = "forced rerender"
+                elif request.label.casefold() in held_by_label:
+                    action = "reuse"
+                    reason = "unfit, but a rerender cannot change " + ", ".join(
+                        held_by_label[request.label.casefold()]
+                    )
                 elif _evidence_exists(prior):
                     action = "reuse"
                     reason = "accepted evidence exists"
@@ -1021,9 +1040,14 @@ def _unfit_labels(
     requests: Sequence[MusicRequest],
     previous: Mapping[int, dict[str, Any]],
     requirements: TrackRequirements | None,
-) -> set[str]:
-    """Return the folded names of accepted, still-present tracks that miss the requirements."""
+) -> tuple[set[str], dict[str, tuple[str, ...]]]:
+    """Split accepted, still-present tracks that miss the requirements.
+
+    The first result names the tracks a rerender could fix. The second maps the tracks it
+    could not fix, because they miss a format limit, to those limits. Names are case-folded.
+    """
     labels: set[str] = set()
+    held: dict[str, tuple[str, ...]] = {}
     for index, request in enumerate(requests, 1):
         prior = previous.get(index)
         if prior is None or prior["status"] != "accepted" or not _evidence_exists(prior):
@@ -1038,8 +1062,12 @@ def _unfit_labels(
         _attach_requirements(probe, requirements)
         result = probe["payload"].get("requirements")
         if isinstance(result, dict) and result.get("ok") is False:
-            labels.add(request.label.casefold())
-    return labels
+            blocked = requirement_fit(result).blocked
+            if blocked:
+                held[request.label.casefold()] = blocked
+            else:
+                labels.add(request.label.casefold())
+    return labels, held
 
 
 def _attach_requirements(entry: dict[str, Any], requirements: TrackRequirements | None) -> None:

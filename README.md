@@ -195,7 +195,7 @@ flag on every track.
 | `--resume` | Reuse accepted tracks from the saved batch state; rejected and failed tracks rerender |
 | `--force NAME` | With `--resume`, rerender these accepted track names (repeatable) |
 | `--retry-on-requirements` | With `--requirements` and `--attempts 2` or more, retry takes whose duration or score misses the limits, with a hint in the prompt; each retry is a billed take |
-| `--retry-unfit` | With `--resume` and `--requirements`, rerender accepted tracks that miss the limits; each rerender is a billed take |
+| `--retry-unfit` | With `--resume` and `--requirements`, rerender accepted tracks that miss the limits; each rerender is a billed take. A track that misses `channels`, `sample_width_bits` or `min_sample_rate` is skipped and named (`Not rerendered: ...`), because a rerender cannot change what the provider always returns; `--force NAME` still rerenders it |
 | `--keep-going` | Record a failed track and continue with the rest |
 | `--strict` | Exit 1 when any track is rejected (failures always exit 1) |
 

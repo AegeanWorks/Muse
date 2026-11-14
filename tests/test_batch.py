@@ -626,6 +626,73 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("--retry-on-requirements needs --attempts", err)
 
+    def test_retry_unfit_skips_a_track_that_misses_a_format_limit(self):
+        path = self.one_track()
+        limits = self.requirements_file({"channels": [2]})
+        provider = CountingProvider(self.provider)
+        self.run_cli(["batch", str(path), "--requirements", str(limits)], provider=provider)
+        code, out, _ = self.run_cli(
+            ["batch", str(path), "--resume", "--retry-unfit", "--requirements", str(limits)],
+            provider=provider,
+        )
+        self.assertEqual(len(provider.calls), 1)
+        self.assertEqual(code, 1)
+        self.assertIn("Not rerendered: cave (channels)", out)
+        self.assertIn("a rerender cannot change", out)
+
+    def test_retry_unfit_skips_a_format_miss_even_with_a_duration_miss(self):
+        path = self.one_track()
+        limits = self.requirements_file({"channels": [2], "min_duration": 600})
+        provider = CountingProvider(self.provider)
+        self.run_cli(["batch", str(path), "--requirements", str(limits)], provider=provider)
+        self.run_cli(
+            ["batch", str(path), "--resume", "--retry-unfit", "--requirements", str(limits)],
+            provider=provider,
+        )
+        self.assertEqual(len(provider.calls), 1)
+
+    def test_force_still_rerenders_a_track_retry_unfit_would_skip(self):
+        path = self.one_track()
+        limits = self.requirements_file({"channels": [2]})
+        provider = CountingProvider(self.provider)
+        self.run_cli(["batch", str(path), "--requirements", str(limits)], provider=provider)
+        self.run_cli(
+            [
+                "batch", str(path), "--resume", "--retry-unfit", "--force", "cave",
+                "--requirements", str(limits),
+            ],
+            provider=provider,
+        )
+        self.assertEqual(len(provider.calls), 2)
+
+    def test_dry_run_explains_a_skipped_format_miss(self):
+        path = self.one_track()
+        limits = self.requirements_file({"channels": [2]})
+        self.run_cli(["batch", str(path), "--requirements", str(limits)])
+        code, out, err = self.run_cli(
+            [
+                "batch", str(path), "--resume", "--retry-unfit", "--dry-run",
+                "--requirements", str(limits), "--json",
+            ]
+        )
+        self.assertEqual(code, 0, err)
+        track = json.loads(out)["tracks"][0]
+        self.assertEqual(track["action"], "reuse")
+        self.assertIn("a rerender cannot change channels", track["reason"])
+
+    def test_retry_on_requirements_does_not_spend_takes_on_a_format_miss(self):
+        limits = self.requirements_file({"channels": [2], "min_duration": 600})
+        provider = CountingProvider(self.provider)
+        code, _, _ = self.run_cli(
+            [
+                "batch", str(self.one_track()), "--attempts", "3",
+                "--retry-on-requirements", "--requirements", str(limits),
+            ],
+            provider=provider,
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(len(provider.calls), 1)
+
     def test_batch_summary_names_skipped_requirement_checks(self):
         limits = self.requirements_file({"min_duration": 0.5, "min_score": 50})
         with patch("muse.cli.analyze_audio", return_value=(None, "the audio is not a WAV")):

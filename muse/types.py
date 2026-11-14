@@ -126,11 +126,16 @@ class Attempt:
 
 @dataclass(frozen=True)
 class Fit:
-    """Whether a take meets a project's requirements, and what a prompt could change."""
+    """Whether a take meets a project's requirements, and what a prompt could change.
+
+    `blocked` names failed limits that no rerender can change, such as the channel count
+    a provider always returns; a track with one can never fit, so retries only waste takes.
+    """
 
     ok: bool
     failed: tuple[str, ...] = ()
     hints: tuple[str, ...] = ()
+    blocked: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

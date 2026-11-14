@@ -251,6 +251,25 @@ class RequirementFitTests(Workspace):
         self.assertEqual(set(result.failed), {"min_rms_dbfs", "min_sample_rate", "channels"})
         self.assertEqual(result.hints, ())
 
+    def test_a_format_miss_is_blocked_and_drops_the_duration_hint(self):
+        result = self.fit({"channels": [2], "min_duration": 10})
+        self.assertEqual(set(result.failed), {"channels", "min_duration"})
+        self.assertEqual(result.blocked, ("channels",))
+        self.assertEqual(result.hints, ())
+
+    def test_every_format_limit_blocks_a_rerender(self):
+        for limits, name in (
+            ({"channels": [2]}, "channels"),
+            ({"sample_width_bits": [24]}, "sample_width_bits"),
+            ({"min_sample_rate": 44100}, "min_sample_rate"),
+        ):
+            with self.subTest(limit=name):
+                self.assertEqual(self.fit(limits).blocked, (name,))
+
+    def test_loudness_duration_and_size_misses_are_not_blocked(self):
+        result = self.fit({"min_duration": 10, "max_peak_dbfs": -60, "min_rms_dbfs": -1})
+        self.assertEqual(result.blocked, ())
+
     def test_skipped_checks_do_not_make_a_track_unfit(self):
         result = requirement_fit(
             evaluate(None, requirements_from_mapping({"min_duration": 10}), None, "not a WAV")

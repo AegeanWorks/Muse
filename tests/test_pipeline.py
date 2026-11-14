@@ -406,6 +406,21 @@ class FitRetryTests(unittest.TestCase):
         )
         self.assertEqual(result.verdict.score, 70)
 
+    def test_an_accepted_take_that_misses_a_format_limit_is_not_retried(self):
+        result, _, _ = self.run_compose(
+            [Fit(False, ("channels", "min_duration"), (), ("channels",))],
+            [verdict(90, VERDICT_FITS)],
+        )
+        self.assertEqual(len(result.attempts), 1)
+
+    def test_a_rejected_take_still_retries_on_the_judge_suggestions_when_blocked(self):
+        result, judge, _ = self.run_compose(
+            [Fit(False, ("channels",), (), ("channels",)), Fit(False, ("channels",), (), ("channels",))],
+            [verdict(40, VERDICT_MISS, suggestions=("add strings",)), verdict(85, VERDICT_FITS)],
+        )
+        self.assertEqual(len(result.attempts), 2)
+        self.assertEqual(judge.requests[1].prompt, "cave drones; add strings")
+
     def test_without_a_fit_hook_an_accepted_take_ends_the_loop(self):
         judge = ScriptedJudge([verdict(90, VERDICT_FITS)])
         result = compose(

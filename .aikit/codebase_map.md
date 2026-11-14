@@ -9,8 +9,8 @@
 - **Total Python Modules**: `41`
 - **Total Classes**: `84`
 - **Total Top-Level Functions**: `122`
-- **Total Class Methods**: `427`
-- **Total Source Lines**: `8143`
+- **Total Class Methods**: `437`
+- **Total Source Lines**: `8282`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`41` module(s))
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `504` lines (`18854` bytes)
+**Size**: `508` lines (`19225` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -132,7 +132,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1220` lines (`49372` bytes)
+**Size**: `1248` lines (`50651` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -146,7 +146,7 @@
 - `def _generate(args, settings, provider, judge)`
 - `def _dry_run_generate(args, settings, request)`
 - `def _batch(args, settings, provider, judge)`
-- `def _dry_run(args, settings, requests, forced, unfit)`
+- `def _dry_run(args, settings, requests, forced, unfit, held)`
 - `def _judge(args, settings, judge)`
 - `def _rejudge(args, settings, judge)`
 - `def _analyze(args, settings)`
@@ -160,7 +160,7 @@
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
 - `def _requirement_check(requirements)` - *Build the `compose` hook that measures a take against the batch requirements.*
-- `def _unfit_labels(requests, previous, requirements)` - *Return the folded names of accepted, still-present tracks that miss the requirements.*
+- `def _unfit_labels(requests, previous, requirements)` - *Split accepted, still-present tracks that miss the requirements.*
 - `def _attach_requirements(entry, requirements)` - *Evaluate the track against the batch requirements and store the checks on the entry.*
 - `def _batch_payload(entries)`
 - `def _filled(entries)`
@@ -331,7 +331,7 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `286` lines (`9661` bytes)
+**Size**: `287` lines (`9752` bytes)
 
 **Functions:**
 - `def compose(request, config, provider, judge, require_judge, max_attempts, fit)` - *Render, judge and optionally retry; `fit` reports whether a take meets requirements.*
@@ -416,7 +416,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `146` lines (`4645` bytes)
+**Size**: `151` lines (`4866` bytes)
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -466,7 +466,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `397` lines (`16055` bytes)
+**Size**: `416` lines (`16954` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -503,6 +503,9 @@
   - Method `.test_a_short_track_gets_a_duration_hint()`
   - Method `.test_a_long_track_gets_a_duration_hint()`
   - Method `.test_loudness_and_format_misses_give_no_hint()`
+  - Method `.test_a_format_miss_is_blocked_and_drops_the_duration_hint()`
+  - Method `.test_every_format_limit_blocks_a_rerender()`
+  - Method `.test_loudness_duration_and_size_misses_are_not_blocked()`
   - Method `.test_skipped_checks_do_not_make_a_track_unfit()`
 - `class AnalyzeCommandTests`
   - Method `.setUp()`
@@ -545,7 +548,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `849` lines (`37651` bytes)
+**Size**: `916` lines (`40643` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -609,6 +612,11 @@
   - Method `.test_attempts_alone_do_not_retry_a_track_that_misses_the_requirements()`
   - Method `.test_retry_on_requirements_renders_once_when_the_track_fits()`
   - Method `.test_retry_on_requirements_needs_requirements_and_attempts()`
+  - Method `.test_retry_unfit_skips_a_track_that_misses_a_format_limit()`
+  - Method `.test_retry_unfit_skips_a_format_miss_even_with_a_duration_miss()`
+  - Method `.test_force_still_rerenders_a_track_retry_unfit_would_skip()`
+  - Method `.test_dry_run_explains_a_skipped_format_miss()`
+  - Method `.test_retry_on_requirements_does_not_spend_takes_on_a_format_miss()`
   - Method `.test_batch_summary_names_skipped_requirement_checks()`
   - Method `.test_batch_summary_is_quiet_when_every_check_ran()`
   - Method `.test_batch_requirements_invalid_file_exits_two()`
@@ -884,7 +892,7 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `414` lines (`16662` bytes)
+**Size**: `429` lines (`17436` bytes)
 
 **Classes:**
 - `class FailingJudge`
@@ -930,6 +938,8 @@
   - Method `.test_a_low_score_retries_with_the_judge_suggestions()`
   - Method `.test_retries_stop_at_the_attempt_cap()`
   - Method `.test_the_best_take_prefers_one_that_fits_over_a_higher_score()`
+  - Method `.test_an_accepted_take_that_misses_a_format_limit_is_not_retried()`
+  - Method `.test_a_rejected_take_still_retries_on_the_judge_suggestions_when_blocked()`
   - Method `.test_without_a_fit_hook_an_accepted_take_ends_the_loop()`
 
 **Functions:**

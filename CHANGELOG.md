@@ -18,6 +18,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - `muse batch --requirements` prints `Skipped requirement checks: NAME (check, ...)` when a limit could not be measured, for example on non-WAV audio, so an exit `0` no longer hides unchecked limits. The JSON already carried `requirements.skipped` per track.
 ### Fixed
+- `muse batch --resume --retry-unfit` and `--retry-on-requirements` no longer spend billed takes on a track that misses a format limit (`channels`, `sample_width_bits`, `min_sample_rate`): every take from the same provider has the same format, so a rerender could never make it fit. `--retry-unfit` prints `Not rerendered: NAME (limits)`, `--dry-run` says why in the track's reason, and `--force NAME` still rerenders. A track rejected by the judge still retries on the judge's suggestions.
 - `muse export` reports a failure to open, write or close the output as "could not write the export" (it said "could not read the audio" for a missing `--to` folder or a full disk), creates missing output folders only once the source has produced audio, and rejects a chunk size that is not a positive whole number.
 - `muse batch --resume` no longer reuses the requirements result stored by an earlier run: a reused track is judged only by the limits given now, so dropping `--requirements` clears the `unfit` count.
 - `muse analyze` measures duration from the audio a WAV file really holds, not from its header, so a truncated render fails `min_duration`. A file cut mid-sample is profiled instead of reported as undecodable.
