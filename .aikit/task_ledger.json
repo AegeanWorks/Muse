@@ -1,11 +1,11 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-analyze-hardening",
+    "task_id": "reforge:run-18",
     "last_phase": "phase 4",
-    "active_phase": 5,
-    "status": "completed",
-    "updated_at": 1794681734.482634,
+    "active_phase": 4,
+    "status": "in_progress",
+    "updated_at": 1794682236.5140162,
     "owner": "kilo:goal",
     "started_by": "kilo:goal",
     "continuations": [],
@@ -14,75 +14,9 @@
         "name": "muse",
         "path": "projects/muse"
       }
-    ],
-    "completed_at": 1794681812.3894784
+    ]
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-16",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=2, step=2, stop=None)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794679130.125198,
-      "timestamp_str": "2026-11-14 20:58:50",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-16",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 2 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794679131.206034,
-      "timestamp_str": "2026-11-14 20:58:51",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-16",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: stage 1 host review reviewed; run active; coverage 3/3",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794679299.619038,
-      "timestamp_str": "2026-11-14 21:01:39",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-15",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-15 complete: start=2 step=2 stop=2, 22/22 hunks reviewed, 1 improvement applied (analyze prints JSON before a failed exit); checklists: passed",
-      "files_affected": [
-        ".aikit/reforge.json",
-        ".aikit/task_ledger.json",
-        ".aikit/task_ledger_archive.jsonl"
-      ],
-      "status": "in_progress",
-      "timestamp": 1794679395.120704,
-      "timestamp_str": "2026-11-14 21:03:15",
-      "agent": "kilo:goal",
-      "measurements": [
-        {
-          "baseline": 0.0,
-          "command": "python aikit.py reforge review muse --stage 1 --run run-15 --findings <file>",
-          "metric": "hunks_reviewed",
-          "candidate": 22.0,
-          "artifact": ".aikit/reforge.reviews/stage-run-15-1-322bc50eee11.md",
-          "unit": "hunks"
-        }
-      ],
-      "checklists": "passed",
-      "workspaces": [
-        {
-          "name": "muse",
-          "path": "projects/muse"
-        }
-      ]
-    },
     {
       "task_id": "reforge:run-15",
       "phase": "completed",
@@ -372,6 +306,71 @@
         ],
         "forced": false
       }
+    },
+    {
+      "task_id": "reforge:run-18",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=2, step=2, stop=2)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794681854.4336057,
+      "timestamp_str": "2026-11-14 21:44:14",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-18",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 2, 2 commit(s), 8 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794681857.045037,
+      "timestamp_str": "2026-11-14 21:44:17",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-18",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: stage 1 host review reviewed; run completed; coverage 20/20",
+      "files_affected": [],
+      "status": "completed",
+      "timestamp": 1794682227.2618053,
+      "timestamp_str": "2026-11-14 21:50:27",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-18",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/1] Reforge run-18 complete: start=2 step=2 stop=2, 20/20 hunks reviewed, 0 findings; the analyze hardening and its ledger closure attested; checklists: passed",
+      "files_affected": [
+        ".aikit/reforge.json",
+        ".aikit/task_ledger.json",
+        ".aikit/task_ledger_archive.jsonl"
+      ],
+      "status": "in_progress",
+      "timestamp": 1794682236.5140162,
+      "timestamp_str": "2026-11-14 21:50:36",
+      "agent": "kilo:goal",
+      "measurements": [
+        {
+          "candidate": 20.0,
+          "metric": "hunks_reviewed",
+          "artifact": ".aikit/reforge.reviews/stage-run-18-1-24a37518359f.md",
+          "command": "python aikit.py reforge review muse --stage 1 --run run-18 --findings <file>",
+          "baseline": 0.0,
+          "unit": "hunks"
+        }
+      ],
+      "checklists": "passed",
+      "workspaces": [
+        {
+          "name": "muse",
+          "path": "projects/muse"
+        }
+      ]
     }
   ]
 }
