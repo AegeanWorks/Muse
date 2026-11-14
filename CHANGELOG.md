@@ -6,6 +6,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 ## [Unreleased]
 
 ### Added
+- `muse batch --requirements FILE` checks every rendered or reused track against the same limits file `analyze` accepts, adds an `unfit` count and a per-track `requirements` result to the JSON, names unfit tracks in the summary and exits `1` when any track misses a limit.
 
 - This changelog covering the 0.1.0 through 0.10.0 release line.
 - `AGENTS.md` is the agent contract: the command-to-JSON map, exit codes, cost and safety

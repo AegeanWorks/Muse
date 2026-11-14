@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from . import __version__
-from .analysis import analyze_audio, evaluate, load_requirements
+from .analysis import TrackRequirements, analyze_audio, evaluate, load_requirements
 from .audio import wav_duration
 from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
@@ -124,6 +124,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="validate the manifest and print the plan without rendering",
+    )
+    batch.add_argument(
+        "--requirements",
+        type=Path,
+        default=None,
+        help="JSON file with limits every rendered track must meet",
     )
 
     judge = subparsers.add_parser("judge", help="score an existing audio file against a theme")
@@ -305,6 +311,7 @@ def _batch(
     judge: MusicJudge | None,
 ) -> int:
     requests = load_manifest(args.manifest)
+    requirements = load_requirements(args.requirements) if args.requirements else None
     forced = {name.casefold() for name in args.force}
     labels = {request.label.casefold() for request in requests}
     if forced and not args.resume:
@@ -355,7 +362,9 @@ def _batch(
             if _evidence_exists(prior):
                 entry = dict(prior)
                 entry["reused"] = True
+                _attach_requirements(entry, requirements)
                 entries[index - 1] = entry
+                save_state(progress, fingerprint, _filled(entries))
                 if not args.json:
                     audio = entry["payload"].get("audio")
                     print(f"[{index}/{len(requests)}] {request.label}: reused accepted take -> {audio}")
@@ -381,6 +390,7 @@ def _batch(
                 print(f"[{index}/{len(requests)}] {request.label}: failed ({exc.what})")
             continue
         entries[index - 1] = _result_entry(index, request, result)
+        _attach_requirements(entries[index - 1], requirements)
         save_state(progress, fingerprint, _filled(entries))
         if not args.json:
             _print_batch_track(index, len(requests), request, result)
@@ -396,9 +406,17 @@ def _batch(
         if payload["failed"]:
             names = [entry["name"] for entry in _filled(entries) if entry["status"] == "failed"]
             print(f"Failed: {', '.join(names)}")
+        if payload["unfit"]:
+            names = [
+                entry["name"]
+                for entry in _filled(entries)
+                if isinstance(entry.get("payload", {}).get("requirements"), dict)
+                and entry["payload"]["requirements"].get("ok") is False
+            ]
+            print(f"Unfit for the requirements: {', '.join(names)}")
         if payload["reused"]:
             print(f"Reused: {payload['reused']}")
-    return 1 if payload["failed"] or (args.strict and payload["rejected"]) else 0
+    return 1 if payload["failed"] or payload["unfit"] or (args.strict and payload["rejected"]) else 0
 
 
 def _dry_run(
@@ -457,6 +475,7 @@ def _dry_run(
         "attempts": args.attempts,
         "provider": settings.provider,
         "judge": settings.judge,
+        "requirements": None if args.requirements is None else str(args.requirements),
         "output": str(settings.output_dir),
     }
     if args.json:
@@ -856,18 +875,47 @@ def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
     }
 
 
+def _attach_requirements(entry: dict[str, Any], requirements: TrackRequirements | None) -> None:
+    """Evaluate the track against the batch requirements and store the checks on the entry."""
+    if requirements is None:
+        return
+    payload = entry.get("payload")
+    if not isinstance(payload, dict):
+        return
+    audio = payload.get("audio")
+    evidence: dict[str, Any] | None = None
+    accepted = payload.get("accepted")
+    verdict = payload.get("verdict")
+    if isinstance(accepted, bool):
+        evidence = {"accepted": accepted}
+        if isinstance(verdict, dict):
+            evidence["score"] = verdict.get("score")
+            evidence["verdict"] = verdict.get("verdict")
+    profile = None
+    reason = "the track has no audio to profile"
+    if isinstance(audio, str):
+        profile, reason = analyze_audio(Path(audio))
+    payload["requirements"] = evaluate(profile, requirements, evidence, reason)
+
+
 def _batch_payload(entries: list[dict[str, Any]]) -> dict[str, Any]:
     tracks = []
     for entry in entries:
         payload = dict(entry.get("payload") or {})
         payload["reused"] = bool(entry.get("reused"))
         tracks.append(payload)
+
+    def unfit(track: dict[str, Any]) -> bool:
+        result = track.get("requirements")
+        return isinstance(result, dict) and result.get("ok") is False
+
     return {
         "tracks": tracks,
         "total": len(tracks),
         "accepted": sum(1 for track in tracks if track.get("accepted")),
         "rejected": sum(1 for entry in entries if entry["status"] == "rejected"),
         "failed": sum(1 for entry in entries if entry["status"] == "failed"),
+        "unfit": sum(1 for track in tracks if unfit(track)),
         "reused": sum(1 for entry in entries if entry.get("reused")),
     }
 

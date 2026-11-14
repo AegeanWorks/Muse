@@ -438,6 +438,70 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual([track["status"] for track in state["tracks"]], ["accepted", "accepted"])
         self.assertTrue(state["tracks"][0]["payload"]["accepted"])
 
+    def requirements_file(self, limits):
+        path = self.root / "requirements.json"
+        path.write_text(json.dumps(limits), encoding="utf-8")
+        return path
+
+    def one_track(self):
+        return self.manifest(
+            [{"prompt": "cave drones", "theme": "cave level", "duration": 1, "name": "cave"}]
+        )
+
+    def test_batch_requirements_met_exits_zero(self):
+        limits = self.requirements_file({"min_duration": 0.5})
+        code, out, err = self.run_cli(
+            ["batch", str(self.one_track()), "--requirements", str(limits), "--json"]
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["unfit"], 0)
+        self.assertTrue(payload["tracks"][0]["requirements"]["ok"])
+
+    def test_batch_requirements_unmet_fails_the_run(self):
+        limits = self.requirements_file({"min_duration": 600})
+        code, out, err = self.run_cli(
+            ["batch", str(self.one_track()), "--requirements", str(limits)]
+        )
+        self.assertEqual(code, 1, err)
+        self.assertIn("Unfit for the requirements: cave", out)
+
+    def test_batch_without_requirements_reports_no_unfit_tracks(self):
+        code, out, err = self.run_cli(["batch", str(self.one_track()), "--json"])
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["unfit"], 0)
+        self.assertNotIn("requirements", payload["tracks"][0])
+
+    def test_batch_requirements_apply_to_reused_tracks(self):
+        path = self.one_track()
+        code, _, err = self.run_cli(["batch", str(path)])
+        self.assertEqual(code, 0, err)
+        limits = self.requirements_file({"min_duration": 600})
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--requirements", str(limits), "--json"]
+        )
+        self.assertEqual(code, 1, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["reused"], 1)
+        self.assertEqual(payload["unfit"], 1)
+
+    def test_batch_requirements_invalid_file_exits_two(self):
+        limits = self.requirements_file({"bogus": 1})
+        code, _, err = self.run_cli(
+            ["batch", str(self.one_track()), "--requirements", str(limits)]
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("Fix:", err)
+
+    def test_batch_dry_run_names_the_requirements_file(self):
+        limits = self.requirements_file({"min_duration": 1})
+        code, out, err = self.run_cli(
+            ["batch", str(self.one_track()), "--dry-run", "--requirements", str(limits), "--json"]
+        )
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out)["requirements"], str(limits))
+
     def test_resume_of_all_accepted_tracks_needs_no_judge_key(self):
         path = self.manifest(
             [

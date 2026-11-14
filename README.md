@@ -99,6 +99,8 @@ python -m muse batch tracks.json --resume --force cave
 # inspect the plan without calling a provider or judge
 python -m muse batch tracks.json --dry-run --json
 
+# fail the run when a track misses the limits in requirements.json (same file format as analyze)
+python -m muse batch tracks.json --requirements requirements.json
 # preview which tracks --resume would reuse or retry
 python -m muse batch tracks.json --dry-run --resume
 
@@ -180,7 +182,7 @@ while reusing the rest; each forced take gets a new artifact folder. It requires
 rejects names that are not in the manifest. `--keep-going` records a failure and continues with the
 rest of the manifest; without it the first failure is recorded and the command stops. A failed
 track always exits `1`; `--strict` also exits `1` when any track is rejected. `--json` prints a
-`tracks` array plus `total`, `accepted`, `rejected`, `failed` and `reused` counts, with a `reused`
+`tracks` array plus `total`, `accepted`, `rejected`, `failed`, `unfit` and `reused` counts, with a `reused`
 flag on every track.
 
 | Batch flag | Meaning |

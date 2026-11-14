@@ -38,7 +38,7 @@ human tour. If they disagree, the CLI and tests are right and this file is a bug
 |---|---|---|
 | `generate PROMPT --theme T [--duration S] [--json]` | Render and judge one track | `audio`, `metadata`, `provider`, `model`, `duration_seconds`, `verdict`, `accepted`, `judge_error`, `attempts` |
 | `generate ... --dry-run --json` | Validate and plan; no provider or judge call | `dry_run`, `request`, `attempts`, `provider`, `music_model`, `judge`, `judge_model`, `min_score`, `output` |
-| `batch MANIFEST [--json]` | Render a JSON manifest of tracks | `tracks`, `total`, `accepted`, `rejected`, `failed`, `reused` |
+| `batch MANIFEST [--json]` | Render a JSON manifest of tracks | `tracks`, `total`, `accepted`, `rejected`, `failed`, `unfit`, `reused` |
 | `batch MANIFEST --dry-run --json` | Plan a batch without spending | `dry_run`, `resume`, `tracks[]` (`name`, `action`, `reason`), `total`, `provider`, `judge`, `output` |
 | `judge AUDIO --theme T [--json]` | Score an existing file | `audio`, `verdict`, `accepted` |
 | `list [--accepted-only] [--json]` | Read the artifact catalog | `artifacts[]`, `total`, `shown`, `output`, `match`, `sort` |

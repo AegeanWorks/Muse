@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
-- **Total Top-Level Functions**: `103`
-- **Total Class Methods**: `344`
-- **Total Source Lines**: `6936`
+- **Total Top-Level Functions**: `104`
+- **Total Class Methods**: `352`
+- **Total Source Lines**: `7048`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -131,7 +131,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1005` lines (`40158` bytes)
+**Size**: `1053` lines (`42247` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -156,6 +156,7 @@
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
+- `def _attach_requirements(entry, requirements)` - *Evaluate the track against the batch requirements and store the checks on the entry.*
 - `def _batch_payload(entries)`
 - `def _filled(entries)`
 - `def _evidence_exists(entry)`
@@ -502,7 +503,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `628` lines (`27598` bytes)
+**Size**: `692` lines (`30302` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -549,6 +550,14 @@
   - Method `.test_dry_run_resume_marks_missing_evidence()`
   - Method `.state_file()`
   - Method `.test_batch_writes_state_after_each_track()`
+  - Method `.requirements_file(limits)`
+  - Method `.one_track()`
+  - Method `.test_batch_requirements_met_exits_zero()`
+  - Method `.test_batch_requirements_unmet_fails_the_run()`
+  - Method `.test_batch_without_requirements_reports_no_unfit_tracks()`
+  - Method `.test_batch_requirements_apply_to_reused_tracks()`
+  - Method `.test_batch_requirements_invalid_file_exits_two()`
+  - Method `.test_batch_dry_run_names_the_requirements_file()`
   - Method `.test_resume_of_all_accepted_tracks_needs_no_judge_key()`
   - Method `.test_resume_of_all_accepted_tracks_allows_judge_none()`
   - Method `.test_force_rerenders_an_accepted_track()`
