@@ -44,6 +44,7 @@ def export_wav(
     music and effects, not for mastering.
     """
     _check_rate(rate)
+    _check_chunk(chunk_frames)
     origin, target = Path(source), Path(destination)
     if _same_file(origin, target):
         raise ExportError(
@@ -77,6 +78,15 @@ def _check_rate(rate: object) -> None:
             f"unsupported sample rate: {rate!r}",
             f"a rate must be a whole number of Hz from {MIN_RATE} to {MAX_RATE}",
             "pass a rate such as 22050 or 44100",
+        )
+
+
+def _check_chunk(chunk_frames: object) -> None:
+    if isinstance(chunk_frames, bool) or not isinstance(chunk_frames, int) or chunk_frames < 1:
+        raise ConfigurationError(
+            f"unsupported chunk size: {chunk_frames!r}",
+            "the chunk size is the number of frames read at a time and must be a positive whole number",
+            "omit it to use the default, or pass a whole number of frames from 1",
         )
 
 
@@ -114,35 +124,50 @@ def _stream(reader: wave.Wave_read, source: Path, temporary: Path, rate: int, ch
             f"{channels} channel(s), {width * 8}-bit, {source_rate} Hz",
             "convert the file to PCM WAV with 8, 16, 24 or 32-bit samples",
         )
-    mono = _mono_chunks(reader, channels, width, chunk_frames)
+    mono = _mono_chunks(reader, source, channels, width, chunk_frames)
     stream = mono if source_rate == rate else _resample(mono, source_rate, rate)
-    frames = 0
-    with wave.open(str(temporary), "wb") as writer:
-        writer.setnchannels(1)
-        writer.setsampwidth(2)
-        writer.setframerate(rate)
-        for block in stream:
-            if block:
-                try:
-                    writer.writeframes(_quantize(block))
-                except OSError as exc:
-                    raise ExportError(
-                        f"could not write the export: {temporary.name}",
-                        str(exc),
-                        "check free disk space and folder permissions, then retry",
-                    ) from exc
+    blocks = (block for block in stream if block)
+    first = next(blocks, None)
+    if first is None:
+        return 0
+    frames = len(first)
+    try:
+        # The folder is created only once the source has produced audio.
+        temporary.parent.mkdir(parents=True, exist_ok=True)
+        with wave.open(str(temporary), "wb") as writer:
+            writer.setnchannels(1)
+            writer.setsampwidth(2)
+            writer.setframerate(rate)
+            writer.writeframes(_quantize(first))
+            for block in blocks:
+                writer.writeframes(_quantize(block))
                 frames += len(block)
+    except OSError as exc:
+        raise ExportError(
+            f"could not write the export: {temporary.name}",
+            str(exc),
+            "check that the output folder is writable and the disk has free space, then retry",
+        ) from exc
     return frames
 
 
-def _mono_chunks(reader: wave.Wave_read, channels: int, width: int, chunk_frames: int) -> Iterator[list[float]]:
+def _mono_chunks(
+    reader: wave.Wave_read, source: Path, channels: int, width: int, chunk_frames: int
+) -> Iterator[list[float]]:
     scale = float((1 << (width * 8 - 1)) - 1)
     while True:
-        # hygiene: allow bounded streaming read; only PCM samples are converted
-        data = reader.readframes(chunk_frames)
-        if not data:
-            return
-        values = pcm_values(data[: len(data) - len(data) % width], width)
+        try:
+            # hygiene: allow bounded streaming read; only PCM samples are converted
+            data = reader.readframes(chunk_frames)
+            if not data:
+                return
+            values = pcm_values(data[: len(data) - len(data) % width], width)
+        except (OSError, EOFError, wave.Error, struct.error) as exc:
+            raise ExportError(
+                f"could not read the audio: {source}",
+                f"the WAV data is damaged or unreadable: {exc}",
+                "render the track again, or convert the file to PCM WAV first",
+            ) from exc
         values = values[: len(values) - len(values) % channels]
         if channels == 1:
             yield [value / scale for value in values]

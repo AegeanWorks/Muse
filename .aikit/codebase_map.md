@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `41`
-- **Total Classes**: `83`
-- **Total Top-Level Functions**: `121`
-- **Total Class Methods**: `416`
-- **Total Source Lines**: `8032`
+- **Total Classes**: `84`
+- **Total Top-Level Functions**: `122`
+- **Total Class Methods**: `426`
+- **Total Source Lines**: `8136`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`41` module(s))
@@ -233,7 +233,7 @@
 ### [`muse/export.py`](muse/export.py)
 > *Export a rendered WAV as the mono 16-bit PCM file an engine loader expects.*
 
-**Size**: `181` lines (`6567` bytes)
+**Size**: `206` lines (`7662` bytes)
 
 **Classes:**
 - `class ExportResult`
@@ -242,10 +242,11 @@
 **Functions:**
 - `def export_wav(source, destination, rate, chunk_frames)` - *Mix `source` down to mono, resample it to `rate` Hz and write 16-bit PCM atomically.*
 - `def _check_rate(rate)`
+- `def _check_chunk(chunk_frames)`
 - `def _same_file(first, second)`
 - `def _convert(source, temporary, rate, chunk_frames)`
 - `def _stream(reader, source, temporary, rate, chunk_frames)`
-- `def _mono_chunks(reader, channels, width, chunk_frames)`
+- `def _mono_chunks(reader, source, channels, width, chunk_frames)`
 - `def _resample(chunks, source_rate, target_rate)` - *Linear interpolation with integer positions, so the output ignores chunk boundaries.*
 - `def _quantize(block)`
 
@@ -733,7 +734,7 @@
 ### [`tests/test_export.py`](tests/test_export.py)
 > *Export: stream any PCM WAV to the mono 16-bit file an engine loader accepts.*
 
-**Size**: `275` lines (`12701` bytes)
+**Size**: `354` lines (`16295` bytes)
 
 **Classes:**
 - `class ExportCase`
@@ -758,6 +759,15 @@
   - Method `.test_a_float_wav_is_an_export_error_naming_the_format()`
   - Method `.test_the_rate_must_be_in_range()`
   - Method `.test_a_truncated_file_exports_the_audio_it_holds()`
+- `class ExportWriteTests`
+  - Method `.source()`
+  - Method `.test_missing_output_folders_are_created()`
+  - Method `.test_a_bad_source_creates_no_output_folder()`
+  - Method `.test_an_empty_source_creates_no_output_folder()`
+  - Method `.test_an_unwritable_folder_is_a_write_error()`
+  - Method `.test_a_failure_while_closing_the_output_is_a_write_error()`
+  - Method `.test_a_damaged_source_stays_a_read_error()`
+  - Method `.test_the_chunk_size_must_be_a_positive_whole_number()`
 - `class ExportCommandTests`
   - Method `.setUp()`
   - Method `.export(*arguments)`
@@ -765,6 +775,8 @@
   - Method `.test_the_rate_option_sets_the_output_rate()`
   - Method `.test_a_bare_wav_file_exports_beside_itself()`
   - Method `.test_to_names_the_output_file()`
+  - Method `.test_to_creates_missing_folders()`
+  - Method `.test_an_unwritable_target_says_it_could_not_write()`
   - Method `.test_the_human_summary_names_the_file_and_format()`
   - Method `.test_exporting_twice_gives_the_same_file()`
   - Method `.test_the_source_cannot_be_the_target()`

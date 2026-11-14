@@ -296,7 +296,7 @@ python -m muse export cave-level
 python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
 ```
 ARTIFACT is a folder, a `muse.json` or a WAV file. The default output is `NAME-22050hz.wav`
-beside the audio; `--to` names another file. Input may be 8, 16, 24 or 32-bit PCM with any
+beside the audio; `--to` names another file and its missing folders are created. Input may be 8, 16, 24 or 32-bit PCM with any
 channel count: channels are averaged to mono and the audio is resampled by linear interpolation,
 which suits game music and effects but is not mastering quality. The file is read in chunks, so
 long tracks do not need much memory, and the output is written through a temporary file and

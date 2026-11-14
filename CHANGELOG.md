@@ -18,6 +18,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 - `muse batch --requirements` prints `Skipped requirement checks: NAME (check, ...)` when a limit could not be measured, for example on non-WAV audio, so an exit `0` no longer hides unchecked limits. The JSON already carried `requirements.skipped` per track.
 ### Fixed
+- `muse export` reports a failure to open, write or close the output as "could not write the export" (it said "could not read the audio" for a missing `--to` folder or a full disk), creates missing output folders only once the source has produced audio, and rejects a chunk size that is not a positive whole number.
 - `muse batch --resume` no longer reuses the requirements result stored by an earlier run: a reused track is judged only by the limits given now, so dropping `--requirements` clears the `unfit` count.
 - `muse analyze` measures duration from the audio a WAV file really holds, not from its header, so a truncated render fails `min_duration`. A file cut mid-sample is profiled instead of reported as undecodable.
 ## [0.16.0] - 2026-11-14

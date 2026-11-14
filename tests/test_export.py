@@ -9,6 +9,7 @@ import unittest
 import wave
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 from muse.analysis import analyze_audio, evaluate, requirements_from_mapping
 from muse.cli import main
@@ -186,6 +187,70 @@ class ExportSafetyTests(ExportCase):
         self.assertAlmostEqual(result.duration, 0.25, places=2)
 
 
+class ExportWriteTests(ExportCase):
+    def source(self):
+        return self.wav("in.wav", sine(800, 8000), rate=8000)
+
+    def test_missing_output_folders_are_created(self):
+        destination = self.root / "game" / "audio" / "out.wav"
+        result = export_wav(self.source(), destination, 8000)
+        self.assertTrue(destination.is_file())
+        self.assertEqual(result.destination, destination)
+
+    def test_a_bad_source_creates_no_output_folder(self):
+        bad = self.root / "noise.wav"
+        bad.write_bytes(b"not audio")
+        with self.assertRaises(ExportError):
+            export_wav(bad, self.root / "new" / "out.wav", 8000)
+        self.assertFalse((self.root / "new").exists())
+
+    def test_an_empty_source_creates_no_output_folder(self):
+        empty = self.wav("empty.wav", [], rate=8000)
+        with self.assertRaises(ExportError):
+            export_wav(empty, self.root / "new" / "out.wav", 8000)
+        self.assertFalse((self.root / "new").exists())
+
+    def test_an_unwritable_folder_is_a_write_error(self):
+        blocker = self.root / "blocker"
+        blocker.write_text("a file, not a folder", encoding="utf-8")
+        with self.assertRaises(ExportError) as caught:
+            export_wav(self.source(), blocker / "out.wav", 8000)
+        self.assertIn("could not write the export", caught.exception.what)
+        self.assertNotIn("could not read", caught.exception.what)
+        self.assertTrue(caught.exception.fix)
+
+    def test_a_failure_while_closing_the_output_is_a_write_error(self):
+        real_close = wave.Wave_write.close
+        state = {"failed": False}
+
+        def close(handle):
+            real_close(handle)
+            if not state["failed"]:
+                state["failed"] = True
+                raise OSError("disk full")
+
+        source = self.source()
+        with patch.object(wave.Wave_write, "close", close):
+            with self.assertRaises(ExportError) as caught:
+                export_wav(source, self.root / "out.wav", 8000)
+        self.assertIn("could not write the export", caught.exception.what)
+        self.assertIn("disk full", caught.exception.why)
+        self.assertEqual(sorted(path.name for path in self.root.iterdir()), ["in.wav"])
+
+    def test_a_damaged_source_stays_a_read_error(self):
+        source = self.source()
+        with patch("muse.export.pcm_values", side_effect=struct.error("bad sample data")):
+            with self.assertRaises(ExportError) as caught:
+                export_wav(source, self.root / "out.wav", 8000)
+        self.assertIn("could not read the audio", caught.exception.what)
+
+    def test_the_chunk_size_must_be_a_positive_whole_number(self):
+        source = self.source()
+        for chunk in (0, -1, True, 2.5, "10"):
+            with self.subTest(chunk=chunk), self.assertRaises(ConfigurationError):
+                export_wav(source, self.root / "out.wav", 8000, chunk_frames=chunk)
+
+
 class ExportCommandTests(ExportCase):
     def setUp(self):
         super().setUp()
@@ -234,6 +299,20 @@ class ExportCommandTests(ExportCase):
         code, out, err = self.export(str(self.folder), "--to", str(target), "--json")
         self.assertEqual(code, 0, err)
         self.assertTrue(target.is_file())
+
+    def test_to_creates_missing_folders(self):
+        target = self.root / "game" / "audio" / "cave.wav"
+        code, _, err = self.export(str(self.folder), "--to", str(target), "--json")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(target.is_file())
+
+    def test_an_unwritable_target_says_it_could_not_write(self):
+        blocker = self.root / "blocker"
+        blocker.write_text("a file", encoding="utf-8")
+        code, _, err = self.export(str(self.folder), "--to", str(blocker / "cave.wav"))
+        self.assertEqual(code, 1)
+        self.assertIn("could not write the export", err)
+        self.assertIn("Fix:", err)
 
     def test_the_human_summary_names_the_file_and_format(self):
         code, out, err = self.export(str(self.folder), "--out", str(self.root))
