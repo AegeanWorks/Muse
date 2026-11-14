@@ -57,6 +57,30 @@ class ProfileTests(Workspace):
         self.assertEqual(profile.clipped_percent, 0.0)
         self.assertGreater(profile.size_bytes, 0)
 
+    def test_a_truncated_file_reports_the_audio_it_holds(self):
+        path = self.tone(seconds=10.0)
+        data = path.read_bytes()
+        path.write_bytes(data[: 44 + (len(data) - 44) // 10])
+        profile, reason = analyze_audio(path)
+        self.assertEqual(reason, "")
+        self.assertAlmostEqual(profile.duration, 1.0, places=1)
+
+    def test_a_file_cut_mid_sample_is_still_profiled(self):
+        path = self.tone(seconds=10.0)
+        data = path.read_bytes()
+        path.write_bytes(data[: 44 + (len(data) - 44) // 10 + 1])
+        profile, reason = analyze_audio(path)
+        self.assertEqual(reason, "")
+        self.assertAlmostEqual(profile.duration, 1.0, places=1)
+
+    def test_a_truncated_file_fails_the_minimum_duration(self):
+        path = self.tone(seconds=10.0)
+        data = path.read_bytes()
+        path.write_bytes(data[: 44 + (len(data) - 44) // 10])
+        profile, reason = analyze_audio(path)
+        result = evaluate(profile, requirements_from_mapping({"min_duration": 9}), None, reason)
+        self.assertFalse(result["ok"])
+
     def test_a_non_wav_file_is_reported_not_crashed(self):
         path = self.root / "noise.mp3"
         path.write_bytes(b"not audio")

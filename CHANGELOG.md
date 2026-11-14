@@ -15,6 +15,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 
 ### Fixed
 - `muse batch --resume` no longer reuses the requirements result stored by an earlier run: a reused track is judged only by the limits given now, so dropping `--requirements` clears the `unfit` count.
+- `muse analyze` measures duration from the audio a WAV file really holds, not from its header, so a truncated render fails `min_duration`. A file cut mid-sample is profiled instead of reported as undecodable.
 ## [0.16.0] - 2026-11-14
 
 ### Added

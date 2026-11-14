@@ -160,12 +160,10 @@ def analyze_audio(path: Path) -> tuple[AudioProfile | None, str]:
             channels = handle.getnchannels()
             width = handle.getsampwidth()
             rate = handle.getframerate()
-            frames = handle.getnframes()
             if width not in (1, 2, 3, 4):
                 return None, f"{width * 8}-bit PCM is not analysed"
             if rate <= 0 or channels <= 0:
                 return None, "the WAV header has an invalid rate or channel count"
-            duration = frames / float(rate)
             full_scale = float(1 << (width * 8 - 1))
             peak = 0
             square_sum = 0
@@ -178,7 +176,8 @@ def analyze_audio(path: Path) -> tuple[AudioProfile | None, str]:
                 data = handle.readframes(READ_CHUNK_FRAMES)
                 if not data:
                     break
-                values = _pcm_values(data, width)
+                # A file cut mid-sample leaves a partial sample at the end; drop it.
+                values = _pcm_values(data[: len(data) - len(data) % width], width)
                 if not values:
                     break
                 chunk_peak = max(map(abs, values))
@@ -191,6 +190,8 @@ def analyze_audio(path: Path) -> tuple[AudioProfile | None, str]:
         return None, f"the WAV file could not be decoded: {exc}"
     if not samples:
         return None, "the WAV file holds no samples"
+    # The header may promise more frames than the file holds; measure what is really there.
+    duration = (samples // channels) / float(rate)
     peak_dbfs = _dbfs(peak / full_scale)
     rms_dbfs = _dbfs(math.sqrt(square_sum / samples) / full_scale)
     profile = AudioProfile(

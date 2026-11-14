@@ -9,8 +9,8 @@
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
 - **Total Top-Level Functions**: `104`
-- **Total Class Methods**: `354`
-- **Total Source Lines**: `7079`
+- **Total Class Methods**: `357`
+- **Total Source Lines**: `7104`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `481` lines (`17503` bytes)
+**Size**: `482` lines (`17679` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -435,7 +435,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `333` lines (`13333` bytes)
+**Size**: `357` lines (`14406` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -444,6 +444,9 @@
   - Method `.requirements(payload, name)`
 - `class ProfileTests`
   - Method `.test_profile_measures_a_mock_tone()`
+  - Method `.test_a_truncated_file_reports_the_audio_it_holds()`
+  - Method `.test_a_file_cut_mid_sample_is_still_profiled()`
+  - Method `.test_a_truncated_file_fails_the_minimum_duration()`
   - Method `.test_a_non_wav_file_is_reported_not_crashed()`
   - Method `.test_a_missing_file_is_reported()`
 - `class RequirementParsingTests`
