@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "next_run_id": 13,
-  "active_run": "run-12",
+  "active_run": null,
   "last_run": "run-12",
   "runs": [
     {
@@ -2602,16 +2602,16 @@
       "id": "run-12",
       "start": 2,
       "step": 2,
-      "stop": null,
+      "stop": 2,
       "stage": 1,
       "window": 2,
       "audited_commits": [
         "d45546deee4d92d716f4d802ce375ed9a472a160",
         "58462aeb4534bab0d37be6961e91715ade006697"
       ],
-      "status": "active",
+      "status": "completed",
       "created": "2026-11-14T19:48:05",
-      "updated": "2026-11-14T19:54:26",
+      "updated": "2026-11-14T19:55:33",
       "last_audit": {
         "run": "run-12",
         "stage": 1,
@@ -2625,28 +2625,7 @@
           "58462aeb4534bab0d37be6961e91715ade006697"
         ],
         "prior_commits": [],
-        "findings": [
-          {
-            "code": "review-mojibake-heading",
-            "category": "review",
-            "severity": "medium",
-            "path": "README.md",
-            "line": 46,
-            "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-            "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-            "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-            "hunk": "58462aeb4534:README.md#1",
-            "symbol": "",
-            "introduced": true,
-            "reproducible": false,
-            "fixable": true,
-            "interaction": "",
-            "repaired": true,
-            "source": "review",
-            "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-            "patch_new": "## \ud83e\udd16 For AI Agents"
-          }
-        ],
+        "findings": [],
         "repairs": [
           {
             "code": "review-mojibake-heading",
@@ -2657,13 +2636,13 @@
             "applied": true
           }
         ],
-        "counts": {
-          "review": 1
-        },
+        "counts": {},
         "reviewed": 6,
         "review": {
           "status": "reviewed",
-          "rejected": [],
+          "rejected": [
+            "README.md:46: the evidence is not in the current file (it may quote a removed line)"
+          ],
           "files": [
             ".aikit/codebase_map.md",
             ".aikit/task_ledger_archive.jsonl",
@@ -2683,28 +2662,7 @@
             "unknown": [],
             "invalid": []
           },
-          "findings": [
-            {
-              "code": "review-mojibake-heading",
-              "category": "review",
-              "severity": "medium",
-              "path": "README.md",
-              "line": 46,
-              "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-              "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-              "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-              "hunk": "58462aeb4534:README.md#1",
-              "symbol": "",
-              "introduced": true,
-              "reproducible": false,
-              "fixable": true,
-              "interaction": "",
-              "repaired": false,
-              "source": "review",
-              "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-              "patch_new": "## \ud83e\udd16 For AI Agents"
-            }
-          ]
+          "findings": []
         },
         "skipped": [],
         "tests": {
@@ -2745,28 +2703,7 @@
             "58462aeb4534bab0d37be6961e91715ade006697"
           ],
           "prior_commits": [],
-          "findings": [
-            {
-              "code": "review-mojibake-heading",
-              "category": "review",
-              "severity": "medium",
-              "path": "README.md",
-              "line": 46,
-              "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-              "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-              "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-              "hunk": "58462aeb4534:README.md#1",
-              "symbol": "",
-              "introduced": true,
-              "reproducible": false,
-              "fixable": true,
-              "interaction": "",
-              "repaired": true,
-              "source": "review",
-              "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-              "patch_new": "## \ud83e\udd16 For AI Agents"
-            }
-          ],
+          "findings": [],
           "repairs": [
             {
               "code": "review-mojibake-heading",
@@ -2777,13 +2714,13 @@
               "applied": true
             }
           ],
-          "counts": {
-            "review": 1
-          },
+          "counts": {},
           "reviewed": 6,
           "review": {
             "status": "reviewed",
-            "rejected": [],
+            "rejected": [
+              "README.md:46: the evidence is not in the current file (it may quote a removed line)"
+            ],
             "files": [
               ".aikit/codebase_map.md",
               ".aikit/task_ledger_archive.jsonl",
@@ -2803,28 +2740,7 @@
               "unknown": [],
               "invalid": []
             },
-            "findings": [
-              {
-                "code": "review-mojibake-heading",
-                "category": "review",
-                "severity": "medium",
-                "path": "README.md",
-                "line": 46,
-                "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-                "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-                "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-                "hunk": "58462aeb4534:README.md#1",
-                "symbol": "",
-                "introduced": true,
-                "reproducible": false,
-                "fixable": true,
-                "interaction": "",
-                "repaired": false,
-                "source": "review",
-                "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-                "patch_new": "## \ud83e\udd16 For AI Agents"
-              }
-            ]
+            "findings": []
           },
           "skipped": [],
           "tests": {
@@ -2874,28 +2790,7 @@
       "58462aeb4534bab0d37be6961e91715ade006697"
     ],
     "prior_commits": [],
-    "findings": [
-      {
-        "code": "review-mojibake-heading",
-        "category": "review",
-        "severity": "medium",
-        "path": "README.md",
-        "line": 46,
-        "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-        "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-        "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-        "hunk": "58462aeb4534:README.md#1",
-        "symbol": "",
-        "introduced": true,
-        "reproducible": false,
-        "fixable": true,
-        "interaction": "",
-        "repaired": true,
-        "source": "review",
-        "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-        "patch_new": "## \ud83e\udd16 For AI Agents"
-      }
-    ],
+    "findings": [],
     "repairs": [
       {
         "code": "review-mojibake-heading",
@@ -2906,13 +2801,13 @@
         "applied": true
       }
     ],
-    "counts": {
-      "review": 1
-    },
+    "counts": {},
     "reviewed": 6,
     "review": {
       "status": "reviewed",
-      "rejected": [],
+      "rejected": [
+        "README.md:46: the evidence is not in the current file (it may quote a removed line)"
+      ],
       "files": [
         ".aikit/codebase_map.md",
         ".aikit/task_ledger_archive.jsonl",
@@ -2932,28 +2827,7 @@
         "unknown": [],
         "invalid": []
       },
-      "findings": [
-        {
-          "code": "review-mojibake-heading",
-          "category": "review",
-          "severity": "medium",
-          "path": "README.md",
-          "line": 46,
-          "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-          "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-          "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-          "hunk": "58462aeb4534:README.md#1",
-          "symbol": "",
-          "introduced": true,
-          "reproducible": false,
-          "fixable": true,
-          "interaction": "",
-          "repaired": false,
-          "source": "review",
-          "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-          "patch_new": "## \ud83e\udd16 For AI Agents"
-        }
-      ]
+      "findings": []
     },
     "skipped": [],
     "tests": {
@@ -2994,28 +2868,7 @@
         "58462aeb4534bab0d37be6961e91715ade006697"
       ],
       "prior_commits": [],
-      "findings": [
-        {
-          "code": "review-mojibake-heading",
-          "category": "review",
-          "severity": "medium",
-          "path": "README.md",
-          "line": 46,
-          "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-          "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-          "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-          "hunk": "58462aeb4534:README.md#1",
-          "symbol": "",
-          "introduced": true,
-          "reproducible": false,
-          "fixable": true,
-          "interaction": "",
-          "repaired": true,
-          "source": "review",
-          "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-          "patch_new": "## \ud83e\udd16 For AI Agents"
-        }
-      ],
+      "findings": [],
       "repairs": [
         {
           "code": "review-mojibake-heading",
@@ -3026,13 +2879,13 @@
           "applied": true
         }
       ],
-      "counts": {
-        "review": 1
-      },
+      "counts": {},
       "reviewed": 6,
       "review": {
         "status": "reviewed",
-        "rejected": [],
+        "rejected": [
+          "README.md:46: the evidence is not in the current file (it may quote a removed line)"
+        ],
         "files": [
           ".aikit/codebase_map.md",
           ".aikit/task_ledger_archive.jsonl",
@@ -3052,28 +2905,7 @@
           "unknown": [],
           "invalid": []
         },
-        "findings": [
-          {
-            "code": "review-mojibake-heading",
-            "category": "review",
-            "severity": "medium",
-            "path": "README.md",
-            "line": 46,
-            "message": "The new section heading stores the mojibake sequence instead of the robot emoji every other README heading uses, so it renders as garbage on GitHub and in any UTF-8 reader.",
-            "evidence": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-            "commit": "58462aeb4534bab0d37be6961e91715ade006697",
-            "hunk": "58462aeb4534:README.md#1",
-            "symbol": "",
-            "introduced": true,
-            "reproducible": false,
-            "fixable": true,
-            "interaction": "",
-            "repaired": false,
-            "source": "review",
-            "patch_old": "## \u011f\u0178\u00a4\u2013 For AI Agents",
-            "patch_new": "## \ud83e\udd16 For AI Agents"
-          }
-        ]
+        "findings": []
       },
       "skipped": [],
       "tests": {
