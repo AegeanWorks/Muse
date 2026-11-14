@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import operator
 import struct
 import wave
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ REQUIREMENT_KEYS = (
     "require_accepted",
     "min_score",
 )
-READ_CHUNK_FRAMES = 262_144
+READ_CHUNK_FRAMES = 65_536
 
 
 @dataclass(frozen=True)
@@ -60,10 +61,6 @@ class TrackRequirements:
         if self.min_score is not None:
             payload["min_score"] = self.min_score
         return payload
-
-    @property
-    def empty(self) -> bool:
-        return not self.as_dict()
 
 
 @dataclass(frozen=True)
@@ -166,22 +163,24 @@ def analyze_audio(path: Path) -> tuple[AudioProfile | None, str]:
             duration = frames / float(rate)
             full_scale = float(1 << (width * 8 - 1))
             peak = 0
-            square_sum = 0.0
+            square_sum = 0
             samples = 0
             clipped = 0
+            high = int(full_scale) - 1
+            low = -int(full_scale)
             while True:
                 # hygiene: allow bounded streaming read; only PCM statistics are computed
                 data = handle.readframes(READ_CHUNK_FRAMES)
                 if not data:
                     break
                 values = _pcm_values(data, width)
-                for value in values:
-                    magnitude = abs(value)
-                    if magnitude > peak:
-                        peak = magnitude
-                    if magnitude >= int(full_scale) - 1:
-                        clipped += 1
-                    square_sum += float(value) * value
+                if not values:
+                    break
+                chunk_peak = max(map(abs, values))
+                if chunk_peak > peak:
+                    peak = chunk_peak
+                square_sum += sum(map(operator.mul, values, values))
+                clipped += values.count(high) + values.count(low)
                 samples += len(values)
     except (wave.Error, EOFError, OSError, struct.error) as exc:
         return None, f"the WAV file could not be decoded: {exc}"
@@ -442,4 +441,6 @@ def _flag(payload: Mapping[str, Any], key: str) -> bool | None:
         return None
     if not isinstance(value, bool):
         raise ValueError(f"{key} must be true or false")
+    if not value:
+        raise ValueError(f"{key} must be true; omit it to skip the check")
     return value

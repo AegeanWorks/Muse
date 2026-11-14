@@ -259,7 +259,9 @@ read the artifact's `muse.json` evidence, so `require_accepted` and `min_score` 
 to the same report. Non-WAV audio and bare files without evidence report `skipped` checks with a
 reason; skips never fail. One failed check exits `1`; an invalid requirements file exits `2`;
 `--json` prints `requirements`, `artifacts` (with `checks`, `failed`, `skipped`, `profile` and
-`evidence`), `total`, `passed` and `failed`. Analysis is read-only and never calls a provider or
+`evidence`), `total`, `passed` and `failed`. `require_accepted` accepts only `true`; omit it to
+skip the acceptance check. Naming an audio file analyzes that file, even when a sibling
+`muse.json` describes a different track. Analysis is read-only and never calls a provider or
 judge.
 
 ## Python library

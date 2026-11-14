@@ -110,6 +110,7 @@ class RequirementParsingTests(Workspace):
             {"max_peak_dbfs": "loud"},
             {"max_size_mb": -1},
             {"require_accepted": "yes"},
+            {"require_accepted": False},
             {"min_score": 101},
         ):
             with self.subTest(payload=payload), self.assertRaises(ValueError):
@@ -135,6 +136,7 @@ class EvaluateTests(Workspace):
                 "channels": [1, 2],
                 "min_rms_dbfs": -60,
                 "max_peak_dbfs": -0.1,
+                "max_size_mb": 1,
             }
         )
         result = evaluate(self.profile, requirements, None)
@@ -222,6 +224,44 @@ class AnalyzeCommandTests(Workspace):
         artifact = json.loads(out)["artifacts"][0]
         self.assertIsNone(artifact["metadata"])
         self.assertIsNone(artifact["evidence"])
+
+    def test_a_duplicate_argument_is_analyzed_once(self):
+        requirements = self.requirements({"min_duration": 1})
+        code, out, _ = run_cli(
+            [
+                "analyze", str(self.folder), str(self.folder), "--requirements", str(requirements),
+                "--out", str(self.root), "--json",
+            ]
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out)["total"], 1)
+
+    def test_a_named_audio_file_beats_foreign_sibling_evidence(self):
+        other = self.root / "other-artifact"
+        other.mkdir()
+        write_tone(other / "theme.wav", 1.0)
+        write_tone(other / "track.wav", 5.0)
+        payload = {
+            "schema": 2,
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "request": {"prompt": "p", "theme": "t", "duration": 1, "name": "other-artifact"},
+            "track": {"file": "theme.wav", "provider": "mock", "model": "m", "duration_seconds": 1},
+            "verdict": {"score": 88, "verdict": "fits", "threshold": 60},
+            "accepted": True,
+        }
+        (other / "muse.json").write_text(json.dumps(payload), encoding="utf-8")
+        requirements = self.requirements({"max_duration": 2})
+        code, out, _ = run_cli(
+            [
+                "analyze", str(other / "track.wav"), "--requirements", str(requirements),
+                "--out", str(self.root), "--json",
+            ]
+        )
+        self.assertEqual(code, 1)
+        artifact = json.loads(out)["artifacts"][0]
+        self.assertEqual(Path(artifact["audio"]).name, "track.wav")
+        self.assertIsNone(artifact["evidence"])
+        self.assertEqual(artifact["failed"], ["max_duration"])
 
     def test_an_audio_file_inside_an_artifact_folder_uses_its_evidence(self):
         requirements = self.requirements({"min_score": 60})

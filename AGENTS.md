@@ -72,6 +72,8 @@ and unknown keys are rejected:
 - One failed check makes the artifact `ok: false` and the command exits `1`; skips never fail.
   A missing artifact or missing audio exits `1`; an invalid requirements file exits `2`. Like
   `doctor`, a finished analysis prints its JSON object before exiting `1`.
+- `require_accepted` accepts only `true`; omit it to skip the acceptance check. Naming an audio
+  file analyzes that file, even when a sibling `muse.json` describes a different track.
 
 ## Cost and safety rules
 

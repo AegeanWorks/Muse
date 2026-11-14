@@ -572,8 +572,10 @@ def _analyze(args: argparse.Namespace, settings: MuseConfig) -> int:
     requirements = load_requirements(args.requirements)
     limits = requirements.as_dict()
     results: list[dict[str, Any]] = []
+    seen: set[Path] = set()
     for value in args.artifacts:
         candidate = Path(value)
+        named_audio = candidate.is_file() and candidate.name != "muse.json"
         metadata = _resolve_artifact(value, settings.output_dir)
         evidence: dict[str, Any] | None = None
         if metadata.is_file():
@@ -585,29 +587,40 @@ def _analyze(args: argparse.Namespace, settings: MuseConfig) -> int:
                     str(exc),
                     "repair or remove the artifact folder, then retry",
                 ) from exc
-            audio = entry.audio_path
-            name = entry.folder
-            evidence = {
-                "accepted": entry.accepted,
-                "score": entry.score,
-                "verdict": entry.verdict,
-            }
-            if not entry.audio_exists:
-                raise MuseError(
-                    f"audio file not found: {audio}",
-                    "the evidence points at a track that is no longer on disk",
-                    "rerender the track, or analyze another artifact folder",
-                )
-        elif candidate.is_file():
+            if named_audio and candidate.resolve() != entry.audio_path.resolve():
+                # The evidence describes another track in this folder: analyze the named file
+                # itself instead of silently reporting on a different file.
+                metadata = None
+                audio = candidate
+                name = candidate.stem
+            else:
+                audio = entry.audio_path
+                name = entry.folder
+                evidence = {
+                    "accepted": entry.accepted,
+                    "score": entry.score,
+                    "verdict": entry.verdict,
+                }
+                if not entry.audio_exists:
+                    raise MuseError(
+                        f"audio file not found: {audio}",
+                        "the evidence points at a track that is no longer on disk",
+                        "rerender the track, or analyze another artifact folder",
+                    )
+        elif named_audio:
             audio = candidate
             metadata = None
-            name = candidate.parent.name or candidate.stem
+            name = candidate.stem
         else:
             raise MuseError(
                 f"artifact not found: {candidate}",
                 "no audio file or muse.json exists at the resolved path",
                 "run `muse list` to find a folder, or pass the audio file directly",
             )
+        key = (metadata if metadata is not None else audio).resolve()
+        if key in seen:
+            continue
+        seen.add(key)
         profile, reason = analyze_audio(audio)
         result = evaluate(profile, requirements, evidence, reason)
         result.update(

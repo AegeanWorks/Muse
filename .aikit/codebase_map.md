@@ -9,8 +9,8 @@
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
 - **Total Top-Level Functions**: `102`
-- **Total Class Methods**: `340`
-- **Total Source Lines**: `6825`
+- **Total Class Methods**: `341`
+- **Total Source Lines**: `6879`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -37,12 +37,11 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `445` lines (`15955` bytes)
+**Size**: `446` lines (`16065` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
   - Method `.as_dict()`
-  - Property `.empty`
 - `class AudioProfile`
   - Method `.as_dict()`
 
@@ -131,7 +130,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `992` lines (`39524` bytes)
+**Size**: `1005` lines (`40158` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -434,7 +433,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `271` lines (`10432` bytes)
+**Size**: `311` lines (`12192` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -463,6 +462,8 @@
   - Method `.test_matching_requirements_pass_and_exit_zero()`
   - Method `.test_a_failed_limit_exits_one_and_names_it()`
   - Method `.test_a_bare_audio_file_runs_technical_checks_without_evidence()`
+  - Method `.test_a_duplicate_argument_is_analyzed_once()`
+  - Method `.test_a_named_audio_file_beats_foreign_sibling_evidence()`
   - Method `.test_an_audio_file_inside_an_artifact_folder_uses_its_evidence()`
   - Method `.test_an_invalid_requirements_file_is_usage_misuse()`
   - Method `.test_a_missing_artifact_is_an_operational_error()`

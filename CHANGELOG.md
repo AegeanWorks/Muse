@@ -22,6 +22,20 @@ All notable changes to Muse are recorded here. Versions follow the project's
   check and `2` on an invalid requirements file, and reports skipped checks with a reason when the
   audio is not a WAV or has no evidence.
 
+### Fixed
+
+- `muse analyze` analyzes the audio file you name. A sibling `muse.json` that describes a
+  different track is no longer used as its evidence, which previously could report another file's
+  duration and score and exit `0`.
+- A requirements document with `require_accepted: false` is rejected instead of validating and
+  then asserting nothing.
+- Repeating an artifact on the analyze command line analyzes it once.
+
+### Changed
+
+- Analyze aggregates PCM peak, RMS and clipping with C-level passes and 64K-frame chunks, cutting
+  a 190-second stereo profile from 2.7s to about 1.4s.
+
 ## [0.14.5] - 2026-11-14
 
 ### Fixed
