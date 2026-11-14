@@ -6,10 +6,10 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import AbstractSet, Any, Mapping, Sequence
+from typing import AbstractSet, Any, Callable, Mapping, Sequence
 
 from . import __version__
-from .analysis import TrackRequirements, analyze_audio, evaluate, load_requirements
+from .analysis import TrackRequirements, analyze_audio, evaluate, load_requirements, requirement_fit
 from .audio import wav_duration
 from .batch import load_manifest
 from .batch_state import load_state, manifest_fingerprint, save_state, state_path
@@ -23,7 +23,7 @@ from .pipeline import compose, judge_track
 from .providers.base import MusicProvider
 from .providers.registry import providers
 from .rejudge import rejudge_artifacts
-from .types import MAX_ATTEMPTS, MAX_DURATION, Attempt, CompositionResult, MusicRequest, Track, Verdict
+from .types import MAX_ATTEMPTS, MAX_DURATION, Attempt, CompositionResult, Fit, MusicRequest, Track, Verdict
 
 
 def main(
@@ -119,6 +119,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--retry-unfit",
         action="store_true",
         help="with --resume and --requirements, rerender accepted tracks that miss the limits",
+    )
+    batch.add_argument(
+        "--retry-on-requirements",
+        action="store_true",
+        help="with --requirements and --attempts, retry takes whose duration or score misses the limits",
     )
     batch.add_argument(
         "--keep-going",
@@ -344,6 +349,19 @@ def _batch(
             "a track is unfit only against a requirements file",
             "add --requirements FILE, or omit --retry-unfit",
         )
+    if args.retry_on_requirements and requirements is None:
+        raise ConfigurationError(
+            "--retry-on-requirements needs --requirements",
+            "a take misses the limits only against a requirements file",
+            "add --requirements FILE, or omit --retry-on-requirements",
+        )
+    if args.retry_on_requirements and args.attempts < 2:
+        raise ConfigurationError(
+            "--retry-on-requirements needs --attempts of 2 or more",
+            "a retry is another take, and --attempts 1 allows only one",
+            "add --attempts N with N from 2, or omit --retry-on-requirements",
+        )
+    fit = _requirement_check(requirements) if args.retry_on_requirements else None
     fingerprint = manifest_fingerprint(requests)
     progress = state_path(settings.output_dir, fingerprint)
     previous = load_state(progress, fingerprint) if args.resume else {}
@@ -405,6 +423,7 @@ def _batch(
                 provider=provider,
                 judge=listener,
                 max_attempts=args.attempts,
+                fit=fit,
             )
         except MuseError as exc:
             entries[index - 1] = _failed_entry(index, request, exc)
@@ -909,6 +928,19 @@ def _attempt_payload(attempt: Attempt) -> dict[str, Any]:
         "verdict": None if attempt.verdict is None else attempt.verdict.verdict,
         "accepted": attempt.accepted,
     }
+
+
+def _requirement_check(requirements: TrackRequirements | None) -> Callable[[Attempt], Fit] | None:
+    """Build the `compose` hook that measures a take against the batch requirements."""
+    if requirements is None:
+        return None
+
+    def check(attempt: Attempt) -> Fit:
+        evidence: dict[str, Any] = {"accepted": attempt.accepted, "score": attempt.score}
+        profile, reason = analyze_audio(attempt.track.path)
+        return requirement_fit(evaluate(profile, requirements, evidence, reason))
+
+    return check
 
 
 def _unfit_labels(

@@ -6,6 +6,7 @@ All notable changes to Muse are recorded here. Versions follow the project's
 ## [Unreleased]
 
 ### Added
+- `muse batch --attempts N --retry-on-requirements --requirements FILE` spends the extra takes on tracks that miss the limits. A take that is accepted but too short or too long is retried with a hint such as "make the track at least 30 seconds long", and one that scores below `min_score` is retried with the judge's suggestions. Loudness, sample rate, channels and bit depth never trigger a retry because a prompt cannot change them. The best take is the highest-scoring one that fits, else the highest-scoring one. Each retry is a billed take; the flag needs `--requirements` and `--attempts` of 2 or more.
 - `muse batch --resume --retry-unfit --requirements FILE` rerenders only the accepted tracks that miss the limits and reuses the rest. It needs both other options, and `--dry-run` previews the plan with the reason `unfit rerender`. Each rerender is a billed take.
 - `muse batch --requirements FILE` checks every rendered or reused track against the same limits file `analyze` accepts, adds an `unfit` count and a per-track `requirements` result to the JSON, names unfit tracks in the summary and exits `1` when any track misses a limit.
 

@@ -574,6 +574,58 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(tracks["cave"]["reason"], "unfit rerender")
         self.assertEqual(tracks["village"]["action"], "reuse")
 
+    def test_retry_on_requirements_spends_attempts_on_a_track_that_misses(self):
+        limits = self.requirements_file({"min_duration": 600})
+        provider = CountingProvider(self.provider)
+        code, out, err = self.run_cli(
+            [
+                "batch", str(self.one_track()), "--attempts", "2",
+                "--retry-on-requirements", "--requirements", str(limits),
+            ],
+            provider=provider,
+        )
+        self.assertEqual(code, 1, err)
+        self.assertEqual(len(provider.calls), 2)
+        self.assertEqual(provider.calls[0], "cave drones")
+        self.assertIn("at least 600 seconds", provider.calls[1])
+        self.assertIn("Unfit for the requirements: cave", out)
+
+    def test_attempts_alone_do_not_retry_a_track_that_misses_the_requirements(self):
+        limits = self.requirements_file({"min_duration": 600})
+        provider = CountingProvider(self.provider)
+        self.run_cli(
+            ["batch", str(self.one_track()), "--attempts", "2", "--requirements", str(limits)],
+            provider=provider,
+        )
+        self.assertEqual(len(provider.calls), 1)
+
+    def test_retry_on_requirements_renders_once_when_the_track_fits(self):
+        limits = self.requirements_file({"min_duration": 0.5})
+        provider = CountingProvider(self.provider)
+        code, _, err = self.run_cli(
+            [
+                "batch", str(self.one_track()), "--attempts", "3",
+                "--retry-on-requirements", "--requirements", str(limits),
+            ],
+            provider=provider,
+        )
+        self.assertEqual(code, 0, err)
+        self.assertEqual(len(provider.calls), 1)
+
+    def test_retry_on_requirements_needs_requirements_and_attempts(self):
+        path = self.one_track()
+        limits = self.requirements_file({"min_duration": 0.5})
+        code, _, err = self.run_cli(
+            ["batch", str(path), "--attempts", "2", "--retry-on-requirements"]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("--retry-on-requirements needs --requirements", err)
+        code, _, err = self.run_cli(
+            ["batch", str(path), "--retry-on-requirements", "--requirements", str(limits)]
+        )
+        self.assertEqual(code, 1)
+        self.assertIn("--retry-on-requirements needs --attempts", err)
+
     def test_batch_summary_names_skipped_requirement_checks(self):
         limits = self.requirements_file({"min_duration": 0.5, "min_score": 50})
         with patch("muse.cli.analyze_audio", return_value=(None, "the audio is not a WAV")):

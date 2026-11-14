@@ -8,9 +8,9 @@
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `39`
 - **Total Classes**: `77`
-- **Total Top-Level Functions**: `107`
-- **Total Class Methods**: `380`
-- **Total Source Lines**: `7414`
+- **Total Top-Level Functions**: `108`
+- **Total Class Methods**: `384`
+- **Total Source Lines**: `7498`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -132,7 +132,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1114` lines (`44854` bytes)
+**Size**: `1146` lines (`46354` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -157,6 +157,7 @@
 - `def _providers(args)`
 - `def _result_payload(result)`
 - `def _attempt_payload(attempt)`
+- `def _requirement_check(requirements)` - *Build the `compose` hook that measures a take against the batch requirements.*
 - `def _unfit_labels(requests, previous, requirements)` - *Return the folded names of accepted, still-present tracks that miss the requirements.*
 - `def _attach_requirements(entry, requirements)` - *Evaluate the track against the batch requirements and store the checks on the entry.*
 - `def _batch_payload(entries)`
@@ -518,7 +519,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `797` lines (`35348` bytes)
+**Size**: `849` lines (`37651` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -578,6 +579,10 @@
   - Method `.test_retry_unfit_reuses_everything_when_every_track_fits()`
   - Method `.test_retry_unfit_needs_resume_and_requirements()`
   - Method `.test_dry_run_previews_the_unfit_rerender()`
+  - Method `.test_retry_on_requirements_spends_attempts_on_a_track_that_misses()`
+  - Method `.test_attempts_alone_do_not_retry_a_track_that_misses_the_requirements()`
+  - Method `.test_retry_on_requirements_renders_once_when_the_track_fits()`
+  - Method `.test_retry_on_requirements_needs_requirements_and_attempts()`
   - Method `.test_batch_summary_names_skipped_requirement_checks()`
   - Method `.test_batch_summary_is_quiet_when_every_check_ran()`
   - Method `.test_batch_requirements_invalid_file_exits_two()`
