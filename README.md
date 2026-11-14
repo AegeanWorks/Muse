@@ -43,7 +43,7 @@ Prompt-driven AI music creation with an automated listener that scores how well 
 | Repair memory and map, then check | `python aikit.py fix muse` |
 | Resume an interrupted task | `python aikit.py resume muse` |
 
-## ğŸ¤– For AI Agents
+## 🤖 For AI Agents
 
 - Start with [AGENTS.md](AGENTS.md): the command-to-JSON map, exit codes, cost rules and an
   offline smoke test in one short file.
