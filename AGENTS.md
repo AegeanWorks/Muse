@@ -45,6 +45,7 @@ human tour. If they disagree, the CLI and tests are right and this file is a bug
 | `show ARTIFACT [--json]` | Print one artifact's raw evidence | the `muse.json` object (`schema` 1-3: request, track, verdict, attempts, history) |
 | `rejudge ARTIFACT... [--json]` | Re-score without rendering | `artifacts[]` (`old_score`, `score`, `verdict`, `accepted`, `history`), `total`, `accepted` |
 | `analyze ARTIFACT... --requirements FILE [--json]` | Check audio against a consuming project's limits | `requirements` (`path`, `limits`), `artifacts[]` (`ok`, `checks[]`, `failed[]`, `skipped[]`, `profile`, `evidence`), `total`, `passed`, `failed` |
+| `export ARTIFACT [--rate HZ] [--to FILE] [--json]` | Convert a WAV to mono 16-bit PCM (default 22050 Hz) for an engine loader | `source`, `output`, `rate`, `channels`, `sample_width_bits`, `frames`, `duration_seconds` |
 | `doctor [--json]` | Check the local setup; read-only | `ok`, `checks[]` (`name`, `ok`, `detail`) |
 | `providers [--json]` | Names wired in | `providers`, `judges` |
 

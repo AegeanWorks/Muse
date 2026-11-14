@@ -13,6 +13,7 @@ from typing import Iterator
 from .analysis import READ_CHUNK_FRAMES, pcm_values
 from .errors import ConfigurationError, ExportError
 
+DEFAULT_RATE = 22_050
 MIN_RATE = 8_000
 MAX_RATE = 96_000
 OUT_SCALE = 32_767

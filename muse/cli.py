@@ -19,6 +19,7 @@ from .doctor import Check, run_checks
 from .errors import ConfigurationError, MuseError
 from .judges.base import MusicJudge
 from .judges.registry import build_judge, judges
+from .export import DEFAULT_RATE, MAX_RATE, MIN_RATE, export_wav
 from .pipeline import compose, judge_track
 from .providers.base import MusicProvider
 from .providers.registry import providers
@@ -56,6 +57,8 @@ def main(
             return _rejudge(args, settings, judge)
         if args.command == "analyze":
             return _analyze(args, settings)
+        if args.command == "export":
+            return _export(args, settings)
         return _providers(args)
     except MuseError as exc:
         print(exc.render(), file=sys.stderr)
@@ -168,6 +171,19 @@ def build_parser() -> argparse.ArgumentParser:
     analyze.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
     analyze.add_argument("--json", action="store_true", help="machine-readable output")
 
+    export = subparsers.add_parser(
+        "export", help="convert a rendered WAV to mono 16-bit PCM at a chosen sample rate"
+    )
+    export.add_argument("artifact", help="artifact folder, muse.json or WAV file")
+    export.add_argument(
+        "--rate",
+        type=_export_rate,
+        default=DEFAULT_RATE,
+        help=f"output sample rate in Hz (default: {DEFAULT_RATE})",
+    )
+    export.add_argument("--to", type=Path, default=None, help="output file (default: beside the audio)")
+    export.add_argument("--out", type=Path, default=None, help="artifact directory (default: output)")
+    export.add_argument("--json", action="store_true", help="machine-readable output")
     doctor = subparsers.add_parser("doctor", help="check local configuration without network calls")
     doctor.add_argument("--out", type=Path, default=None, help="artifact directory to check (default: output)")
     doctor.add_argument("--provider", default=None, help="check this provider name instead of the environment")
@@ -197,6 +213,16 @@ def build_parser() -> argparse.ArgumentParser:
     listing = subparsers.add_parser("providers", help="list music providers and judges")
     listing.add_argument("--json", action="store_true", help="machine-readable output")
     return parser
+
+
+def _export_rate(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("rate must be a whole number of Hz") from exc
+    if not MIN_RATE <= number <= MAX_RATE:
+        raise argparse.ArgumentTypeError(f"rate must be between {MIN_RATE} and {MAX_RATE} Hz")
+    return number
 
 
 def _attempt_count(value: str) -> int:
@@ -728,6 +754,54 @@ def _analyze(args: argparse.Namespace, settings: MuseConfig) -> int:
                 print(f"  skipped: {', '.join(result['skipped'])}")
         print(f"Summary: {passed}/{len(results)} artifact(s) meet the requirements")
     return 0 if passed == len(results) else 1
+
+
+def _export(args: argparse.Namespace, settings: MuseConfig) -> int:
+    candidate = Path(args.artifact)
+    if candidate.is_file() and candidate.name != "muse.json":
+        audio = candidate
+    else:
+        metadata = _resolve_artifact(args.artifact, settings.output_dir)
+        if not metadata.is_file():
+            raise MuseError(
+                f"artifact not found: {candidate}",
+                "no audio file or muse.json exists at the resolved path",
+                "run `muse list` to find a folder, or pass the audio file directly",
+            )
+        try:
+            entry, _ = load_artifact(metadata)
+        except (OSError, ValueError) as exc:
+            raise MuseError(
+                f"could not read artifact metadata: {metadata}",
+                str(exc),
+                "repair or remove the artifact folder, then retry",
+            ) from exc
+        audio = entry.audio_path
+        if not entry.audio_exists:
+            raise MuseError(
+                f"audio file not found: {audio}",
+                "the evidence points at a track that is no longer on disk",
+                "rerender the track, or export another artifact",
+            )
+    destination = args.to or audio.with_name(f"{audio.stem}-{args.rate}hz.wav")
+    result = export_wav(audio, destination, args.rate)
+    payload = {
+        "source": str(result.source),
+        "output": str(result.destination),
+        "rate": result.rate,
+        "channels": 1,
+        "sample_width_bits": 16,
+        "frames": result.frames,
+        "duration_seconds": round(result.duration, 3),
+    }
+    if args.json:
+        print(json.dumps(payload, indent=2))
+    else:
+        print(
+            f"Exported {audio.name} -> {result.destination} "
+            f"({result.rate} Hz mono 16-bit, {result.duration:.2f}s)"
+        )
+    return 0
 
 
 def _doctor(args: argparse.Namespace, config: MuseConfig | None) -> int:

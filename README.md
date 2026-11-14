@@ -281,9 +281,28 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
 ```
 
-A track that passes both checks loads through `keystone.audio.read_wav` unchanged; the engine
-keeps ownership of mixing and playback, and the `muse.json` beside the audio stays the evidence
-that the track was judged.
+A track that passes both checks loads through `keystone.audio.read_wav`; the engine keeps
+ownership of mixing and playback, and the `muse.json` beside the audio stays the evidence that
+the track was judged. Passing the preset does not make a track mixable: Keystone's mixer accepts
+only clips of one sample rate (22050 Hz for its own sounds), and Muse tracks arrive at the
+provider's rate. `muse export` closes that gap.
+
+### Exporting for an engine
+
+`muse export ARTIFACT [--rate HZ] [--to FILE]` writes a copy of the rendered WAV as mono 16-bit
+PCM at `--rate` (default 22050, range 8000 to 96000) and never changes the source or `muse.json`:
+```bash
+python -m muse export cave-level
+python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
+```
+ARTIFACT is a folder, a `muse.json` or a WAV file. The default output is `NAME-22050hz.wav`
+beside the audio; `--to` names another file. Input may be 8, 16, 24 or 32-bit PCM with any
+channel count: channels are averaged to mono and the audio is resampled by linear interpolation,
+which suits game music and effects but is not mastering quality. The file is read in chunks, so
+long tracks do not need much memory, and the output is written through a temporary file and
+replaced atomically. MP3, float and other non-PCM input is refused with a `Fix:`; Muse cannot
+decode MP3 with the standard library, so render with a WAV provider. `--json` prints `source`,
+`output`, `rate`, `channels`, `sample_width_bits`, `frames` and `duration_seconds`.
 
 ## Python library
 
@@ -409,6 +428,7 @@ muse/
 │   ├── config.py             <- environment, defaults, secret access
 │   ├── doctor.py             <- read-only local configuration checks
 │   ├── errors.py             <- What / Why / Fix failures
+│   ├── export.py             <- stream a WAV to mono 16-bit PCM at a chosen rate
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
 │   ├── pipeline.py           <- render, listen, refine, persist evidence
 │   ├── rejudge.py            <- re-score artifacts and append verdict history
@@ -456,6 +476,7 @@ python -m muse generate "cave drones" --theme "cave level" --provider mock --jud
 | `the batch manifest ...` | missing file, invalid JSON, unknown keys or bad types | read the `Why:`/`Fix:` lines; the manifest needs a `tracks` array of prompt objects |
 | `no batch state to resume` | `--resume` before any batch ran, or a changed `--out` | run without `--resume`, or point `--out` at the previous artifact root |
 | `the batch state belongs to a different manifest` | a prompt, theme, duration or name changed | restore the manifest, or run without `--resume` for a fresh batch |
+| `the file is not an intact PCM WAV this exporter can open` | `muse export` on an MP3, a float WAV or a damaged file | render with a WAV provider, or convert the file to PCM WAV first |
 | `Warning: .../muse.json: ...` | corrupt, oversized or unsupported evidence | `muse list` skips it; repair or remove that artifact folder |
 
 <!-- aegean:brand-assets:start -->

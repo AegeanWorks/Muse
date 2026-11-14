@@ -1,17 +1,28 @@
 """Export: stream any PCM WAV to the mono 16-bit file an engine loader accepts."""
 
+import io
+import json
 import math
 import struct
 import tempfile
 import unittest
 import wave
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from muse.analysis import analyze_audio, evaluate, requirements_from_mapping
+from muse.cli import main
 from muse.errors import ConfigurationError, ExportError
 from muse.export import MAX_RATE, MIN_RATE, export_wav
 
 ENGINE = {"channels": [1], "sample_width_bits": [16]}
+
+
+def run_cli(arguments):
+    out, err = io.StringIO(), io.StringIO()
+    with redirect_stdout(out), redirect_stderr(err):
+        code = main(arguments)
+    return code, out.getvalue(), err.getvalue()
 
 
 def sine(count, rate, hertz=220.0, amplitude=0.5):
@@ -174,6 +185,91 @@ class ExportSafetyTests(ExportCase):
         result = export_wav(source, self.root / "out.wav", 8000)
         self.assertAlmostEqual(result.duration, 0.25, places=2)
 
+
+class ExportCommandTests(ExportCase):
+    def setUp(self):
+        super().setUp()
+        code, out, err = run_cli(
+            [
+                "generate", "dark cave drones", "--theme", "cave level", "--duration", "1",
+                "--provider", "mock", "--judge", "mock", "--out", str(self.root), "--json",
+            ]
+        )
+        self.assertEqual(code, 0, err)
+        self.metadata = Path(json.loads(out)["metadata"])
+        self.folder = self.metadata.parent
+
+    def export(self, *arguments):
+        return run_cli(["export", *arguments])
+
+    def test_an_artifact_folder_exports_beside_its_audio(self):
+        before = (self.folder / "track.wav").read_bytes(), self.metadata.read_bytes()
+        code, out, err = self.export(str(self.folder), "--out", str(self.root), "--json")
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        output = Path(payload["output"])
+        self.assertEqual(output, self.folder / "track-22050hz.wav")
+        self.assertEqual(
+            (payload["rate"], payload["channels"], payload["sample_width_bits"]), (22050, 1, 16)
+        )
+        profile, _ = analyze_audio(output)
+        self.assertEqual((profile.sample_rate, profile.channels, profile.sample_width), (22050, 1, 2))
+        self.assertTrue(evaluate(profile, requirements_from_mapping(ENGINE), None)["ok"])
+        self.assertEqual(((self.folder / "track.wav").read_bytes(), self.metadata.read_bytes()), before)
+
+    def test_the_rate_option_sets_the_output_rate(self):
+        code, out, err = self.export(str(self.folder), "--rate", "44100", "--json")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(analyze_audio(Path(json.loads(out)["output"]))[0].sample_rate, 44100)
+
+    def test_a_bare_wav_file_exports_beside_itself(self):
+        source = self.wav("loop.wav", sine(1600, 8000), rate=8000)
+        code, out, err = self.export(str(source), "--json")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(Path(json.loads(out)["output"]), self.root / "loop-22050hz.wav")
+
+    def test_to_names_the_output_file(self):
+        target = self.root / "game" / "cave.wav"
+        target.parent.mkdir()
+        code, out, err = self.export(str(self.folder), "--to", str(target), "--json")
+        self.assertEqual(code, 0, err)
+        self.assertTrue(target.is_file())
+
+    def test_the_human_summary_names_the_file_and_format(self):
+        code, out, err = self.export(str(self.folder), "--out", str(self.root))
+        self.assertEqual(code, 0, err)
+        self.assertIn("track-22050hz.wav", out)
+        self.assertIn("22050 Hz mono 16-bit", out)
+
+    def test_exporting_twice_gives_the_same_file(self):
+        self.export(str(self.folder), "--json")
+        first = (self.folder / "track-22050hz.wav").read_bytes()
+        code, _, err = self.export(str(self.folder), "--json")
+        self.assertEqual(code, 0, err)
+        self.assertEqual((self.folder / "track-22050hz.wav").read_bytes(), first)
+
+    def test_the_source_cannot_be_the_target(self):
+        code, _, err = self.export(str(self.folder), "--to", str(self.folder / "track.wav"))
+        self.assertEqual(code, 1)
+        self.assertIn("Fix:", err)
+
+    def test_a_non_wav_file_fails_with_a_fix(self):
+        source = self.root / "song.mp3"
+        source.write_bytes(b"not audio")
+        code, _, err = self.export(str(source))
+        self.assertEqual(code, 1)
+        self.assertIn("Fix:", err)
+
+    def test_an_unknown_artifact_fails_with_a_fix(self):
+        code, _, err = self.export(str(self.root / "nowhere"), "--out", str(self.root))
+        self.assertEqual(code, 1)
+        self.assertIn("Fix:", err)
+
+    def test_a_rate_outside_the_range_is_a_usage_error(self):
+        for rate in ("100", "500000", "fast"):
+            with self.subTest(rate=rate):
+                code, _, _ = self.export(str(self.folder), "--rate", rate)
+                self.assertEqual(code, 2)
 
 if __name__ == "__main__":
     unittest.main()

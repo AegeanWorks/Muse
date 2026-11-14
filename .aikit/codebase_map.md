@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `41`
-- **Total Classes**: `82`
-- **Total Top-Level Functions**: `118`
-- **Total Class Methods**: `404`
-- **Total Source Lines**: `7861`
+- **Total Classes**: `83`
+- **Total Top-Level Functions**: `121`
+- **Total Class Methods**: `416`
+- **Total Source Lines**: `8032`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`41` module(s))
@@ -132,11 +132,12 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1146` lines (`46354` bytes)
+**Size**: `1220` lines (`49372` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
 - `def build_parser()`
+- `def _export_rate(value)`
 - `def _attempt_count(value)`
 - `def _positive_count(value)`
 - `def _add_attempts(parser)`
@@ -149,6 +150,7 @@
 - `def _judge(args, settings, judge)`
 - `def _rejudge(args, settings, judge)`
 - `def _analyze(args, settings)`
+- `def _export(args, settings)`
 - `def _doctor(args, config)`
 - `def _catalog(args, settings)`
 - `def _show(args, settings)`
@@ -231,7 +233,7 @@
 ### [`muse/export.py`](muse/export.py)
 > *Export a rendered WAV as the mono 16-bit PCM file an engine loader expects.*
 
-**Size**: `180` lines (`6545` bytes)
+**Size**: `181` lines (`6567` bytes)
 
 **Classes:**
 - `class ExportResult`
@@ -731,7 +733,7 @@
 ### [`tests/test_export.py`](tests/test_export.py)
 > *Export: stream any PCM WAV to the mono 16-bit file an engine loader accepts.*
 
-**Size**: `179` lines (`8466` bytes)
+**Size**: `275` lines (`12701` bytes)
 
 **Classes:**
 - `class ExportCase`
@@ -756,8 +758,22 @@
   - Method `.test_a_float_wav_is_an_export_error_naming_the_format()`
   - Method `.test_the_rate_must_be_in_range()`
   - Method `.test_a_truncated_file_exports_the_audio_it_holds()`
+- `class ExportCommandTests`
+  - Method `.setUp()`
+  - Method `.export(*arguments)`
+  - Method `.test_an_artifact_folder_exports_beside_its_audio()`
+  - Method `.test_the_rate_option_sets_the_output_rate()`
+  - Method `.test_a_bare_wav_file_exports_beside_itself()`
+  - Method `.test_to_names_the_output_file()`
+  - Method `.test_the_human_summary_names_the_file_and_format()`
+  - Method `.test_exporting_twice_gives_the_same_file()`
+  - Method `.test_the_source_cannot_be_the_target()`
+  - Method `.test_a_non_wav_file_fails_with_a_fix()`
+  - Method `.test_an_unknown_artifact_fails_with_a_fix()`
+  - Method `.test_a_rate_outside_the_range_is_a_usage_error()`
 
 **Functions:**
+- `def run_cli(arguments)`
 - `def sine(count, rate, hertz, amplitude)`
 - `def pack(frames, width)` - *Pack channel-interleaved floats in [-1, 1] as PCM of `width` bytes.*
 
