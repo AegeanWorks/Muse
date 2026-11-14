@@ -13,6 +13,8 @@ All notable changes to Muse are recorded here. Versions follow the project's
   rules, and an offline smoke test. The README links it, and a regression test keeps every
   subcommand and the documented output rules in place.
 
+### Fixed
+- `muse batch --resume` no longer reuses the requirements result stored by an earlier run: a reused track is judged only by the limits given now, so dropping `--requirements` clears the `unfit` count.
 ## [0.16.0] - 2026-11-14
 
 ### Added

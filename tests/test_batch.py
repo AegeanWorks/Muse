@@ -486,6 +486,31 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(payload["reused"], 1)
         self.assertEqual(payload["unfit"], 1)
 
+    def test_resume_without_requirements_drops_the_stored_result(self):
+        path = self.one_track()
+        limits = self.requirements_file({"min_duration": 600})
+        code, _, err = self.run_cli(["batch", str(path), "--requirements", str(limits)])
+        self.assertEqual(code, 1, err)
+        code, out, err = self.run_cli(["batch", str(path), "--resume", "--json"])
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["reused"], 1)
+        self.assertEqual(payload["unfit"], 0)
+        self.assertNotIn("requirements", payload["tracks"][0])
+
+    def test_resume_judges_reused_tracks_by_the_current_limits(self):
+        path = self.one_track()
+        strict = self.requirements_file({"min_duration": 600})
+        self.run_cli(["batch", str(path), "--requirements", str(strict)])
+        lenient = self.requirements_file({"min_duration": 0.5})
+        code, out, err = self.run_cli(
+            ["batch", str(path), "--resume", "--requirements", str(lenient), "--json"]
+        )
+        self.assertEqual(code, 0, err)
+        payload = json.loads(out)
+        self.assertEqual(payload["unfit"], 0)
+        self.assertTrue(payload["tracks"][0]["requirements"]["ok"])
+
     def test_batch_requirements_invalid_file_exits_two(self):
         limits = self.requirements_file({"bogus": 1})
         code, _, err = self.run_cli(

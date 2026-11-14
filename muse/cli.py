@@ -362,6 +362,12 @@ def _batch(
             if _evidence_exists(prior):
                 entry = dict(prior)
                 entry["reused"] = True
+                # A stored result belongs to the limits of an earlier run; judge only by today's.
+                entry["payload"] = {
+                    key: value
+                    for key, value in (prior.get("payload") or {}).items()
+                    if key != "requirements"
+                }
                 _attach_requirements(entry, requirements)
                 entries[index - 1] = entry
                 save_state(progress, fingerprint, _filled(entries))
