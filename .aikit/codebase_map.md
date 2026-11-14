@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `41`
-- **Total Classes**: `84`
-- **Total Top-Level Functions**: `122`
-- **Total Class Methods**: `437`
-- **Total Source Lines**: `8282`
+- **Total Classes**: `85`
+- **Total Top-Level Functions**: `123`
+- **Total Class Methods**: `449`
+- **Total Source Lines**: `8376`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`41` module(s))
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `508` lines (`19225` bytes)
+**Size**: `540` lines (`20586` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -56,6 +56,7 @@
 - `def _number(payload, key, *, positive, low, high)`
 - `def _whole(payload, key, *, low, high)`
 - `def _channels(payload)`
+- `def _rates(payload)`
 - `def _widths(payload)`
 - `def _flag(payload, key)`
 
@@ -446,7 +447,7 @@
 ### [`tests/test_agent_docs.py`](tests/test_agent_docs.py)
 > *Agent documentation: the contract names every command and stays short.*
 
-**Size**: `62` lines (`2359` bytes)
+**Size**: `69` lines (`2653` bytes)
 
 **Classes:**
 - `class AgentContractTests`
@@ -454,6 +455,7 @@
   - Method `.test_contract_states_the_output_and_exit_codes()`
   - Method `.test_contract_names_the_offline_adapters_and_keys()`
   - Method `.test_readme_links_the_contract()`
+  - Method `.test_readme_documents_every_requirement_key()`
   - Method `.test_readme_export_example_analyzes_the_exported_file()`
   - Method `.test_contract_stays_a_single_screen()`
 
@@ -466,7 +468,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `416` lines (`16954` bytes)
+**Size**: `471` lines (`19826` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -483,6 +485,8 @@
 - `class RequirementParsingTests`
   - Method `.test_a_full_document_round_trips()`
   - Method `.test_a_single_channel_count_is_accepted()`
+  - Method `.test_sample_rates_accept_a_number_or_a_list()`
+  - Method `.test_bad_sample_rates_are_rejected()`
   - Method `.test_a_single_bit_depth_is_accepted()`
   - Method `.test_an_unsupported_bit_depth_is_rejected()`
   - Method `.test_an_empty_or_unknown_document_is_rejected()`
@@ -492,6 +496,8 @@
   - Method `.setUp()`
   - Method `.test_every_limit_passes_on_a_matching_track()`
   - Method `.test_a_failed_limit_says_which_one()`
+  - Method `.test_sample_rates_pass_only_for_a_listed_rate()`
+  - Method `.test_sample_rates_are_skipped_for_audio_that_cannot_be_read()`
   - Method `.test_a_bit_depth_limit_fails_with_the_measured_width()`
   - Method `.test_missing_audio_skips_but_does_not_fail()`
   - Method `.test_judge_limits_use_available_evidence()`
@@ -505,8 +511,16 @@
   - Method `.test_loudness_and_format_misses_give_no_hint()`
   - Method `.test_a_format_miss_is_blocked_and_drops_the_duration_hint()`
   - Method `.test_every_format_limit_blocks_a_rerender()`
+  - Method `.test_a_sample_rate_list_miss_is_blocked()`
   - Method `.test_loudness_duration_and_size_misses_are_not_blocked()`
   - Method `.test_skipped_checks_do_not_make_a_track_unfit()`
+- `class PresetTests`
+  - Method `.preset(name)`
+  - Method `.check(preset, seconds, rate)`
+  - Method `.test_the_loader_preset_checks_the_format_only()`
+  - Method `.test_the_mix_preset_pins_the_engine_sample_rate()`
+  - Method `.test_the_mix_preset_rejects_a_track_at_another_rate()`
+  - Method `.test_the_mix_preset_accepts_a_track_at_the_engine_rate()`
 - `class AnalyzeCommandTests`
   - Method `.setUp()`
   - Method `.test_matching_requirements_pass_and_exit_zero()`

@@ -252,6 +252,7 @@ every key is optional, at least one is required, and unknown keys are rejected:
   "min_duration": 28,
   "max_duration": 32,
   "min_sample_rate": 22050,
+  "sample_rates": [22050, 44100],
   "channels": [1, 2],
   "sample_width_bits": [16],
   "max_peak_dbfs": -1.0,
@@ -269,23 +270,28 @@ theme alignment to the same report. Non-WAV audio and bare files without evidenc
 `skipped` checks with a reason; skips never fail. One failed check exits `1`; an invalid
 requirements file exits `2`; `--json` prints `requirements`, `artifacts` (with `checks`,
 `failed`, `skipped`, `profile` and `evidence`), `total`, `passed` and `failed`.
+`min_sample_rate` sets a floor; `sample_rates` lists the exact rates allowed, which is what an
+engine that mixes clips at one rate needs. A track that misses `channels`, `sample_width_bits`,
+`min_sample_rate` or `sample_rates` cannot be fixed by rendering again, so batch retries skip it.
 `require_accepted` accepts only `true`; omit it to skip the acceptance check. Naming an audio
 file analyzes that file, even when a sibling `muse.json` describes a different track. Analysis is
 read-only and never calls a provider or judge.
 
-A consuming project's contract can live beside the project as a preset. Muse ships
-`presets/keystone-audio.json` for Keystone, whose `read_wav` accepts only mono 16-bit PCM:
+A consuming project's contract can live beside the project as a preset. Muse ships two for
+Keystone. `presets/keystone-audio.json` states what `read_wav` accepts, mono 16-bit PCM, and
+suits a raw render. `presets/keystone-mix.json` adds `sample_rates: [22050]`, the one rate
+Keystone's mixer accepts for its own sounds, and suits an exported file:
 
 ```bash
 python -m muse generate "cave drones" --theme "cave level" --provider mock --judge mock
 python -m muse analyze cave-level --requirements presets/keystone-audio.json --json
 ```
 
-A track that passes both checks loads through `keystone.audio.read_wav`; the engine keeps
-ownership of mixing and playback, and the `muse.json` beside the audio stays the evidence that
-the track was judged. Passing the preset does not make a track mixable: Keystone's mixer accepts
-only clips of one sample rate (22050 Hz for its own sounds), and Muse tracks arrive at the
-provider's rate. `muse export` closes that gap.
+A track that passes `keystone-audio.json` loads through `keystone.audio.read_wav`; the engine
+keeps ownership of mixing and playback, and the `muse.json` beside the audio stays the evidence
+that the track was judged. Loading does not make a track mixable: Keystone's mixer accepts only
+clips of one sample rate, and Muse tracks arrive at the provider's rate, 8000 Hz for the mock.
+`muse export` closes that gap, and `keystone-mix.json` verifies it.
 
 ### Exporting for an engine
 
@@ -293,7 +299,7 @@ provider's rate. `muse export` closes that gap.
 PCM at `--rate` (default 22050, range 8000 to 96000) and never changes the source or `muse.json`:
 ```bash
 python -m muse export cave-level
-python -m muse analyze output/cave-level/track-22050hz.wav --requirements presets/keystone-audio.json --json
+python -m muse analyze output/cave-level/track-22050hz.wav --requirements presets/keystone-mix.json --json
 ```
 `analyze` on the artifact folder would check the original render, so name the exported file.
 ARTIFACT is a folder, a `muse.json` or a WAV file. The default output is `NAME-22050hz.wav`
@@ -415,7 +421,7 @@ muse/
 ├── CHANGELOG.md              <- Release history
 ├── README.md
 ├── assets/
-├── presets/                  <- consumer requirement documents (keystone-audio.json)
+├── presets/                  <- consumer requirement documents (keystone-audio.json, keystone-mix.json)
 ├── muse/
 │   ├── __init__.py           <- public API: compose, judge_track, types, config
 │   ├── __main__.py           <- `python -m muse`

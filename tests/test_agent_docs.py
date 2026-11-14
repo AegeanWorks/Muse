@@ -4,6 +4,7 @@ import re
 import unittest
 from pathlib import Path
 
+from muse.analysis import REQUIREMENT_KEYS
 from muse.cli import build_parser
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -45,6 +46,12 @@ class AgentContractTests(unittest.TestCase):
 
     def test_readme_links_the_contract(self):
         self.assertIn("[AGENTS.md](AGENTS.md)", readme_text())
+
+    def test_readme_documents_every_requirement_key(self):
+        text = readme_text()
+        for key in REQUIREMENT_KEYS:
+            with self.subTest(key=key):
+                self.assertIn(f"`{key}`", text.replace('"' + key + '"', f"`{key}`"))
 
     def test_readme_export_example_analyzes_the_exported_file(self):
         section = readme_text().split("### Exporting for an engine", 1)[1].split("\n## ", 1)[0]

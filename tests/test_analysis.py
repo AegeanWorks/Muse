@@ -118,6 +118,17 @@ class RequirementParsingTests(Workspace):
     def test_a_single_channel_count_is_accepted(self):
         self.assertEqual(requirements_from_mapping({"channels": 2}).channels, (2,))
 
+    def test_sample_rates_accept_a_number_or_a_list(self):
+        self.assertEqual(requirements_from_mapping({"sample_rates": 22050}).sample_rates, (22050,))
+        parsed = requirements_from_mapping({"sample_rates": [22050, 44100, 22050]})
+        self.assertEqual(parsed.sample_rates, (22050, 44100))
+        self.assertEqual(parsed.as_dict()["sample_rates"], [22050, 44100])
+
+    def test_bad_sample_rates_are_rejected(self):
+        for bad in ([], [0], [-1], [True], ["22050"], [22050.5], [384001], "22050", {"a": 1}):
+            with self.subTest(value=bad), self.assertRaises(ValueError):
+                requirements_from_mapping({"sample_rates": bad})
+
     def test_a_single_bit_depth_is_accepted(self):
         self.assertEqual(
             requirements_from_mapping({"sample_width_bits": 16}).sample_width_bits, (16,)
@@ -188,6 +199,21 @@ class EvaluateTests(Workspace):
         result = evaluate(self.profile, requirements, None)
         self.assertFalse(result["ok"])
         self.assertEqual(result["failed"], ["min_duration"])
+
+    def test_sample_rates_pass_only_for_a_listed_rate(self):
+        listed = requirements_from_mapping({"sample_rates": [8000, 22050]})
+        self.assertTrue(evaluate(self.profile, listed, None)["ok"])
+        unlisted = requirements_from_mapping({"sample_rates": [22050, 44100]})
+        result = evaluate(self.profile, unlisted, None)
+        self.assertEqual(result["failed"], ["sample_rates"])
+        check = result["checks"][0]
+        self.assertEqual((check["expected"], check["actual"]), ([22050, 44100], 8000))
+        self.assertIn("8000 Hz", check["detail"])
+
+    def test_sample_rates_are_skipped_for_audio_that_cannot_be_read(self):
+        result = evaluate(None, requirements_from_mapping({"sample_rates": [22050]}), None, "not a WAV")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["skipped"], ["sample_rates"])
 
     def test_a_bit_depth_limit_fails_with_the_measured_width(self):
         requirements = requirements_from_mapping({"sample_width_bits": [8, 24]})
@@ -266,6 +292,9 @@ class RequirementFitTests(Workspace):
             with self.subTest(limit=name):
                 self.assertEqual(self.fit(limits).blocked, (name,))
 
+    def test_a_sample_rate_list_miss_is_blocked(self):
+        self.assertEqual(self.fit({"sample_rates": [22050]}).blocked, ("sample_rates",))
+
     def test_loudness_duration_and_size_misses_are_not_blocked(self):
         result = self.fit({"min_duration": 10, "max_peak_dbfs": -60, "min_rms_dbfs": -1})
         self.assertEqual(result.blocked, ())
@@ -275,6 +304,32 @@ class RequirementFitTests(Workspace):
             evaluate(None, requirements_from_mapping({"min_duration": 10}), None, "not a WAV")
         )
         self.assertTrue(result.ok)
+
+class PresetTests(Workspace):
+    def preset(self, name):
+        return load_requirements(Path(__file__).resolve().parents[1] / "presets" / name)
+
+    def check(self, preset, seconds, rate):
+        profile, _ = analyze_audio(self.tone(f"t{rate}.wav", seconds, rate))
+        return evaluate(profile, self.preset(preset), None)
+
+    def test_the_loader_preset_checks_the_format_only(self):
+        loader = self.preset("keystone-audio.json")
+        self.assertEqual((loader.channels, loader.sample_width_bits), ((1,), (16,)))
+        self.assertIsNone(loader.sample_rates)
+        self.assertTrue(self.check("keystone-audio.json", 0.1, 8000)["ok"])
+
+    def test_the_mix_preset_pins_the_engine_sample_rate(self):
+        mix = self.preset("keystone-mix.json")
+        self.assertEqual((mix.channels, mix.sample_width_bits, mix.sample_rates), ((1,), (16,), (22050,)))
+
+    def test_the_mix_preset_rejects_a_track_at_another_rate(self):
+        result = self.check("keystone-mix.json", 0.1, 8000)
+        self.assertEqual(result["failed"], ["sample_rates"])
+
+    def test_the_mix_preset_accepts_a_track_at_the_engine_rate(self):
+        self.assertTrue(self.check("keystone-mix.json", 0.1, 22050)["ok"])
+
 
 class AnalyzeCommandTests(Workspace):
     def setUp(self):

@@ -18,6 +18,7 @@ REQUIREMENT_KEYS = (
     "min_duration",
     "max_duration",
     "min_sample_rate",
+    "sample_rates",
     "channels",
     "sample_width_bits",
     "min_rms_dbfs",
@@ -28,7 +29,7 @@ REQUIREMENT_KEYS = (
 )
 READ_CHUNK_FRAMES = 65_536
 # Limits a provider fixes for every take, so rendering again cannot change the result.
-FORMAT_LIMITS = frozenset({"channels", "sample_width_bits", "min_sample_rate"})
+FORMAT_LIMITS = frozenset({"channels", "sample_width_bits", "min_sample_rate", "sample_rates"})
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ class TrackRequirements:
     max_size_mb: float | None = None
     require_accepted: bool | None = None
     min_score: int | None = None
+    sample_rates: tuple[int, ...] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         payload: dict[str, Any] = {}
@@ -54,6 +56,8 @@ class TrackRequirements:
             payload["max_duration"] = self.max_duration
         if self.min_sample_rate is not None:
             payload["min_sample_rate"] = self.min_sample_rate
+        if self.sample_rates is not None:
+            payload["sample_rates"] = list(self.sample_rates)
         if self.channels is not None:
             payload["channels"] = list(self.channels)
         if self.sample_width_bits is not None:
@@ -143,6 +147,7 @@ def requirements_from_mapping(payload: object) -> TrackRequirements:
         max_duration=max_duration,
         min_sample_rate=_whole(payload, "min_sample_rate", low=1, high=384_000),
         channels=channels,
+        sample_rates=_rates(payload),
         sample_width_bits=_widths(payload),
         min_rms_dbfs=_number(payload, "min_rms_dbfs", low=-120.0, high=0.0),
         max_peak_dbfs=_number(payload, "max_peak_dbfs", low=-120.0, high=0.0),
@@ -274,6 +279,17 @@ def evaluate(
                 requirements.min_sample_rate,
                 profile.sample_rate,
                 profile.sample_rate >= requirements.min_sample_rate,
+                f"the track is {profile.sample_rate} Hz",
+            )
+    if requirements.sample_rates is not None:
+        if profile is None:
+            skip("sample_rates", list(requirements.sample_rates))
+        else:
+            measure(
+                "sample_rates",
+                list(requirements.sample_rates),
+                profile.sample_rate,
+                profile.sample_rate in requirements.sample_rates,
                 f"the track is {profile.sample_rate} Hz",
             )
     if requirements.channels is not None:
@@ -477,6 +493,22 @@ def _channels(payload: Mapping[str, Any]) -> tuple[int, ...] | None:
         if item not in counts:
             counts.append(item)
     return tuple(counts)
+
+
+def _rates(payload: Mapping[str, Any]) -> tuple[int, ...] | None:
+    value = payload.get("sample_rates")
+    if value is None:
+        return None
+    values = [value] if isinstance(value, int) and not isinstance(value, bool) else value
+    if not isinstance(values, list) or not values:
+        raise ValueError("sample_rates must be a rate in Hz or a non-empty list of rates")
+    rates: list[int] = []
+    for item in values:
+        if isinstance(item, bool) or not isinstance(item, int) or not 1 <= item <= 384_000:
+            raise ValueError("each sample rate must be a whole number of Hz from 1 to 384000")
+        if item not in rates:
+            rates.append(item)
+    return tuple(rates)
 
 
 def _widths(payload: Mapping[str, Any]) -> tuple[int, ...] | None:

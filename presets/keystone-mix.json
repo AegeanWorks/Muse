@@ -1,0 +1,5 @@
+{
+  "channels": [1],
+  "sample_width_bits": [16],
+  "sample_rates": [22050]
+}
