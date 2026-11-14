@@ -257,7 +257,7 @@ every key is optional, at least one is required, and unknown keys are rejected:
 ```
 
 Technical checks measure the WAV header and PCM samples with the standard library: duration,
-sample rate, channels, bit depth, peak and RMS loudness in dBFS, clipping percent and file size.
+sample rate, channels, bit depth, peak and RMS loudness in dBFS, clipping percent and file size (`max_size_mb` counts 1,000,000 bytes per MB, not 1,048,576).
 Judge checks read the artifact's `muse.json` evidence, so `require_accepted` and `min_score` tie
 theme alignment to the same report. Non-WAV audio and bare files without evidence report
 `skipped` checks with a reason; skips never fail. One failed check exits `1`; an invalid
