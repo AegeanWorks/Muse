@@ -7,7 +7,7 @@ import shutil
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Iterable, Mapping
 
 from .artifacts import unique_directory, write_json_atomic
 from .config import MuseConfig
@@ -16,7 +16,7 @@ from .judges.base import MusicJudge
 from .judges.registry import build_judge
 from .providers.base import MusicProvider
 from .providers.registry import build_provider
-from .types import MAX_ATTEMPTS, Attempt, CompositionResult, MusicRequest, Track, Verdict
+from .types import MAX_ATTEMPTS, Attempt, CompositionResult, Fit, MusicRequest, Track, Verdict
 
 METADATA_NAME = "muse.json"
 PROMPT_LIMIT = 1000
@@ -29,7 +29,9 @@ def compose(
     judge: MusicJudge | None = None,
     require_judge: bool = True,
     max_attempts: int = 1,
+    fit: Callable[[Attempt], Fit] | None = None,
 ) -> CompositionResult:
+    """Render, judge and optionally retry; `fit` reports whether a take meets requirements."""
     _validate_attempts(max_attempts)
     settings = config or MuseConfig.from_env()
     if max_attempts > 1 and judge is None and settings.judge == "none":
@@ -44,6 +46,7 @@ def compose(
         # Build the required judge before the first render: a missing key must not cost a prediction.
         listener = build_judge(settings.judge, settings)
     attempts: list[Attempt] = []
+    satisfied: set[int] = set()
     prompt = request.prompt
     for number in range(1, max_attempts + 1):
         current = replace(request, prompt=prompt)
@@ -57,13 +60,28 @@ def compose(
             max_attempts,
         )
         attempts.append(attempt)
-        if attempt.accepted or attempt.verdict is None or number == max_attempts:
+        verdict = attempt.verdict
+        result = None if fit is None or verdict is None else fit(attempt)
+        fitting = result is None or result.ok
+        if fitting:
+            satisfied.add(number)
+        if (attempt.accepted and fitting) or verdict is None or number == max_attempts:
             break
-        revised = revise_prompt(current.prompt, attempt.verdict)
+        revised = current.prompt
+        if not attempt.accepted or (result is not None and "min_score" in result.failed):
+            revised = revise_prompt(revised, verdict)
+        if result is not None:
+            revised = append_hints(revised, result.hints)
         if revised == current.prompt:
             break
         prompt = revised
-    best = max(attempts, key=lambda item: -1 if item.score is None else item.score)
+    best = max(
+        attempts,
+        key=lambda item: (
+            fit is not None and item.accepted and item.number in satisfied,
+            -1 if item.score is None else item.score,
+        ),
+    )
     if len(attempts) > 1:
         _record_history(best, attempts, settings)
     return CompositionResult(
@@ -88,10 +106,15 @@ def judge_track(
 
 def revise_prompt(prompt: str, verdict: Verdict) -> str:
     """Append the judge's actionable suggestions without repeating or overlong text."""
+    return append_hints(prompt, verdict.suggestions)
+
+
+def append_hints(prompt: str, hints: Iterable[str]) -> str:
+    """Append distinct hints to a prompt, skipping repeats and anything past the prompt limit."""
     base = prompt.strip()
     additions: list[str] = []
     current = base.lower()
-    for raw in verdict.suggestions:
+    for raw in hints:
         suggestion = " ".join(str(raw).split()).strip(" .;:")
         if not suggestion or suggestion.lower() in current:
             continue

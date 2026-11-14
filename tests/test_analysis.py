@@ -11,6 +11,7 @@ from muse.analysis import (
     analyze_audio,
     evaluate,
     load_requirements,
+    requirement_fit,
     requirements_from_mapping,
 )
 from muse.audio import write_tone
@@ -216,6 +217,45 @@ class EvaluateTests(Workspace):
         self.assertTrue(result["ok"])
         self.assertEqual(result["skipped"], ["require_accepted", "min_score"])
 
+
+class RequirementFitTests(Workspace):
+    def setUp(self):
+        super().setUp()
+        self.profile, _ = analyze_audio(self.tone())
+
+    def fit(self, limits):
+        return requirement_fit(evaluate(self.profile, requirements_from_mapping(limits), None))
+
+    def test_a_track_that_meets_every_limit_fits(self):
+        result = self.fit({"min_duration": 1, "max_peak_dbfs": -0.1})
+        self.assertTrue(result.ok)
+        self.assertEqual(result.failed, ())
+        self.assertEqual(result.hints, ())
+
+    def test_a_short_track_gets_a_duration_hint(self):
+        result = self.fit({"min_duration": 10})
+        self.assertFalse(result.ok)
+        self.assertEqual(result.failed, ("min_duration",))
+        self.assertEqual(len(result.hints), 1)
+        self.assertIn("at least 10", result.hints[0])
+        self.assertIn("2.0", result.hints[0])
+
+    def test_a_long_track_gets_a_duration_hint(self):
+        result = self.fit({"max_duration": 1})
+        self.assertEqual(result.failed, ("max_duration",))
+        self.assertIn("under 1", result.hints[0])
+
+    def test_loudness_and_format_misses_give_no_hint(self):
+        result = self.fit({"min_rms_dbfs": -1, "min_sample_rate": 44100, "channels": [2]})
+        self.assertFalse(result.ok)
+        self.assertEqual(set(result.failed), {"min_rms_dbfs", "min_sample_rate", "channels"})
+        self.assertEqual(result.hints, ())
+
+    def test_skipped_checks_do_not_make_a_track_unfit(self):
+        result = requirement_fit(
+            evaluate(None, requirements_from_mapping({"min_duration": 10}), None, "not a WAV")
+        )
+        self.assertTrue(result.ok)
 
 class AnalyzeCommandTests(Workspace):
     def setUp(self):

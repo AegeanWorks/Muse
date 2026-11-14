@@ -7,10 +7,10 @@
 
 ## 📊 Codebase Metrics
 - **Total Python Modules**: `39`
-- **Total Classes**: `74`
-- **Total Top-Level Functions**: `105`
-- **Total Class Methods**: `364`
-- **Total Source Lines**: `7239`
+- **Total Classes**: `77`
+- **Total Top-Level Functions**: `107`
+- **Total Class Methods**: `380`
+- **Total Source Lines**: `7414`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -37,7 +37,7 @@
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `482` lines (`17679` bytes)
+**Size**: `504` lines (`18856` bytes)
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -50,6 +50,7 @@
 - `def requirements_from_mapping(payload)`
 - `def analyze_audio(path)` - *Measure a WAV file; return the profile and an empty reason, or None and why not.*
 - `def evaluate(profile, requirements, evidence, reason)` - *Return one artifact's checks: passed when no check fails.*
+- `def requirement_fit(result)` - *Summarise an `evaluate` result as a Fit, with prompt hints for the misses a prompt can fix.*
 - `def _pcm_values(data, width)`
 - `def _dbfs(ratio)`
 - `def _number(payload, key, *, positive, low, high)`
@@ -304,12 +305,13 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `263` lines (`8722` bytes)
+**Size**: `286` lines (`9661` bytes)
 
 **Functions:**
-- `def compose(request, config, provider, judge, require_judge, max_attempts)`
+- `def compose(request, config, provider, judge, require_judge, max_attempts, fit)` - *Render, judge and optionally retry; `fit` reports whether a take meets requirements.*
 - `def judge_track(track, request, config, judge)`
 - `def revise_prompt(prompt, verdict)` - *Append the judge's actionable suggestions without repeating or overlong text.*
+- `def append_hints(prompt, hints)` - *Append distinct hints to a prompt, skipping repeats and anything past the prompt limit.*
 - `def _validate_attempts(max_attempts)`
 - `def _render_and_judge(request, settings, engine, judge, require_judge, number, planned)`
 - `def _listen(track, request, settings, judge, require_judge)`
@@ -388,7 +390,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `137` lines (`4440` bytes)
+**Size**: `146` lines (`4645` bytes)
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -402,6 +404,7 @@
 - `class Attempt` - *One rendered take and the verdict that judged it.*
   - Property `.accepted`
   - Property `.score`
+- `class Fit` - *Whether a take meets a project's requirements, and what a prompt could change.*
 - `class CompositionResult`
   - Property `.accepted`
 
@@ -436,7 +439,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `357` lines (`14406` bytes)
+**Size**: `397` lines (`16055` bytes)
 
 **Classes:**
 - `class Workspace`
@@ -466,6 +469,14 @@
   - Method `.test_missing_audio_skips_but_does_not_fail()`
   - Method `.test_judge_limits_use_available_evidence()`
   - Method `.test_judge_limits_are_skipped_without_evidence()`
+- `class RequirementFitTests`
+  - Method `.setUp()`
+  - Method `.fit(limits)`
+  - Method `.test_a_track_that_meets_every_limit_fits()`
+  - Method `.test_a_short_track_gets_a_duration_hint()`
+  - Method `.test_a_long_track_gets_a_duration_hint()`
+  - Method `.test_loudness_and_format_misses_give_no_hint()`
+  - Method `.test_skipped_checks_do_not_make_a_track_unfit()`
 - `class AnalyzeCommandTests`
   - Method `.setUp()`
   - Method `.test_matching_requirements_pass_and_exit_zero()`
@@ -782,7 +793,7 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `333` lines (`13422` bytes)
+**Size**: `414` lines (`16662` bytes)
 
 **Classes:**
 - `class FailingJudge`
@@ -819,6 +830,16 @@
   - Method `.test_returns_the_prompt_when_nothing_is_actionable()`
   - Method `.test_appends_distinct_suggestions_once()`
   - Method `.test_keeps_the_prompt_within_the_limit()`
+- `class FitRetryTests`
+  - Method `.setUp()`
+  - Method `.run_compose(fits, verdicts, attempts)`
+  - Method `.test_an_accepted_take_that_misses_is_retried_with_the_hint()`
+  - Method `.test_an_accepted_take_that_fits_is_not_retried()`
+  - Method `.test_a_miss_no_prompt_can_fix_stops_the_retries()`
+  - Method `.test_a_low_score_retries_with_the_judge_suggestions()`
+  - Method `.test_retries_stop_at_the_attempt_cap()`
+  - Method `.test_the_best_take_prefers_one_that_fits_over_a_higher_score()`
+  - Method `.test_without_a_fit_hook_an_accepted_take_ends_the_loop()`
 
 **Functions:**
 - `def verdict(score, kind, suggestions)`

@@ -9,7 +9,7 @@ from muse.errors import ConfigurationError, GenerationError, JudgeError, MuseErr
 from muse.judges.mock import MockJudge
 from muse.pipeline import PROMPT_LIMIT, compose, judge_track, revise_prompt
 from muse.providers.mock import MockMusicProvider
-from muse.types import MAX_ATTEMPTS, VERDICT_FITS, VERDICT_MISS, MusicRequest, Track, Verdict
+from muse.types import MAX_ATTEMPTS, VERDICT_FITS, VERDICT_MISS, Fit, MusicRequest, Track, Verdict
 
 
 class FailingJudge:
@@ -331,3 +331,84 @@ class RevisePromptTests(unittest.TestCase):
         base = "x" * (PROMPT_LIMIT - 5)
         result = revise_prompt(base, verdict(40, suggestions=("add a choir", "add brass")))
         self.assertEqual(result, base)
+
+class FitRetryTests(unittest.TestCase):
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.config = MuseConfig(output_dir=Path(folder.name), provider="mock", judge="mock", env={})
+        self.provider = MockMusicProvider(self.config)
+        self.request = MusicRequest("cave drones", theme="cave level", duration=1, name="Cave")
+
+    def run_compose(self, fits, verdicts, attempts=3):
+        judge = ScriptedJudge(verdicts)
+        queue = list(fits)
+        seen = []
+
+        def fit(attempt):
+            seen.append(attempt.number)
+            return queue.pop(0)
+
+        result = compose(
+            self.request,
+            self.config,
+            provider=self.provider,
+            judge=judge,
+            max_attempts=attempts,
+            fit=fit,
+        )
+        return result, judge, seen
+
+    def test_an_accepted_take_that_misses_is_retried_with_the_hint(self):
+        result, judge, _ = self.run_compose(
+            [Fit(False, ("min_duration",), ("make it at least 30 seconds long",)), Fit(True)],
+            [verdict(90, VERDICT_FITS)],
+        )
+        self.assertEqual(len(result.attempts), 2)
+        self.assertEqual(judge.requests[0].prompt, "cave drones")
+        self.assertEqual(judge.requests[1].prompt, "cave drones; make it at least 30 seconds long")
+
+    def test_an_accepted_take_that_fits_is_not_retried(self):
+        result, _, seen = self.run_compose([Fit(True)], [verdict(90, VERDICT_FITS)])
+        self.assertEqual(len(result.attempts), 1)
+        self.assertEqual(seen, [1])
+
+    def test_a_miss_no_prompt_can_fix_stops_the_retries(self):
+        result, _, _ = self.run_compose(
+            [Fit(False, ("max_peak_dbfs",), ())], [verdict(90, VERDICT_FITS)]
+        )
+        self.assertEqual(len(result.attempts), 1)
+
+    def test_a_low_score_retries_with_the_judge_suggestions(self):
+        result, judge, _ = self.run_compose(
+            [Fit(False, ("min_score",), ()), Fit(True)],
+            [
+                verdict(70, VERDICT_FITS, suggestions=("add strings",)),
+                verdict(85, VERDICT_FITS),
+            ],
+        )
+        self.assertEqual(len(result.attempts), 2)
+        self.assertEqual(judge.requests[1].prompt, "cave drones; add strings")
+
+    def test_retries_stop_at_the_attempt_cap(self):
+        hint = ("make it longer",)
+        result, _, _ = self.run_compose(
+            [Fit(False, ("min_duration",), hint)] * 2,
+            [verdict(90, VERDICT_FITS)],
+            attempts=2,
+        )
+        self.assertEqual(len(result.attempts), 2)
+
+    def test_the_best_take_prefers_one_that_fits_over_a_higher_score(self):
+        result, _, _ = self.run_compose(
+            [Fit(False, ("min_duration",), ("make it longer",)), Fit(True)],
+            [verdict(95, VERDICT_FITS), verdict(70, VERDICT_FITS)],
+        )
+        self.assertEqual(result.verdict.score, 70)
+
+    def test_without_a_fit_hook_an_accepted_take_ends_the_loop(self):
+        judge = ScriptedJudge([verdict(90, VERDICT_FITS)])
+        result = compose(
+            self.request, self.config, provider=self.provider, judge=judge, max_attempts=3
+        )
+        self.assertEqual(len(result.attempts), 1)

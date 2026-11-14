@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
+from .types import Fit
+
 MAX_REQUIREMENTS_BYTES = 64_000
 REQUIREMENT_KEYS = (
     "min_duration",
@@ -378,6 +380,26 @@ def evaluate(
         "skipped": skipped,
         "profile": None if profile is None else profile.as_dict(),
     }
+
+
+def requirement_fit(result: Mapping[str, Any]) -> Fit:
+    """Summarise an `evaluate` result as a Fit, with prompt hints for the misses a prompt can fix.
+
+    Only duration misses carry a hint: loudness, sample rate, channels and bit depth are
+    provider or format settings, so rewording the prompt cannot change them. A low judge score
+    is retried through the judge's own suggestions, so it needs no hint here.
+    """
+    failed = tuple(str(name) for name in result.get("failed", ()))
+    hints: list[str] = []
+    for check in result.get("checks", ()):
+        if check.get("status") != "fail":
+            continue
+        expected, actual = check.get("expected"), check.get("actual")
+        if check.get("check") == "min_duration" and isinstance(actual, (int, float)):
+            hints.append(f"make the track at least {expected:g} seconds long (the last take was {actual:.1f}s)")
+        elif check.get("check") == "max_duration" and isinstance(actual, (int, float)):
+            hints.append(f"keep the track under {expected:g} seconds (the last take was {actual:.1f}s)")
+    return Fit(ok=not failed, failed=failed, hints=tuple(hints))
 
 
 def _pcm_values(data: bytes, width: int) -> list[int]:

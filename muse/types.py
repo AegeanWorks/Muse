@@ -125,6 +125,15 @@ class Attempt:
 
 
 @dataclass(frozen=True)
+class Fit:
+    """Whether a take meets a project's requirements, and what a prompt could change."""
+
+    ok: bool
+    failed: tuple[str, ...] = ()
+    hints: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class CompositionResult:
     track: Track
     verdict: Verdict | None
