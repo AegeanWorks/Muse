@@ -3,8 +3,8 @@
   "active_task": {
     "task_id": "reforge:run-17",
     "last_phase": "phase 4",
-    "active_phase": 4,
-    "status": "in_progress",
+    "active_phase": 5,
+    "status": "completed",
     "updated_at": 1794680431.727948,
     "owner": "kilo:goal",
     "started_by": "kilo:goal",
@@ -14,20 +14,10 @@
         "name": "muse",
         "path": "projects/muse"
       }
-    ]
+    ],
+    "completed_at": 1794680510.5897393
   },
   "checkpoints": [
-    {
-      "task_id": "reforge:run-15",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=2, step=2, stop=None)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794678390.9559524,
-      "timestamp_str": "2026-11-14 20:46:30",
-      "agent": "unidentified"
-    },
     {
       "task_id": "reforge:run-15",
       "phase": "reforge stage 1",
@@ -308,6 +298,22 @@
           "path": "projects/muse"
         }
       ]
+    },
+    {
+      "task_id": "reforge:run-17",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'reforge:run-17' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794680510.5897436,
+      "timestamp_str": "2026-11-14 21:21:50",
+      "agent": "kilo:goal",
+      "delivery": {
+        "roots": [
+          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
+        ],
+        "forced": false
+      }
     }
   ]
 }
