@@ -1,67 +1,18 @@
 {
   "version": 1,
   "active_task": {
-    "task_id": "muse-retry-unfit",
+    "task_id": "muse-retry-on-requirements",
     "last_phase": "phase 4",
     "active_phase": 5,
     "status": "completed",
-    "updated_at": 1794688399.7359848,
+    "updated_at": 1794688871.9780464,
     "owner": "kiro",
     "started_by": "kiro",
     "continuations": [],
-    "completed_at": 1794688401.317576,
-    "completed_head": "2067a8d81aa7e72dc89da35b682d1b77ddad02ad"
+    "completed_at": 1794688873.6390793,
+    "completed_head": "41c23b8aac4f719fd49b28f89ce6f05fcfad94dd"
   },
   "checkpoints": [
-    {
-      "task_id": "muse-keystone-bridge",
-      "phase": "completed",
-      "phase_num": 5,
-      "description": "Task 'muse-keystone-bridge' completed successfully.",
-      "status": "completed",
-      "timestamp": 1794683267.0203316,
-      "timestamp_str": "2026-11-14 22:07:47",
-      "agent": "kilo:goal",
-      "delivery": {
-        "roots": [
-          "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse"
-        ],
-        "forced": false
-      }
-    },
-    {
-      "task_id": "reforge:run-19",
-      "phase": "reforge run",
-      "phase_num": 3,
-      "description": "run started (start=2, step=2, stop=2)",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794683305.3078814,
-      "timestamp_str": "2026-11-14 22:08:25",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-19",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 11 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794683307.9888852,
-      "timestamp_str": "2026-11-14 22:08:27",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-19",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: stage 1 host review reviewed; run completed; coverage 27/27",
-      "files_affected": [],
-      "status": "completed",
-      "timestamp": 1794683520.457021,
-      "timestamp_str": "2026-11-14 22:12:00",
-      "agent": "unidentified"
-    },
     {
       "task_id": "reforge:run-19",
       "phase": "phase 4",
@@ -310,6 +261,64 @@
       "status": "completed",
       "timestamp": 1794688401.4366019,
       "timestamp_str": "2026-11-14 23:33:21",
+      "agent": "kiro",
+      "delivery": {
+        "roots": [
+          "."
+        ],
+        "forced": false
+      }
+    },
+    {
+      "task_id": "muse-retry-on-requirements",
+      "phase": "planning",
+      "phase_num": 2,
+      "description": "[1/2] compose gains an optional fit hook and analysis.requirement_fit maps duration and score misses to retry hints; [2/2] batch retry-on-requirements flag wires it, with tests and docs",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794688574.2311478,
+      "timestamp_str": "2026-11-14 23:36:14",
+      "agent": "kiro",
+      "impact_assessment": {
+        "why": "The attempts loop retries only on the judge verdict, so a take that is accepted but too short or low-scoring is never retried",
+        "benefits": "A batch can spend its attempts on getting tracks to meet the requirements, not only the theme",
+        "risks": "contract: compose gets an optional keyword with default None, existing callers unchanged, new opt-in batch flag; dependency: analysis imports types only, no cycle; concurrency: none; state: no schema change; cost: extra billed takes, only with the flag and only for prompt-fixable misses, capped by attempts",
+        "mitigation": "Opt-in flag needing a requirements file and attempts above 1; loudness, rate, channels and bit depth never trigger retries; failing-first tests; best take prefers one that fits"
+      },
+      "plan_digest": "7132bbe56d35b040c8d86c885f9d887cfe40c0fca5f620ec9dc0677302c0d99f"
+    },
+    {
+      "task_id": "muse-retry-on-requirements",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[1/2] compose fit hook and requirement_fit; 268 tests, 4/4 gates pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794688756.8550346,
+      "timestamp_str": "2026-11-14 23:39:16",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-retry-on-requirements",
+      "phase": "phase 4",
+      "phase_num": 4,
+      "description": "[2/2] batch retry-on-requirements flag wired and documented; 272 tests, 4/4 gates pass",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794688871.9780464,
+      "timestamp_str": "2026-11-14 23:41:11",
+      "agent": "kiro",
+      "checklists": "passed"
+    },
+    {
+      "task_id": "muse-retry-on-requirements",
+      "phase": "completed",
+      "phase_num": 5,
+      "description": "Task 'muse-retry-on-requirements' completed successfully.",
+      "status": "completed",
+      "timestamp": 1794688873.8272727,
+      "timestamp_str": "2026-11-14 23:41:13",
       "agent": "kiro",
       "delivery": {
         "roots": [
