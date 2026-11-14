@@ -70,7 +70,8 @@ and unknown keys are rejected:
   folder; an audio file outside an artifact folder has none, so those checks are `skipped` with a
   hint to run `muse judge`.
 - One failed check makes the artifact `ok: false` and the command exits `1`; skips never fail.
-  A missing artifact or missing audio exits `1`; an invalid requirements file exits `2`.
+  A missing artifact or missing audio exits `1`; an invalid requirements file exits `2`. Like
+  `doctor`, a finished analysis prints its JSON object before exiting `1`.
 
 ## Cost and safety rules
 
