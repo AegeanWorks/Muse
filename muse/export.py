@@ -12,6 +12,7 @@ from typing import Iterator
 
 from .analysis import READ_CHUNK_FRAMES, pcm_values
 from .errors import ConfigurationError, ExportError
+from .resample import resample_chunks
 
 DEFAULT_RATE = 22_050
 MIN_RATE = 8_000
@@ -125,7 +126,7 @@ def _stream(reader: wave.Wave_read, source: Path, temporary: Path, rate: int, ch
             "convert the file to PCM WAV with 8, 16, 24 or 32-bit samples",
         )
     mono = _mono_chunks(reader, source, channels, width, chunk_frames)
-    stream = mono if source_rate == rate else _resample(mono, source_rate, rate)
+    stream = resample_chunks(mono, source_rate, rate)
     blocks = (block for block in stream if block)
     first = next(blocks, None)
     if first is None:
@@ -174,31 +175,6 @@ def _mono_chunks(
         else:
             groups = zip(*(values[channel::channels] for channel in range(channels)))
             yield [sum(group) / (channels * scale) for group in groups]
-
-
-def _resample(chunks: Iterator[list[float]], source_rate: int, target_rate: int) -> Iterator[list[float]]:
-    """Linear interpolation with integer positions, so the output ignores chunk boundaries."""
-    carry: float | None = None
-    base = 0
-    produced = 0
-    for chunk in chunks:
-        data = chunk if carry is None else [carry, *chunk]
-        if not data:
-            continue
-        last = base + len(data) - 1
-        block: list[float] = []
-        while True:
-            numerator = produced * source_rate
-            index = numerator // target_rate
-            if index + 1 > last:
-                break
-            fraction = (numerator % target_rate) / target_rate
-            low = data[index - base]
-            block.append(low + (data[index - base + 1] - low) * fraction)
-            produced += 1
-        carry = data[-1]
-        base = last
-        yield block
 
 
 def _quantize(block: list[float]) -> bytes:

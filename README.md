@@ -304,8 +304,13 @@ python -m muse analyze output/cave-level/track-22050hz.wav --requirements preset
 `analyze` on the artifact folder would check the original render, so name the exported file.
 ARTIFACT is a folder, a `muse.json` or a WAV file. The default output is `NAME-22050hz.wav`
 beside the audio; `--to` names another file and its missing folders are created. Input may be 8, 16, 24 or 32-bit PCM with any
-channel count: channels are averaged to mono and the audio is resampled by linear interpolation,
-which suits game music and effects but is not mastering quality. The file is read in chunks, so
+channel count: channels are averaged to mono and the audio is resampled. Lowering the rate
+applies a Kaiser-windowed sinc low-pass first, so tones above the new Nyquist frequency are
+removed instead of folded back into the band: the response is flat to 40% of the output rate,
+6 dB down at 45% and at least 55 dB down from 50% upward. Raising the rate uses linear
+interpolation. A tone that starts at full level with no fade rings briefly at the file's edges.
+A 3-minute stereo 44.1 kHz track exports in about 10 seconds on Python 3.12 or newer (about 18
+on older versions); 96 kHz sources take roughly twice as long per second of audio. The file is read in chunks, so
 long tracks do not need much memory, and the output is written through a temporary file and
 replaced atomically. MP3, float and other non-PCM input is refused with a `Fix:`; Muse cannot
 decode MP3 with the standard library, so render with a WAV provider. `--json` prints `source`,
@@ -439,6 +444,7 @@ muse/
 │   ├── net.py                <- JSON + download HTTP client with retry and timeout
 │   ├── pipeline.py           <- render, listen, refine, persist evidence
 │   ├── rejudge.py            <- re-score artifacts and append verdict history
+│   ├── resample.py           <- streaming rate conversion with an anti-alias filter
 │   ├── types.py              <- frozen request, track, verdict, result
 │   ├── judges/
 │   │   ├── base.py           <- listening protocol

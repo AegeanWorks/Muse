@@ -6,14 +6,14 @@
 ---
 
 ## 📊 Codebase Metrics
-- **Total Python Modules**: `41`
-- **Total Classes**: `85`
-- **Total Top-Level Functions**: `123`
-- **Total Class Methods**: `449`
-- **Total Source Lines**: `8376`
+- **Total Python Modules**: `43`
+- **Total Classes**: `88`
+- **Total Top-Level Functions**: `134`
+- **Total Class Methods**: `467`
+- **Total Source Lines**: `8687`
 
 ## 🧭 Map Coverage
-- **Indexed**: python (`41` module(s))
+- **Indexed**: python (`43` module(s))
 - **Not indexed by this map**: none (no non-Python source files were found)
 
 ---
@@ -234,7 +234,7 @@
 ### [`muse/export.py`](muse/export.py)
 > *Export a rendered WAV as the mono 16-bit PCM file an engine loader expects.*
 
-**Size**: `206` lines (`7662` bytes)
+**Size**: `182` lines (`6782` bytes)
 
 **Classes:**
 - `class ExportResult`
@@ -248,7 +248,6 @@
 - `def _convert(source, temporary, rate, chunk_frames)`
 - `def _stream(reader, source, temporary, rate, chunk_frames)`
 - `def _mono_chunks(reader, source, channels, width, chunk_frames)`
-- `def _resample(chunks, source_rate, target_rate)` - *Linear interpolation with integer positions, so the output ignores chunk boundaries.*
 - `def _quantize(block)`
 
 ---
@@ -411,6 +410,23 @@
 - `def _request(payload, entry)`
 - `def _track(payload, entry, request)`
 - `def _verdict_payload(verdict)`
+
+---
+
+### [`muse/resample.py`](muse/resample.py)
+> *Streaming sample-rate conversion with an anti-alias filter when downsampling.*
+
+**Size**: `161` lines (`6122` bytes)
+
+**Functions:**
+- `def _dot_fallback(first, second)`
+- `def resample_chunks(chunks, source_rate, target_rate)` - *Convert a stream of mono sample blocks from `source_rate` to `target_rate`.*
+- `def tap_count(source_rate, target_rate)` - *Even number of filter taps for a downsampling ratio.*
+- `def lowpass_kernel(taps, cutoff, fraction)` - *Kaiser-windowed sinc for a position `fraction` of a sample past a source sample.*
+- `def _bessel_i0(x)`
+- `def _kernel_table(source_rate, target_rate, taps)` - *Kernels for every fractional position the conversion visits, plus the stepping constants.*
+- `def _lowpass(chunks, source_rate, target_rate)`
+- `def _linear(chunks, source_rate, target_rate)` - *Linear interpolation with exact integer positions; used when the rate goes up.*
 
 ---
 
@@ -1018,6 +1034,42 @@
 
 **Functions:**
 - `def write_artifact(root, folder, *, prompt, theme, score, accepted, verdict, schema)`
+
+---
+
+### [`tests/test_resample.py`](tests/test_resample.py)
+> *Sample-rate conversion: an anti-alias filter when downsampling, exact whatever the chunking.*
+
+**Size**: `174` lines (`7610` bytes)
+
+**Classes:**
+- `class KernelTests`
+  - Method `.test_the_tap_count_grows_with_the_rate_ratio_and_stays_even()`
+  - Method `.test_every_kernel_has_unit_gain_at_zero_hertz()`
+  - Method `.test_the_filter_is_flat_in_the_band_and_rejects_the_alias_band()`
+  - Method `.test_the_fallback_dot_product_matches_the_builtin()`
+- `class StreamTests`
+  - Method `.signal(count, source, hertz, amplitude)`
+  - Method `.test_equal_rates_pass_the_chunks_through()`
+  - Method `.test_the_output_does_not_depend_on_the_chunk_size()`
+  - Method `.test_the_output_length_matches_the_promised_count()`
+  - Method `.test_a_single_sample_produces_nothing()`
+  - Method `.test_a_tone_below_the_cutoff_keeps_its_level()`
+  - Method `.test_tones_above_the_target_nyquist_are_removed_not_folded()`
+  - Method `.test_upsampling_still_interpolates_linearly()`
+  - Method `.test_a_target_with_many_phases_uses_a_bounded_table_and_stays_accurate()`
+- `class ExportFilterTests`
+  - Method `.setUp()`
+  - Method `.tone(name, rate, hertz, count)`
+  - Method `.steady_peak_dbfs(path, edge)` - *Peak level of the middle of a file, away from the onset and release of the tone.*
+  - Method `.test_an_exported_high_tone_no_longer_aliases()`
+  - Method `.test_an_exported_low_tone_keeps_its_level()`
+
+**Functions:**
+- `def response_db(kernel, source_rate, hertz, fraction)` - *Gain of one polyphase kernel at `hertz`, for taps placed around `fraction` past a sample.*
+- `def collect(chunks)`
+- `def split(values, size)`
+- `def expected_frames(count, source, target)` - *Outputs whose source position leaves at least one later sample, as the exporter promises.*
 
 ---
 
