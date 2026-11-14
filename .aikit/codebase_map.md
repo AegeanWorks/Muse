@@ -9,8 +9,8 @@
 - **Total Python Modules**: `39`
 - **Total Classes**: `74`
 - **Total Top-Level Functions**: `104`
-- **Total Class Methods**: `357`
-- **Total Source Lines**: `7104`
+- **Total Class Methods**: `359`
+- **Total Source Lines**: `7129`
 
 ## 🧭 Map Coverage
 - **Indexed**: python (`39` module(s))
@@ -131,7 +131,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1059` lines (`42551` bytes)
+**Size**: `1067` lines (`42917` bytes)
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -506,7 +506,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `717` lines (`31536` bytes)
+**Size**: `734` lines (`32383` bytes)
 
 **Classes:**
 - `class CountingProvider`
@@ -561,6 +561,8 @@
   - Method `.test_batch_requirements_apply_to_reused_tracks()`
   - Method `.test_resume_without_requirements_drops_the_stored_result()`
   - Method `.test_resume_judges_reused_tracks_by_the_current_limits()`
+  - Method `.test_batch_summary_names_skipped_requirement_checks()`
+  - Method `.test_batch_summary_is_quiet_when_every_check_ran()`
   - Method `.test_batch_requirements_invalid_file_exits_two()`
   - Method `.test_batch_dry_run_names_the_requirements_file()`
   - Method `.test_resume_of_all_accepted_tracks_needs_no_judge_key()`

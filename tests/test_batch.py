@@ -511,6 +511,23 @@ class BatchCliTests(unittest.TestCase):
         self.assertEqual(payload["unfit"], 0)
         self.assertTrue(payload["tracks"][0]["requirements"]["ok"])
 
+    def test_batch_summary_names_skipped_requirement_checks(self):
+        limits = self.requirements_file({"min_duration": 0.5, "min_score": 50})
+        with patch("muse.cli.analyze_audio", return_value=(None, "the audio is not a WAV")):
+            code, out, err = self.run_cli(
+                ["batch", str(self.one_track()), "--requirements", str(limits)]
+            )
+        self.assertEqual(code, 0, err)
+        self.assertIn("Skipped requirement checks: cave (min_duration)", out)
+
+    def test_batch_summary_is_quiet_when_every_check_ran(self):
+        limits = self.requirements_file({"min_duration": 0.5})
+        code, out, err = self.run_cli(
+            ["batch", str(self.one_track()), "--requirements", str(limits)]
+        )
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("Skipped requirement checks", out)
+
     def test_batch_requirements_invalid_file_exits_two(self):
         limits = self.requirements_file({"bogus": 1})
         code, _, err = self.run_cli(

@@ -420,6 +420,14 @@ def _batch(
                 and entry["payload"]["requirements"].get("ok") is False
             ]
             print(f"Unfit for the requirements: {', '.join(names)}")
+        skipped = [
+            f"{entry['name']} ({', '.join(result['skipped'])})"
+            for entry in _filled(entries)
+            for result in [entry.get("payload", {}).get("requirements")]
+            if isinstance(result, dict) and result.get("skipped")
+        ]
+        if skipped:
+            print(f"Skipped requirement checks: {', '.join(skipped)}")
         if payload["reused"]:
             print(f"Reused: {payload['reused']}")
     return 1 if payload["failed"] or payload["unfit"] or (args.strict and payload["rejected"]) else 0
