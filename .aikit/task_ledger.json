@@ -20,65 +20,6 @@
   "checkpoints": [
     {
       "task_id": "reforge:run-11",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: window 2, 2 commit(s), 10 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794670747.3300588,
-      "timestamp_str": "2026-11-14 18:39:07",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-11",
-      "phase": "reforge stage 1",
-      "phase_num": 3,
-      "description": "Reforge stage 1: stage 1 host review reviewed; run active; coverage 18/18",
-      "files_affected": [],
-      "status": "in_progress",
-      "timestamp": 1794670997.6045058,
-      "timestamp_str": "2026-11-14 18:43:17",
-      "agent": "unidentified"
-    },
-    {
-      "task_id": "reforge:run-11",
-      "phase": "phase 4",
-      "phase_num": 4,
-      "description": "[1/1] Reforge run-11 complete: start=2 step=2 stop=2, 18/18 hunks reviewed, 0 findings, 0 repairs; checklists: passed",
-      "files_affected": [
-        ".aikit/reforge.json",
-        ".aikit/task_ledger.json",
-        ".aikit/task_ledger_archive.jsonl"
-      ],
-      "status": "in_progress",
-      "timestamp": 1794671135.7309499,
-      "timestamp_str": "2026-11-14 18:45:35",
-      "agent": "kilo:goal",
-      "measurements": [
-        {
-          "command": "python aikit.py reforge review muse --stage 1 --findings <file>",
-          "artifact": ".aikit/reforge.reviews/stage-run-11-1-0268789d66f1.md",
-          "metric": "hunks_reviewed",
-          "candidate": 18.0,
-          "baseline": 0.0,
-          "unit": "hunks"
-        }
-      ],
-      "checklists": "passed",
-      "handoff": {
-        "state": "run-11 completed with no findings",
-        "next": "commit the audit record and push when authorized",
-        "evidence": "reforge status muse, 209 tests OK"
-      },
-      "workspaces": [
-        {
-          "name": "muse",
-          "path": "projects/muse"
-        }
-      ]
-    },
-    {
-      "task_id": "reforge:run-11",
       "phase": "completed",
       "phase_num": 5,
       "description": "Task 'reforge:run-11' completed successfully.",
@@ -408,6 +349,39 @@
         ],
         "forced": false
       }
+    },
+    {
+      "task_id": "reforge:run-14",
+      "phase": "reforge run",
+      "phase_num": 3,
+      "description": "run started (start=2, step=2, stop=None)",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794676524.0226388,
+      "timestamp_str": "2026-11-14 20:15:24",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-14",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: window 2, 2 commit(s), 4 file(s) reviewed (unreviewed), 0 finding(s), 0 repaired, empty \u2014 nothing to commit",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794676525.8159528,
+      "timestamp_str": "2026-11-14 20:15:25",
+      "agent": "unidentified"
+    },
+    {
+      "task_id": "reforge:run-14",
+      "phase": "reforge stage 1",
+      "phase_num": 3,
+      "description": "Reforge stage 1: stage 1 host review reviewed; run active; coverage 6/6",
+      "files_affected": [],
+      "status": "in_progress",
+      "timestamp": 1794676657.7151163,
+      "timestamp_str": "2026-11-14 20:17:37",
+      "agent": "unidentified"
     }
   ]
 }

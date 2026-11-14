@@ -1,8 +1,8 @@
 {
   "schema": 2,
-  "next_run_id": 14,
+  "next_run_id": 15,
   "active_run": null,
-  "last_run": "run-13",
+  "last_run": "run-14",
   "runs": [
     {
       "id": "run-1",
@@ -2892,48 +2892,169 @@
         }
       ],
       "total_commits": 62
+    },
+    {
+      "id": "run-14",
+      "start": 2,
+      "step": 2,
+      "stop": 2,
+      "stage": 1,
+      "window": 2,
+      "audited_commits": [
+        "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+        "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
+      ],
+      "status": "completed",
+      "created": "2026-11-14T20:15:24",
+      "updated": "2026-11-14T20:17:42",
+      "last_audit": {
+        "run": "run-14",
+        "stage": 1,
+        "window": 2,
+        "commits": [
+          "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+          "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
+        ],
+        "new_commits": [
+          "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+          "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
+        ],
+        "prior_commits": [],
+        "findings": [],
+        "repairs": [],
+        "counts": {},
+        "reviewed": 4,
+        "review": {
+          "status": "reviewed",
+          "rejected": [],
+          "files": [
+            ".aikit/codebase_map.md",
+            ".aikit/task_ledger_archive.jsonl",
+            "AGENTS.md",
+            "tests/test_agent_docs.py"
+          ],
+          "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-14-1-ae6b8e8af8c5.md",
+          "redacted": 0,
+          "reason": "the answer held no findings",
+          "method": "host",
+          "coverage": {
+            "reported": 6,
+            "total": 6,
+            "missing": [],
+            "unknown": [],
+            "invalid": []
+          },
+          "findings": []
+        },
+        "skipped": [],
+        "tests": {},
+        "gates": {},
+        "delivery": {
+          "commit": "",
+          "short": "",
+          "pushed": false,
+          "push_error": null,
+          "empty": true,
+          "timestamp": "2026-11-14T20:15:25"
+        },
+        "timestamp": "2026-11-14T20:15:25"
+      },
+      "history": [
+        {
+          "run": "run-14",
+          "stage": 1,
+          "window": 2,
+          "commits": [
+            "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+            "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
+          ],
+          "new_commits": [
+            "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+            "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
+          ],
+          "prior_commits": [],
+          "findings": [],
+          "repairs": [],
+          "counts": {},
+          "reviewed": 4,
+          "review": {
+            "status": "reviewed",
+            "rejected": [],
+            "files": [
+              ".aikit/codebase_map.md",
+              ".aikit/task_ledger_archive.jsonl",
+              "AGENTS.md",
+              "tests/test_agent_docs.py"
+            ],
+            "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-14-1-ae6b8e8af8c5.md",
+            "redacted": 0,
+            "reason": "the answer held no findings",
+            "method": "host",
+            "coverage": {
+              "reported": 6,
+              "total": 6,
+              "missing": [],
+              "unknown": [],
+              "invalid": []
+            },
+            "findings": []
+          },
+          "skipped": [],
+          "tests": {},
+          "gates": {},
+          "delivery": {
+            "commit": "",
+            "short": "",
+            "pushed": false,
+            "push_error": null,
+            "empty": true,
+            "timestamp": "2026-11-14T20:15:25"
+          },
+          "timestamp": "2026-11-14T20:15:25"
+        }
+      ],
+      "total_commits": 66
     }
   ],
   "stage": 1,
-  "window": 3,
+  "window": 2,
   "audited_commits": [
-    "0dcfc9ae09969862a9e53da3c2cb5686d5243532",
-    "4deb1081508529bd2c65ebb0203e01aa6f9ba961",
-    "d45546deee4d92d716f4d802ce375ed9a472a160"
+    "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+    "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
   ],
   "last_audit": {
-    "run": "run-13",
+    "run": "run-14",
     "stage": 1,
-    "window": 3,
+    "window": 2,
     "commits": [
-      "0dcfc9ae09969862a9e53da3c2cb5686d5243532",
-      "4deb1081508529bd2c65ebb0203e01aa6f9ba961",
-      "d45546deee4d92d716f4d802ce375ed9a472a160"
+      "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+      "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
     ],
     "new_commits": [
-      "0dcfc9ae09969862a9e53da3c2cb5686d5243532",
-      "4deb1081508529bd2c65ebb0203e01aa6f9ba961",
-      "d45546deee4d92d716f4d802ce375ed9a472a160"
+      "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+      "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
     ],
     "prior_commits": [],
     "findings": [],
     "repairs": [],
     "counts": {},
-    "reviewed": 2,
+    "reviewed": 4,
     "review": {
       "status": "reviewed",
       "rejected": [],
       "files": [
+        ".aikit/codebase_map.md",
         ".aikit/task_ledger_archive.jsonl",
-        "README.md"
+        "AGENTS.md",
+        "tests/test_agent_docs.py"
       ],
-      "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-13-1-0dcfc9ae0996.md",
+      "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-14-1-ae6b8e8af8c5.md",
       "redacted": 0,
       "reason": "the answer held no findings",
       "method": "host",
       "coverage": {
-        "reported": 3,
-        "total": 3,
+        "reported": 6,
+        "total": 6,
         "missing": [],
         "unknown": [],
         "invalid": []
@@ -2949,44 +3070,44 @@
       "pushed": false,
       "push_error": null,
       "empty": true,
-      "timestamp": "2026-11-14T19:58:05"
+      "timestamp": "2026-11-14T20:15:25"
     },
-    "timestamp": "2026-11-14T19:58:05"
+    "timestamp": "2026-11-14T20:15:25"
   },
   "history": [
     {
-      "run": "run-13",
+      "run": "run-14",
       "stage": 1,
-      "window": 3,
+      "window": 2,
       "commits": [
-        "0dcfc9ae09969862a9e53da3c2cb5686d5243532",
-        "4deb1081508529bd2c65ebb0203e01aa6f9ba961",
-        "d45546deee4d92d716f4d802ce375ed9a472a160"
+        "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+        "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
       ],
       "new_commits": [
-        "0dcfc9ae09969862a9e53da3c2cb5686d5243532",
-        "4deb1081508529bd2c65ebb0203e01aa6f9ba961",
-        "d45546deee4d92d716f4d802ce375ed9a472a160"
+        "ae6b8e8af8c51295fd52805248cf0a8316a1a02c",
+        "77253caabc6604a94d6fb9df1cc2c97ffcc79b0e"
       ],
       "prior_commits": [],
       "findings": [],
       "repairs": [],
       "counts": {},
-      "reviewed": 2,
+      "reviewed": 4,
       "review": {
         "status": "reviewed",
         "rejected": [],
         "files": [
+          ".aikit/codebase_map.md",
           ".aikit/task_ledger_archive.jsonl",
-          "README.md"
+          "AGENTS.md",
+          "tests/test_agent_docs.py"
         ],
-        "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-13-1-0dcfc9ae0996.md",
+        "packet": "C:\\Users\\Yunus-Emre\\Desktop\\portable_agent_kit\\projects\\muse\\.aikit\\reforge.reviews\\stage-run-14-1-ae6b8e8af8c5.md",
         "redacted": 0,
         "reason": "the answer held no findings",
         "method": "host",
         "coverage": {
-          "reported": 3,
-          "total": 3,
+          "reported": 6,
+          "total": 6,
           "missing": [],
           "unknown": [],
           "invalid": []
@@ -3002,9 +3123,9 @@
         "pushed": false,
         "push_error": null,
         "empty": true,
-        "timestamp": "2026-11-14T19:58:05"
+        "timestamp": "2026-11-14T20:15:25"
       },
-      "timestamp": "2026-11-14T19:58:05"
+      "timestamp": "2026-11-14T20:15:25"
     }
   ]
 }
