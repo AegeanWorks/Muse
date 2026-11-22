@@ -23,21 +23,21 @@
 ### [`muse/__init__.py`](muse/__init__.py)
 > *Muse: prompt-driven music with an automated listener.*
 
-**Size**: `25` lines (`589` bytes)
+**Size**: `25` lines
 
 ---
 
 ### [`muse/__main__.py`](muse/__main__.py)
 > *Entry point for ``python -m muse``.*
 
-**Size**: `7` lines (`127` bytes)
+**Size**: `7` lines
 
 ---
 
 ### [`muse/analysis.py`](muse/analysis.py)
 > *Requirement-based analysis: does a rendered track serve the consuming project?*
 
-**Size**: `540` lines (`20586` bytes)
+**Size**: `540` lines
 
 **Classes:**
 - `class TrackRequirements` - *Optional limits a consuming project states for one or more tracks.*
@@ -65,7 +65,7 @@
 ### [`muse/artifacts.py`](muse/artifacts.py)
 > *Artifact directories and crash-safe JSON metadata.*
 
-**Size**: `88` lines (`2769` bytes)
+**Size**: `88` lines
 
 **Functions:**
 - `def unique_directory(parent, label)`
@@ -77,7 +77,7 @@
 ### [`muse/audio.py`](muse/audio.py)
 > *Small audio helpers that need no third-party packages.*
 
-**Size**: `76` lines (`2431` bytes)
+**Size**: `76` lines
 
 **Functions:**
 - `def slugify(text, fallback)`
@@ -90,7 +90,7 @@
 ### [`muse/batch.py`](muse/batch.py)
 > *Batch manifest parsing: one JSON file, many themed tracks.*
 
-**Size**: `142` lines (`5379` bytes)
+**Size**: `142` lines
 
 **Functions:**
 - `def load_manifest(path)` - *Read a JSON manifest and return one validated request per track.*
@@ -102,7 +102,7 @@
 ### [`muse/batch_state.py`](muse/batch_state.py)
 > *Crash-safe progress state for resumable batch runs.*
 
-**Size**: `163` lines (`6350` bytes)
+**Size**: `163` lines
 
 **Functions:**
 - `def manifest_fingerprint(requests)` - *Hash the validated requests so a changed manifest cannot reuse old progress.*
@@ -115,7 +115,7 @@
 ### [`muse/catalog.py`](muse/catalog.py)
 > *Read-only discovery of scored artifacts under an output directory.*
 
-**Size**: `205` lines (`7086` bytes)
+**Size**: `205` lines
 
 **Classes:**
 - `class Artifact`
@@ -133,7 +133,7 @@
 ### [`muse/cli.py`](muse/cli.py)
 > *Command line interface: generate, batch, judge, inspect providers.*
 
-**Size**: `1248` lines (`50651` bytes)
+**Size**: `1248` lines
 
 **Functions:**
 - `def main(argv, *, config, provider, judge)`
@@ -179,7 +179,7 @@
 ### [`muse/config.py`](muse/config.py)
 > *Configuration resolved from explicit values, environment variables and defaults.*
 
-**Size**: `135` lines (`5312` bytes)
+**Size**: `135` lines
 
 **Classes:**
 - `class MuseConfig`
@@ -199,7 +199,7 @@
 ### [`muse/doctor.py`](muse/doctor.py)
 > *Read-only local configuration checks for the doctor command.*
 
-**Size**: `112` lines (`3133` bytes)
+**Size**: `112` lines
 
 **Classes:**
 - `class Check`
@@ -218,7 +218,7 @@
 ### [`muse/errors.py`](muse/errors.py)
 > *User-facing failures with what, why and how to fix them.*
 
-**Size**: `30` lines (`569` bytes)
+**Size**: `30` lines
 
 **Classes:**
 - `class MuseError`
@@ -234,7 +234,7 @@
 ### [`muse/export.py`](muse/export.py)
 > *Export a rendered WAV as the mono 16-bit PCM file an engine loader expects.*
 
-**Size**: `182` lines (`6782` bytes)
+**Size**: `182` lines
 
 **Classes:**
 - `class ExportResult`
@@ -255,7 +255,7 @@
 ### [`muse/judges/base.py`](muse/judges/base.py)
 > *The listening boundary every judge implements.*
 
-**Size**: `16` lines (`393` bytes)
+**Size**: `16` lines
 
 **Classes:**
 - `class MusicJudge`
@@ -266,7 +266,7 @@
 ### [`muse/judges/gemini.py`](muse/judges/gemini.py)
 > *Gemini audio judge: listens to the rendered track and scores theme fit.*
 
-**Size**: `196` lines (`8217` bytes)
+**Size**: `196` lines
 
 **Classes:**
 - `class GeminiJudge`
@@ -284,7 +284,7 @@
 ### [`muse/judges/mock.py`](muse/judges/mock.py)
 > *Deterministic offline judge used by tests and demos.*
 
-**Size**: `56` lines (`2064` bytes)
+**Size**: `56` lines
 
 **Classes:**
 - `class MockJudge`
@@ -299,7 +299,7 @@
 ### [`muse/judges/registry.py`](muse/judges/registry.py)
 > *Name-to-judge lookup so callers never import adapters directly.*
 
-**Size**: `34` lines (`1047` bytes)
+**Size**: `34` lines
 
 **Functions:**
 - `def build_judge(name, config)`
@@ -310,7 +310,7 @@
 ### [`muse/net.py`](muse/net.py)
 > *Minimal JSON and download HTTP client with retry and timeouts.*
 
-**Size**: `181` lines (`7228` bytes)
+**Size**: `181` lines
 
 **Classes:**
 - `class HttpResponse`
@@ -331,7 +331,7 @@
 ### [`muse/pipeline.py`](muse/pipeline.py)
 > *Orchestration: render a prompt, listen to it, and persist the evidence.*
 
-**Size**: `287` lines (`9752` bytes)
+**Size**: `287` lines
 
 **Functions:**
 - `def compose(request, config, provider, judge, require_judge, max_attempts, fit)` - *Render, judge and optionally retry; `fit` reports whether a take meets requirements.*
@@ -351,7 +351,7 @@
 ### [`muse/providers/base.py`](muse/providers/base.py)
 > *The generation boundary every music provider implements.*
 
-**Size**: `17` lines (`409` bytes)
+**Size**: `17` lines
 
 **Classes:**
 - `class MusicProvider`
@@ -362,7 +362,7 @@
 ### [`muse/providers/mock.py`](muse/providers/mock.py)
 > *Offline provider used by tests and demos.*
 
-**Size**: `31` lines (`829` bytes)
+**Size**: `31` lines
 
 **Classes:**
 - `class MockMusicProvider`
@@ -374,7 +374,7 @@
 ### [`muse/providers/registry.py`](muse/providers/registry.py)
 > *Name-to-provider lookup so callers never import adapters directly.*
 
-**Size**: `33` lines (`1009` bytes)
+**Size**: `33` lines
 
 **Functions:**
 - `def build_provider(name, config)`
@@ -385,7 +385,7 @@
 ### [`muse/providers/replicate.py`](muse/providers/replicate.py)
 > *Music generation through Replicate-hosted models.*
 
-**Size**: `137` lines (`5435` bytes)
+**Size**: `137` lines
 
 **Classes:**
 - `class ReplicateMusicProvider`
@@ -400,7 +400,7 @@
 ### [`muse/rejudge.py`](muse/rejudge.py)
 > *Re-score existing artifacts and keep every previous verdict in history.*
 
-**Size**: `145` lines (`5368` bytes)
+**Size**: `145` lines
 
 **Classes:**
 - `class RejudgeResult`
@@ -416,7 +416,7 @@
 ### [`muse/resample.py`](muse/resample.py)
 > *Streaming sample-rate conversion with an anti-alias filter when downsampling.*
 
-**Size**: `161` lines (`6122` bytes)
+**Size**: `161` lines
 
 **Functions:**
 - `def _dot_fallback(first, second)`
@@ -433,7 +433,7 @@
 ### [`muse/types.py`](muse/types.py)
 > *Public data types shared by providers, judges and the pipeline.*
 
-**Size**: `151` lines (`4866` bytes)
+**Size**: `151` lines
 
 **Classes:**
 - `class MusicRequest` - *A prompt plus the theme it must serve.*
@@ -456,14 +456,14 @@
 ### [`tests/__init__.py`](tests/__init__.py)
 > *Regression shield for Muse.*
 
-**Size**: `1` lines (`34` bytes)
+**Size**: `1` lines
 
 ---
 
 ### [`tests/test_agent_docs.py`](tests/test_agent_docs.py)
 > *Agent documentation: the contract names every command and stays short.*
 
-**Size**: `69` lines (`2653` bytes)
+**Size**: `69` lines
 
 **Classes:**
 - `class AgentContractTests`
@@ -484,7 +484,7 @@
 ### [`tests/test_analysis.py`](tests/test_analysis.py)
 > *Requirement analysis: profiles, validated limits and the analyze command.*
 
-**Size**: `471` lines (`19826` bytes)
+**Size**: `471` lines
 
 **Classes:**
 - `class Workspace`
@@ -555,7 +555,7 @@
 ---
 
 ### [`tests/test_audio.py`](tests/test_audio.py)
-**Size**: `95` lines (`4305` bytes)
+**Size**: `95` lines
 
 **Classes:**
 - `class SlugTests`
@@ -578,7 +578,7 @@
 ---
 
 ### [`tests/test_batch.py`](tests/test_batch.py)
-**Size**: `916` lines (`40643` bytes)
+**Size**: `916` lines
 
 **Classes:**
 - `class CountingProvider`
@@ -666,7 +666,7 @@
 ---
 
 ### [`tests/test_catalog.py`](tests/test_catalog.py)
-**Size**: `348` lines (`14252` bytes)
+**Size**: `348` lines
 
 **Classes:**
 - `class CatalogTests`
@@ -706,7 +706,7 @@
 ---
 
 ### [`tests/test_cli.py`](tests/test_cli.py)
-**Size**: `285` lines (`10678` bytes)
+**Size**: `285` lines
 
 **Classes:**
 - `class CountingProvider`
@@ -747,7 +747,7 @@
 ---
 
 ### [`tests/test_doctor.py`](tests/test_doctor.py)
-**Size**: `133` lines (`5522` bytes)
+**Size**: `133` lines
 
 **Classes:**
 - `class DoctorTests`
@@ -773,7 +773,7 @@
 ### [`tests/test_export.py`](tests/test_export.py)
 > *Export: stream any PCM WAV to the mono 16-bit file an engine loader accepts.*
 
-**Size**: `354` lines (`16295` bytes)
+**Size**: `354` lines
 
 **Classes:**
 - `class ExportCase`
@@ -831,7 +831,7 @@
 ---
 
 ### [`tests/test_judges.py`](tests/test_judges.py)
-**Size**: `169` lines (`7329` bytes)
+**Size**: `169` lines
 
 **Classes:**
 - `class FakeHttp`
@@ -870,7 +870,7 @@
 ### [`tests/test_license.py`](tests/test_license.py)
 > *License documents: resolvable pointers, current operative text and mirror identity.*
 
-**Size**: `43` lines (`1660` bytes)
+**Size**: `43` lines
 
 **Classes:**
 - `class LicenseDocumentTests`
@@ -885,7 +885,7 @@
 ---
 
 ### [`tests/test_net.py`](tests/test_net.py)
-**Size**: `201` lines (`8700` bytes)
+**Size**: `201` lines
 
 **Classes:**
 - `class FlakyClient`
@@ -922,7 +922,7 @@
 ---
 
 ### [`tests/test_pipeline.py`](tests/test_pipeline.py)
-**Size**: `429` lines (`17436` bytes)
+**Size**: `429` lines
 
 **Classes:**
 - `class FailingJudge`
@@ -978,7 +978,7 @@
 ---
 
 ### [`tests/test_providers.py`](tests/test_providers.py)
-**Size**: `208` lines (`8718` bytes)
+**Size**: `208` lines
 
 **Classes:**
 - `class FakeHttp`
@@ -1012,7 +1012,7 @@
 ---
 
 ### [`tests/test_rejudge.py`](tests/test_rejudge.py)
-**Size**: `187` lines (`8473` bytes)
+**Size**: `187` lines
 
 **Classes:**
 - `class FailingJudge`
@@ -1040,7 +1040,7 @@
 ### [`tests/test_resample.py`](tests/test_resample.py)
 > *Sample-rate conversion: an anti-alias filter when downsampling, exact whatever the chunking.*
 
-**Size**: `174` lines (`7610` bytes)
+**Size**: `174` lines
 
 **Classes:**
 - `class KernelTests`
@@ -1074,7 +1074,7 @@
 ---
 
 ### [`tests/test_types.py`](tests/test_types.py)
-**Size**: `206` lines (`8413` bytes)
+**Size**: `206` lines
 
 **Classes:**
 - `class MusicRequestTests`
