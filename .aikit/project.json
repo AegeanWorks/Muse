@@ -68,5 +68,11 @@
     "source-available",
     "aegean-license",
     "commercial-license"
-  ]
+  ],
+  "archived": true,
+  "archived_at": "2026-11-22",
+  "archive_reason": "No further development is planned; the project is complete and its full history has been audited.",
+  "archive_repo": "AegeanWorks/Muse",
+  "archive_description": "[ARCHIVED] Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme and can retry using the judge's own suggestions, exposed as a CLI (single tracks or a JSON batch) and Python library.",
+  "archive_origin": "projects/muse"
 }

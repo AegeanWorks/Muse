@@ -8,6 +8,8 @@
 
 Prompt-driven AI music creation with an automated listener that scores how well each track fits the theme and can retry using the judge's own suggestions, exposed as a CLI (single tracks or a JSON batch) and Python library.
 
+> **Archived**: No further development is planned; the project is complete and its full history has been audited. (archived 2026-11-22). This project is read-only; its GitHub repository is archived.
+
 ## ⚡ 30-Second Cold-Start Quick Reference
 
 - **Runtime Prerequisites**: Python 3.10+ (standard library only; nothing to `pip install`) and network access for the hosted providers.
