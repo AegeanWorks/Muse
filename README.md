@@ -418,6 +418,7 @@ empty run folder.
 muse/
 ├── pyproject.toml            <- zero-dependency packaging, `muse` console script
 ├── .gitignore                <- generated output and transient state excluded
+├── .gitattributes            <- LF line endings (ADR-454)
 ├── AGENTS.md                 <- agent contract: JSON fields, exit codes, cost rules
 ├── LICENSE                   <- Aegean License 1.1 (AL-1.1): free personal use
 ├── LICENSES/                 <- REUSE license texts
